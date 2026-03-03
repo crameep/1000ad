@@ -621,11 +621,17 @@
         initAjaxForms();
         initToastToggle();
 
-        // Convert server-side flash message to toast (if present)
+        // Convert server-side flash message to toast or report box
         var flashEl = document.querySelector('.eflag-message');
         if (flashEl) {
-            Toast.show(flashEl.innerHTML, 'info', 8000);
+            var html = flashEl.innerHTML;
             flashEl.remove();
+            if (Toast.muted) {
+                // When muted, show in the report box instead
+                TurnReport.show(html);
+            } else {
+                Toast.show(html, 'info', 8000);
+            }
         }
 
         // Set favicon badge from server data
