@@ -1,0 +1,175 @@
+/* 1000 A.D. Game Styles - Ported from original ColdFusion inline styles */
+
+body {
+    background-color: #2b2b2b;
+    color: white;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: #00ccff;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: #00ccff;
+}
+
+/* Header cells */
+.HEADER {
+    background-color: darkslategray;
+    color: white;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+    padding: 2px 4px;
+}
+
+/* Small text */
+.SMALL {
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 10px;
+    color: white;
+}
+
+/* Form inputs */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    background-color: #1a1a2e;
+    color: white;
+    border: 1px solid darkslategray;
+    padding: 2px 4px;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+}
+
+input[type="submit"],
+input[type="button"] {
+    background-color: darkslategray;
+    color: white;
+    border: 1px outset #666;
+    cursor: pointer;
+    padding: 2px 8px;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+}
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    background-color: #3a6b6b;
+}
+
+/* Tables */
+table {
+    border-color: darkslategray;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px;
+}
+td {
+    color: white;
+    padding: 1px 3px;
+}
+
+/* Resource bar */
+.resource-bar {
+    background-color: #1a1a2e;
+    border: 1px solid darkslategray;
+    padding: 4px 8px;
+    font-size: 11px;
+}
+.resource-bar .resource-item {
+    display: inline-block;
+    margin-right: 12px;
+}
+
+/* Game layout */
+.game-header {
+    background-color: #1a1a2e;
+    border-bottom: 2px solid darkslategray;
+    padding: 4px 8px;
+}
+.game-content {
+    padding: 5px;
+}
+.game-footer {
+    background-color: #1a1a2e;
+    border-top: 1px solid darkslategray;
+    padding: 4px;
+    text-align: center;
+    font-size: 10px;
+    color: gray;
+}
+
+/* Menu sidebar */
+.menu-sidebar {
+    background-color: #1a1a2e;
+    border-right: 1px solid darkslategray;
+    width: 140px;
+    vertical-align: top;
+    padding: 4px;
+}
+.menu-sidebar a {
+    display: block;
+    padding: 3px 5px;
+    font-size: 11px;
+    color: #00ccff;
+}
+.menu-sidebar a:hover {
+    background-color: darkslategray;
+}
+.menu-sidebar a.active {
+    color: yellow;
+    font-weight: bold;
+}
+
+/* Flash messages */
+.flash-message {
+    background-color: #1a1a2e;
+    border: 1px solid #ffcc00;
+    color: #ffcc00;
+    padding: 8px;
+    margin: 5px 0;
+    font-size: 11px;
+}
+.flash-error {
+    border-color: red;
+    color: red;
+}
+
+/* Score colors */
+.score-self { color: aqua; }
+.score-protected { color: yellow; }
+.score-alliance { color: fuchsia; }
+.score-ally { color: peachpuff; }
+.score-enemy { color: crimson; }
+.score-default { color: white; }
+
+/* Context menu */
+.context-menu {
+    display: none;
+    position: absolute;
+    border: 2px outset;
+    background-color: silver;
+    z-index: 1000;
+}
+.context-menu td {
+    font-family: Verdana, Arial, sans-serif;
+    color: black;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+.context-menu td:hover {
+    background-color: blue;
+    color: white;
+}
+
+/* Number formatting helper */
+.num-positive { color: #00ff00; }
+.num-negative { color: #ff4444; }

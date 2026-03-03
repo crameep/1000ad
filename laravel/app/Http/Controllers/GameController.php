@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\PlayerMessage;
+use App\Services\TurnService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * Game Controller
+ *
+ * Handles the main game page, news management, and turn processing.
+ * Ported from main.cfm, eflag_main.cfm, eflag_endturn.cfm
+ *
+ * Original: Andrew Deren, (C) AderSoftware 2000, 2001
+ */
+class GameController extends Controller
+{
+    protected TurnService $turnService;
+
+    public function __construct(TurnService $turnService)
+    {
+        $this->turnService = $turnService;
+    }
+
+    /**
+     * Index route - redirect to main page.
+     */
+    public function index()
+    {
+        return redirect()->route('game.main');
+    }
+
+    /**
+     * Show the main game page.
+     * Ported from main.cfm
+     */
+    public function main()
+    {
+        $player = Auth::user();
+
+        // Clear hasMainNews flag
+        $player->update(['has_main_news' => false]);
+
+        // Get attack news (messageType=1)
+        $news = PlayerMessage::where('message_type', 1)
+            ->where('to_player_id', $player->id)
+            ->orderBy('created_on', 'desc')
+            ->get();
+
+        return view('pages.main', compact('news'));
+    }
+
+    /**
+     * Delete a single news message.
+     * Ported from eflag_main.cfm eflag=delete_news
+     */
+    public function deleteNews($id)
+    {
+        $player = Auth::user();
+
+        PlayerMessage::where('id', $id)
+            ->where('to_player_id', $player->id)
+            ->update(['message_type' => 3]);
+
+        return redirect()->route('game.main');
+    }
+
+    /**
+     * Delete all attack news messages.
+     * Ported from eflag_main.cfm eflag=delete_allnews
+     */
+    public function deleteAllNews()
+    {
+        $player = Auth::user();
+
+        PlayerMessage::where('to_player_id', $player->id)
+            ->where('message_type', 1)
+            ->update(['message_type' => 3]);
+
+        return redirect()->route('game.main');
+    }
+
+    /**
+     * End a single turn.
+     * Ported from eflag_endturn.cfm eflag=end_turn
+     */
+    public function endTurn()
+    {
+        $player = Auth::user();
+
+        if ($player->killed_by > 0) {
+            session()->flash('game_message', 'Sorry, but you\'re already dead.');
+            return redirect()->route('game.main');
+        }
+
+        if ($player->turns_free > 0) {
+            $message = $this->turnService->processTurn($player);
+            if ($message) {
+                session()->flash('game_message', $message);
+            }
+        } else {
+            $minutesPerTurn = config('game.minutes_per_turn');
+            session()->flash('game_message', "You do not have any months remaining (1 free month every {$minutesPerTurn} minutes)");
+        }
+
+        return redirect()->route('game.main');
+    }
+
+    /**
+     * End multiple turns at once.
+     * Ported from eflag_endturn.cfm eflag=end_x_turns
+     */
+    public function endMultipleTurns(Request $request)
+    {
+        $player = Auth::user();
+
+        if ($player->killed_by > 0) {
+            session()->flash('game_message', 'Sorry, but you\'re already dead.');
+            return redirect()->route('game.main');
+        }
+
+        $request->validate([
+            'turns' => 'required|integer|min:1|max:12',
+        ]);
+
+        $qty = min((int) $request->turns, 12);
+
+        if ($qty <= 0) {
+            session()->flash('game_message', 'Cannot end less than 0 turns.');
+            return redirect()->route('game.main');
+        }
+
+        $messages = '';
+
+        for ($i = 0; $i < $qty; $i++) {
+            $player->refresh();
+
+            if ($player->turns_free <= 0) {
+                $messages .= 'No more turns left...';
+                break;
+            }
+
+            $turnMessage = $this->turnService->processTurn($player);
+            if ($turnMessage) {
+                $messages .= $turnMessage;
+            }
+        }
+
+        if (!empty($messages)) {
+            session()->flash('game_message', $messages);
+        }
+
+        return redirect()->route('game.main');
+    }
+}
