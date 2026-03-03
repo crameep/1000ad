@@ -14,22 +14,17 @@
 @section('content')
 <div class="panel">
     <div class="panel-header">Forgot Password</div>
-    <div class="panel-body" style="text-align:center;">
+    <div class="panel-body text-center">
         <br>
         <form action="{{ route('password.forgot.submit') }}" method="POST">
             @csrf
-            <table style="margin:0 auto;">
-            <tr>
-                <td>E-mail address:</td>
-                <td><input type="email" name="email" size="30" maxlength="50" value="{{ old('email') }}"></td>
-            </tr>
-            <tr>
-                <td colspan="2" style="text-align:center;">
-                    <br>
-                    <input type="submit" value="Send New Password">
-                </td>
-            </tr>
-            </table>
+            <div style="margin-bottom:8px;">
+                <label>E-mail address:</label><br>
+                <input type="email" name="email" maxlength="50" value="{{ old('email') }}" style="width:250px;">
+            </div>
+            <div>
+                <input type="submit" value="Send New Password">
+            </div>
         </form>
         <br>
     </div>

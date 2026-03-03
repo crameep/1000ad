@@ -1,11 +1,13 @@
 @extends('layouts.game')
 
 @section('content')
-<table width="100%" cellpadding="2" cellspacing="0">
-    <tr>
-        <td class="header" colspan="8">Battle Scores - Top 25</td>
-    </tr>
-    <tr style="background-color: #333;">
+<div class="page-title-bar">
+    <h2>Battle Scores - Top 25</h2>
+</div>
+
+<div class="table-scroll">
+<table class="game-table">
+    <tr class="bg-header">
         <td class="small"><b>#</b></td>
         <td class="small"><b>Empire</b></td>
         <td class="small">
@@ -45,16 +47,17 @@
     </tr>
     @empty
     <tr>
-        <td colspan="8" class="small" style="text-align: center;">No battle data yet.</td>
+        <td colspan="8" class="small text-center">No battle data yet.</td>
     </tr>
     @endforelse
 </table>
+</div>
 
 @if($myStats)
 <br>
-<table width="100%" cellpadding="2" cellspacing="0">
+<table class="game-table">
     <tr>
-        <td class="header" colspan="2">Your Battle Stats</td>
+        <td class="bg-header" colspan="2">Your Battle Stats</td>
     </tr>
     <tr>
         <td class="small" width="50%">Total Battles:</td>
@@ -76,7 +79,7 @@
 @endif
 
 <br>
-<div style="text-align: center;">
+<div class="text-center">
     <a href="{{ route('game.scores') }}">Empire Scores</a> |
     <a href="{{ route('game.alliance-scores') }}">Alliance Scores</a> |
     <a href="{{ route('game.recent-battles') }}">Recent Battles</a>

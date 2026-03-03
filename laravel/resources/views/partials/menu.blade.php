@@ -1,19 +1,20 @@
-{{-- Left navigation menu - ported from left_menu.cfm --}}
+{{-- Left navigation menu --}}
 <div class="panel">
     <div class="panel-header">Menu</div>
-    <div class="panel-body">
-        <form action="{{ route('game.end-turns') }}" method="POST" id="endTurnForm">
-            @csrf
-            End <input type="number" name="turns" value="1" min="1" max="12" size="3" style="width:40px"> Turn(s)
-            <input type="submit" value="   Go   ">
-        </form>
-        <br>
+    <div class="panel-body" style="padding:0;">
+        <div class="end-turn-form">
+            <form action="{{ route('game.end-turns') }}" method="POST" id="endTurnForm">
+                @csrf
+                End <input type="number" name="turns" value="1" min="1" max="12" style="width:45px;"> Turn(s)
+                <input type="submit" value="Go">
+            </form>
+        </div>
 
         <ul class="menu-list">
             <li>
                 <a href="{{ route('game.main') }}">
                     @if($player->has_main_news)
-                        <span style="color:red">MAIN</span>
+                        <span class="text-error">&#9888; MAIN</span>
                     @else
                         Main
                     @endif
@@ -22,7 +23,7 @@
             <li>
                 <a href="{{ route('game.messages') }}">
                     @if($player->has_new_messages)
-                        <span style="color:red">NEW MESSAGE</span>
+                        <span class="text-error">&#9993; NEW MESSAGE</span>
                     @else
                         Messages
                     @endif
@@ -41,7 +42,7 @@
                 <li>
                     <a href="{{ route('game.alliance') }}">
                         @if($player->has_alliance_news)
-                            <span style="color:red">ALLIANCE</span>
+                            <span class="text-error">&#9888; ALLIANCE</span>
                         @else
                             Alliance
                         @endif
@@ -54,17 +55,14 @@
             <li><a href="{{ route('game.scores') }}">Scores</a></li>
             <li><a href="{{ route('game.localtrade') }}">Local Trade</a></li>
             @if(!$deathmatchMode)
-                <li>Public Market<br>
-                    &nbsp;&nbsp;&nbsp;
-                    <a href="{{ route('game.market', ['type' => 'sell']) }}">Sell</a> |
-                    <a href="{{ route('game.market', ['type' => 'buy']) }}">Buy</a>
+                <li>
+                    <a href="{{ route('game.market', ['type' => 'sell']) }}">Public Market</a>
                 </li>
             @endif
-            <br>
             <li><a href="{{ route('game.search') }}">Search</a></li>
             <li><a href="{{ route('game.account') }}">Account Options</a></li>
             <li>
-                <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+                <form action="{{ route('logout') }}" method="POST" class="inline-form">
                     @csrf
                     <a href="#" onclick="this.closest('form').submit(); return false;">Logout</a>
                 </form>

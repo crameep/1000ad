@@ -2,70 +2,67 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%" style="font-size:16px;"><b>Research</b></td>
-    <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('research')">Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Research</h2>
+    <a href="javascript:openHelp('research')" class="help-link">Help</a>
+</div>
 
 <br>
 
 @if(!$hasMageTowers)
-    <font face="verdana" size="2" color="red">
+    <span class="text-error">
     <b>Build mage towers to start research.</b>
-    </font>
+    </span>
     <br>
     <br>
 @else
-    <font face="verdana" size="2">
+    <span class="text-body">
     You have a total of {{ $totalResearchLevels }} research levels.<br>
-    </font>
+    </span>
     <br>
     <br>
 
     {{-- Current research selection --}}
-    <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray" width="100%">
+    <div class="form-panel">
+    <div class="form-header">Current Research:</div>
+    <div class="form-body">
     <form action="{{ route('game.research.change') }}" method="POST">
         @csrf
-    <tr>
-        <td class="header">Current Research:</td>
-    </tr>
-    <tr>
-        <td valign="middle">
-            Set current research:
-            <select name="newCurrentResearch" style="font-size:xx-small">
-                <option value="0">--- None ---</option>
-                @foreach($researchNames as $id => $name)
-                    <option value="{{ $id }}" @if($id == $player->current_research) selected @endif>{{ $name }}</option>
-                @endforeach
-            </select>
+        Set current research:
+        <select name="newCurrentResearch">
+            <option value="0">--- None ---</option>
+            @foreach($researchNames as $id => $name)
+                <option value="{{ $id }}" @if($id == $player->current_research) selected @endif>{{ $name }}</option>
+            @endforeach
+        </select>
 
-            @if($player->current_research > 0)
-                <br>
-                {{ number_format($player->research_points) }} out of {{ number_format($nextLevelPoints) }}
-                ({{ number_format($percent, 2) }}% complete)
-                <br>
-                <font face="verdana" size="1">
-                You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
-                <br>and using {{ number_format($goldCost) }} gold every month.
-                @if($researchProduced > 0)
-                    <br>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.
-                @endif
-                </font>
+        @if($player->current_research > 0)
+            <br>
+            {{ number_format($player->research_points) }} out of {{ number_format($nextLevelPoints) }}
+            ({{ number_format($percent, 2) }}% complete)
+            <br>
+            <span class="text-small">
+            You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
+            <br>and using {{ number_format($goldCost) }} gold every month.
+            @if($researchProduced > 0)
+                <br>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.
             @endif
-        </td>
-    </tr>
-    <tr><td align="center"><input type="submit" value="Change Research"></td></tr>
+            </span>
+        @endif
+    </div>
+    <div class="form-footer">
+        <input type="submit" value="Change Research">
+    </div>
     </form>
-    </table>
+    </div>
 
     <br>
     <br>
 @endif
 
 {{-- Research levels table --}}
-<table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+<div class="table-scroll">
+<table class="game-table">
 <tr>
     <td class="header">Research Name</td>
     <td class="header">Current</td>
@@ -86,4 +83,5 @@
 @endforeach
 
 </table>
+</div>
 @endsection

@@ -2,12 +2,10 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="88%" style="font-size:16px;"><b>Main</b></td>
-    <td class="header" align="center" width="12%"><b><a href="javascript:openHelp('home')">Game Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Main</h2>
+    <a href="javascript:openHelp('home')" class="help-link">Game Help</a>
+</div>
 
 <br>
 
@@ -18,11 +16,11 @@
 
 {{-- Attack news --}}
 @foreach($news as $item)
-    <hr noshade size="1" style="border:none; border-top:1px solid #666;">
+    <hr>
     <div>
         {!! $item->message !!}<br>
         <span style="font-size:10px;">
-            <form action="{{ route('game.main.delete-news', $item->id) }}" method="POST" style="display:inline;">
+            <form action="{{ route('game.main.delete-news', $item->id) }}" method="POST" class="inline-form">
                 @csrf
                 <a href="#" onclick="this.closest('form').submit(); return false;">Delete Message</a>
             </form>
@@ -35,7 +33,7 @@
 
 @if($news->count() > 1)
     <span style="font-size:10px;">
-        <form action="{{ route('game.main.delete-all-news') }}" method="POST" style="display:inline;">
+        <form action="{{ route('game.main.delete-all-news') }}" method="POST" class="inline-form">
             @csrf
             <a href="#" onclick="this.closest('form').submit(); return false;">Delete All News</a>
         </form>

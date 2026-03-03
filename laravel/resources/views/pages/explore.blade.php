@@ -2,21 +2,19 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%" style="font-size:16px;"><b>Explore</b></td>
-    <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('explore')">Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Explore</h2>
+    <a href="javascript:openHelp('explore')" class="help-link">Help</a>
+</div>
 
 <br>
 <br>
 
 {{-- Exploration queue table --}}
 @if($explorations->isEmpty())
-    <font face="verdana" size="2">You do not have any explorers sent.<br></font>
+    <span class="text-body">You do not have any explorers sent.<br></span>
 @else
-    <table border="1" cellspacing="1" cellpadding="1" bordercolor="darkslategray">
+    <table class="game-table">
     <tr>
         <td class="header">No. explorers</td>
         <td class="header">Land Sought</td>
@@ -27,7 +25,7 @@
     <tr>
         <td valign="top">
             @if($e->turn == 0)
-                <font color="red">DONE</font>
+                <span class="text-error">DONE</span>
             @else
                 {{ number_format($e->people) }}
             @endif
@@ -43,7 +41,7 @@
             {{ $e->turn }}
             @if($e->turns_used == 0 && $e->created_on && $e->created_on->gt($cancelTime))
                 <br>
-                <form action="{{ route('game.explore.send') }}" method="POST" style="display:inline;">
+                <form action="{{ route('game.explore.send') }}" method="POST" class="inline-form">
                     @csrf
                     <input type="hidden" name="eflag" value="cancelExplore">
                     <input type="hidden" name="eID" value="{{ $e->id }}">
@@ -75,32 +73,30 @@ You have {{ number_format($player->horses) }} horses.<br>
 <br>
 
 {{-- Send explorers form --}}
-<table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
-<tr><td class="header">
+<div class="form-panel">
+<div class="form-body">
 <form action="{{ route('game.explore.send') }}" method="POST">
     @csrf
     <input type="hidden" name="eflag" value="send_explorers">
-    <font face="verdana" size="2">
-    Send <input type="text" size="5" value="{{ $canSend }}" name="qty" style="font-size:xx-small"> explorers
+    Send <input type="text" size="5" value="{{ $canSend }}" name="qty"> explorers
     with
-    <select name="withHorses" style="font-size:xx-small">
+    <select name="withHorses">
         <option value="0" @if($lastHorseSetting == 0) selected @endif>No Horses</option>
         <option value="1" @if($lastHorseSetting == 1) selected @endif>1X Horses</option>
         <option value="2" @if($lastHorseSetting == 2) selected @endif>2X Horses</option>
         <option value="3" @if($lastHorseSetting == 3) selected @endif>3X Horses</option>
     </select>
     to look for
-    <select name="seekLand" style="font-size:xx-small">
+    <select name="seekLand">
         <option value="0" selected>All Land</option>
         <option value="1">Mountain Land</option>
         <option value="2">Forest Land</option>
         <option value="3">Plains Land</option>
     </select>
-    <input type="submit" value="Send" style="font-size:xx-small">
-    </font>
+    <input type="submit" value="Send">
 </form>
-</td></tr>
-</table>
+</div>
+</div>
 
 <br>
 @endsection

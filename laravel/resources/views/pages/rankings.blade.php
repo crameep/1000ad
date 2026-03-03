@@ -5,17 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1000 A.D. Rankings</title>
-    <style>
-        body { background-color: #000; color: #fff; font-family: Verdana, sans-serif; font-size: 12px; }
-        a { color: aqua; text-decoration: none; }
-        a:hover { color: red; }
-        td { font-family: Verdana, sans-serif; font-size: 10px; }
-        td.header {
-            background-color: darkslategray;
-            color: white;
-            font-size: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/game.css">
 </head>
 <body>
 
@@ -25,17 +15,18 @@
     There are {{ $totalPlayers }} players in the game.<br>
     <br>
 
-    <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;">
+    <div class="table-scroll">
+    <table class="game-table">
     <tr>
-        <td style="background-color:darkslategray;"><span style="color:white;">&nbsp;</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Player</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Civilization</span></td>
+        <td class="bg-header"><span class="text-white">&nbsp;</span></td>
+        <td class="bg-header"><span class="text-white">Player</span></td>
+        <td class="bg-header"><span class="text-white">Civilization</span></td>
         @if(!$deathmatchMode && $allianceMaxMembers > 0)
-        <td style="background-color:darkslategray;"><span style="color:white;">Alliance</span></td>
+        <td class="bg-header"><span class="text-white">Alliance</span></td>
         @endif
-        <td style="background-color:darkslategray;"><span style="color:white;">R/L</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Land</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Score</span></td>
+        <td class="bg-header"><span class="text-white">R/L</span></td>
+        <td class="bg-header"><span class="text-white">Land</span></td>
+        <td class="bg-header"><span class="text-white">Score</span></td>
     </tr>
     @foreach($players as $idx => $p)
     @php
@@ -55,7 +46,7 @@
         </span></td>
         @endif
         @if($p->total_land <= 0)
-        <td align="center" colspan="5"><span style="color:red;"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></span></td>
+        <td align="center" colspan="5"><span class="text-danger"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></span></td>
         @else
         <td align="right"><span style="color:{{ $color }};">{{ number_format($p->research_levels) }}</span></td>
         <td align="right"><span style="color:{{ $color }};">{{ number_format($p->total_land) }}</span></td>
@@ -63,35 +54,38 @@
         @endif
     </tr>
     @if(($idx + 1) % 5 === 0)
-    <tr><td colspan="9" style="background-color:darkslategray;" height="10"></td></tr>
+    <tr><td colspan="9" class="bg-header" height="10"></td></tr>
     @endif
     @endforeach
     </table>
+    </div>
 
 @else
     {{-- Alliance Rankings --}}
-    <span style="font-size:16px;"><b>Alliance Scores</b></span><br>
+    <span class="text-lg"><b>Alliance Scores</b></span><br>
     (with at least 3 members)<br><br>
 
     @if(isset($alliances) && $alliances->count() > 0)
-    <table border="1" cellpadding="2" cellspacing="0" style="border-color:darkslategray;">
+    <div class="table-scroll">
+    <table class="game-table">
     <tr>
-        <td class="header">#</td>
-        <td class="header">Alliance</td>
-        <td class="header">Members</td>
-        <td class="header">Avg. Score</td>
-        <td class="header">Total Score</td>
+        <td class="bg-header">#</td>
+        <td class="bg-header">Alliance</td>
+        <td class="bg-header">Members</td>
+        <td class="bg-header">Avg. Score</td>
+        <td class="bg-header">Total Score</td>
     </tr>
     @foreach($alliances as $idx => $a)
     <tr>
-        <td nowrap align="right">{{ $idx + 1 }}&nbsp;</td>
-        <td nowrap>{{ $a->tag }}</td>
-        <td nowrap align="right">{{ $a->members }}</td>
-        <td nowrap align="right">{{ number_format((int)$a->avg_score) }}</td>
-        <td nowrap align="right">{{ number_format((int)$a->total_score) }}</td>
+        <td class="nowrap" align="right">{{ $idx + 1 }}&nbsp;</td>
+        <td class="nowrap">{{ $a->tag }}</td>
+        <td class="nowrap" align="right">{{ $a->members }}</td>
+        <td class="nowrap" align="right">{{ number_format((int)$a->avg_score) }}</td>
+        <td class="nowrap" align="right">{{ number_format((int)$a->total_score) }}</td>
     </tr>
     @endforeach
     </table>
+    </div>
     @else
         There are no alliances with at least 3 members.
     @endif

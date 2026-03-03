@@ -2,53 +2,45 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="100%" style="font-size:16px;"><b>Account Options</b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Account Options</h2>
+</div>
 <br>
 
 {{-- Change Login Name --}}
-<table border="0" cellspacing="0" cellpadding="2" style="border:thin outset;">
+<div class="form-panel">
 <form action="{{ route('game.account.login') }}" method="POST">
     @csrf
-<tr>
-    <td colspan="2" style="background-color:darkslategray;">Change Login Name</td>
-</tr>
-<tr><td colspan="2"><span style="font-size:10px;">Changing your login name does not change your Empire name</span></td></tr>
-<tr>
-    <td>Login Name:</td>
-    <td><input type="text" name="newLogin" size="30" maxlength="30" value="{{ $player->login_name }}"></td>
-</tr>
-<tr><td colspan="2" align="center"><input type="submit" value="Change Login"></td></tr>
+<div class="bg-header" style="padding:4px;">Change Login Name</div>
+<div style="padding:4px;">
+    <span class="text-small">Changing your login name does not change your Empire name</span><br><br>
+    <label>Login Name:</label>
+    <input type="text" name="newLogin" size="30" maxlength="30" value="{{ $player->login_name }}">
+    <br><br>
+    <div class="text-center"><input type="submit" value="Change Login"></div>
+</div>
 </form>
-</table>
+</div>
 
 <br><br>
 
 {{-- Change Password --}}
-<table border="0" cellspacing="0" cellpadding="2" style="border:thin outset;">
+<div class="form-panel">
 <form action="{{ route('game.account.password') }}" method="POST">
     @csrf
-<tr>
-    <td colspan="2" style="background-color:darkslategray;">Change Password</td>
-</tr>
-<tr>
-    <td>Current Password:</td>
-    <td><input type="password" name="curPassword" size="20" maxlength="30"></td>
-</tr>
-<tr>
-    <td>New Password:</td>
-    <td><input type="password" name="newPassword" size="20" maxlength="30"></td>
-</tr>
-<tr>
-    <td>New Password (verify):</td>
-    <td><input type="password" name="newPassword2" size="20" maxlength="30"></td>
-</tr>
-<tr><td colspan="2" align="center"><input type="submit" value="Change Password"></td></tr>
+<div class="bg-header" style="padding:4px;">Change Password</div>
+<div style="padding:4px;">
+    <label>Current Password:</label>
+    <input type="password" name="curPassword" size="20" maxlength="30"><br>
+    <label>New Password:</label>
+    <input type="password" name="newPassword" size="20" maxlength="30"><br>
+    <label>New Password (verify):</label>
+    <input type="password" name="newPassword2" size="20" maxlength="30">
+    <br><br>
+    <div class="text-center"><input type="submit" value="Change Password"></div>
+</div>
 </form>
-</table>
+</div>
 
 <br><br>
 
@@ -66,21 +58,18 @@ function confirmDelete(form) {
 }
 </script>
 
-<table border="0" cellspacing="0" cellpadding="2" style="border:thin outset;">
+<div class="form-panel">
 <form action="{{ route('game.account.delete') }}" method="POST" onsubmit="return confirmDelete(this)">
     @csrf
-<tr>
-    <td colspan="2" style="background-color:darkslategray;">Delete My Empire</td>
-</tr>
-<tr>
-    <td>Login Name:</td>
-    <td><input type="text" name="lName" size="20" maxlength="30"></td>
-</tr>
-<tr>
-    <td>Current Password:</td>
-    <td><input type="password" name="curPassword" size="20" maxlength="30"></td>
-</tr>
-<tr><td colspan="2" align="center"><input type="submit" value="Delete Empire"></td></tr>
+<div class="bg-header" style="padding:4px;">Delete My Empire</div>
+<div style="padding:4px;">
+    <label>Login Name:</label>
+    <input type="text" name="lName" size="20" maxlength="30"><br>
+    <label>Current Password:</label>
+    <input type="password" name="curPassword" size="20" maxlength="30">
+    <br><br>
+    <div class="text-center"><input type="submit" value="Delete Empire"></div>
+</div>
 </form>
-</table>
+</div>
 @endsection

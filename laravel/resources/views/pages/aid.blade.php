@@ -2,25 +2,23 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%"><b>Aid</b></td>
-    <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('aid')">Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Aid</h2>
+    <a href="javascript:openHelp('aid')" class="help-link">Help</a>
+</div>
 
 {{-- Sending aid --}}
 You can send aid to your friends. You need market places to send goods.
 There is 5% fee for sending goods.
 <br>
 Your markets allow you to send {{ number_format($maxTrades) }} goods each month,
-@if($tradesRemaining == 0)<font color="red">@endif
+@if($tradesRemaining == 0)<span class="text-danger">@endif
 out of which {{ number_format($tradesRemaining) }} are still available.
-@if($tradesRemaining == 0)</font>@endif
+@if($tradesRemaining == 0)</span>@endif
 <br>
 <br>
 
-<table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+<table class="game-table">
 <form action="{{ route('game.aid.send') }}" method="POST">
     @csrf
     <tr>
@@ -84,7 +82,7 @@ out of which {{ number_format($tradesRemaining) }} are still available.
 
 {{-- Dispatched Caravans --}}
 @if($caravans->count() > 0)
-    <table border="1" cellpadding="1" cellspacing="0">
+    <table class="game-table">
     <tr>
         <td class="header">Dispatched Caravans:</td>
     </tr>
@@ -104,7 +102,7 @@ out of which {{ number_format($tradesRemaining) }} are still available.
                 and will reach their destination in {{ $caravan->turns_remaining }} turns.
                 <br>
                 @if($caravan->turns_remaining == 3 && $caravan->created_on && $caravan->created_on->gt($cancelCutoff))
-                    <form action="{{ route('game.aid.send') }}" method="POST" style="display:inline;">
+                    <form action="{{ route('game.aid.send') }}" method="POST" class="inline-form">
                         @csrf
                         <input type="hidden" name="action" value="cancel">
                         <input type="hidden" name="aid_id" value="{{ $caravan->id }}">
@@ -113,7 +111,7 @@ out of which {{ number_format($tradesRemaining) }} are still available.
                 @endif
 
                 @if(!$loop->last)
-                    <hr noshade size="1">
+                    <hr>
                 @endif
             </td>
         </tr>

@@ -7,37 +7,36 @@
     {{-- ============================================ --}}
     {{-- SELL MODE --}}
     {{-- ============================================ --}}
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-    <tr>
-        <td class="header" align="center" width="92%"><b>Global Market: Sell</b></td>
-        <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('trade')">Help</a></b></td>
-    </tr>
-    </table>
+    <div class="page-title-bar">
+        <h2>Global Market: Sell</h2>
+        <a href="javascript:openHelp('trade')" class="help-link">Help</a>
+    </div>
 
     You can send goods to the public market.<br>
     You need market places to send goods.<br>
     There is 5% fee after you sell the goods.
     <br>
     Your markets allow you to send {{ number_format($maxTrades) }} goods each month,<br>
-    @if($tradesRemaining == 0)<font color="red">@endif
+    @if($tradesRemaining == 0)<span class="text-danger">@endif
     out of which {{ number_format($tradesRemaining) }} are still available.
-    @if($tradesRemaining == 0)</font>@endif
+    @if($tradesRemaining == 0)</span>@endif
     <br>
     <br>
     [<a href="{{ route('game.market', ['type' => 'buy']) }}">Switch to Buy Mode</a>]
     <br>
     <br>
 
-    <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+    <div class="table-scroll">
+    <table class="game-table">
     <form action="{{ route('game.market.sell') }}" method="POST">
         @csrf
         <tr>
-            <td class="header">&nbsp;</td>
-            <td class="header">You Have</td>
-            <td class="header">Sell Amount</td>
-            <td class="header">Price <font size="1">(per unit)</font></td>
-            <td class="header">Min Price</td>
-            <td class="header">Max Price</td>
+            <td class="bg-header">&nbsp;</td>
+            <td class="bg-header">You Have</td>
+            <td class="bg-header">Sell Amount</td>
+            <td class="bg-header">Price <span class="text-small">(per unit)</span></td>
+            <td class="bg-header">Min Price</td>
+            <td class="bg-header">Max Price</td>
         </tr>
         @php
             $goods = [
@@ -62,19 +61,20 @@
             </tr>
         @endforeach
         <tr>
-            <td class="header" colspan="4" align="right"><input type="submit" value="    Sell    "></td>
-            <td class="header" colspan="2">&nbsp;</td>
+            <td class="bg-header" colspan="4" align="right"><input type="submit" value="    Sell    "></td>
+            <td class="bg-header" colspan="2">&nbsp;</td>
         </tr>
     </form>
     </table>
+    </div>
 
     <br><br>
 
     {{-- Dispatched Caravans --}}
     @if($caravans->count() > 0)
-        <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+        <table class="game-table">
         <tr>
-            <td class="header">Dispatched Caravans:</td>
+            <td class="bg-header">Dispatched Caravans:</td>
         </tr>
         @foreach($caravans as $caravan)
             <tr>
@@ -96,13 +96,13 @@
                     @endforeach
                     placed on the public market.
                     <br>
-                    <font size="1">
-                    <form action="{{ route('game.market.sell') }}" method="POST" style="display:inline;">
+                    <span class="text-small">
+                    <form action="{{ route('game.market.sell') }}" method="POST" class="inline-form">
                         @csrf
                         <input type="hidden" name="action" value="withdraw">
                         <input type="hidden" name="tid" value="{{ $caravan->id }}">
                         <a href="#" onclick="if(confirm('Withdraw from market? There is a 10% withdrawal fee.')) this.closest('form').submit(); return false;">Withdraw from market</a>
-                    </font>
+                    </span>
                     There is a 10% withdrawal fee.
                     </form>
                 @endif
@@ -116,12 +116,10 @@
     {{-- ============================================ --}}
     {{-- BUY MODE --}}
     {{-- ============================================ --}}
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-    <tr>
-        <td class="header" align="center" width="92%"><b>Global Market: Buy</b></td>
-        <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('trade')">Help</a></b></td>
-    </tr>
-    </table>
+    <div class="page-title-bar">
+        <h2>Global Market: Buy</h2>
+        <a href="javascript:openHelp('trade')" class="help-link">Help</a>
+    </div>
 
     [<a href="{{ route('game.market', ['type' => 'sell']) }}">Switch to Sell Mode</a>]
     <br><br>
@@ -138,42 +136,44 @@
         <br>
 
         @if($marketOffers[$good]->count() == 0)
-            <font color="red">There is no {{ $good }} available to buy.</font>
+            <span class="text-danger">There is no {{ $good }} available to buy.</span>
         @else
-            <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+            <div class="table-scroll">
+            <table class="game-table">
             <form action="{{ route('game.market.buy', ['id' => 0]) }}" method="POST">
                 @csrf
                 <input type="hidden" name="good" value="{{ $good }}">
                 <tr>
-                    <td class="header">Available</td>
-                    <td class="header">You can buy</td>
-                    <td class="header">Price <font size="1">(Per Unit)</font></td>
-                    <td class="header">Buy Qty.</td>
+                    <td class="bg-header">Available</td>
+                    <td class="bg-header">You can buy</td>
+                    <td class="bg-header">Price <span class="text-small">(Per Unit)</span></td>
+                    <td class="bg-header">Buy Qty.</td>
                 </tr>
                 @foreach($marketOffers[$good] as $offer)
                     <tr>
                         <td>{{ number_format($offer->stuff) }}</td>
                         <td>{{ number_format($offer->can_afford) }}</td>
                         <td>{{ number_format($offer->stuff_price) }}</td>
-                        <td><input type="text" size="8" name="qty{{ $offer->id }}" style="font-size:xx-small"></td>
+                        <td><input type="text" size="8" name="qty{{ $offer->id }}"></td>
                     </tr>
                 @endforeach
                 <tr>
-                    <td class="header" colspan="4" align="right">
-                        <input type="submit" value="Buy {{ ucfirst($good) }}" style="font-size:xx-small">
+                    <td class="bg-header" colspan="4" align="right">
+                        <input type="submit" value="Buy {{ ucfirst($good) }}">
                     </td>
                 </tr>
             </form>
             </table>
+            </div>
         @endif
     @endforeach
 
     {{-- Incoming Caravans --}}
     @if($incomingCaravans->count() > 0)
         <br><br>
-        <table border="1" cellpadding="1" cellspacing="0">
+        <table class="game-table">
         <tr>
-            <td class="header">Incoming Caravans:</td>
+            <td class="bg-header">Incoming Caravans:</td>
         </tr>
         @foreach($incomingCaravans as $caravan)
             <tr>

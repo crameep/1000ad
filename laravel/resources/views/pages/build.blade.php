@@ -2,16 +2,14 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%" style="font-size:16px;"><b>Buildings</b></td>
-    <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('buildings')">Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Buildings</h2>
+    <a href="javascript:openHelp('buildings')" class="help-link">Help</a>
+</div>
 <br>
 
 {{-- Build / Demolish Form --}}
-<table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+<table class="game-table">
 <tr>
     <td class="header">Build or Demolish Buildings</td>
 </tr>
@@ -106,7 +104,7 @@ function showBuild() {
 @if($buildQueue->count() > 0)
 <br>
 <b>Your Building Queue:</b>
-<table border="1" cellspacing="1" cellpadding="1" bordercolor="darkslategray">
+<table class="game-table">
 <tr>
     <td class="header">Building</td>
     <td class="header">No.</td>
@@ -125,20 +123,20 @@ function showBuild() {
         <td>{{ $bq->qty }}</td>
         <td>{{ $turnsNeeded }} turns ({{ $bq->time_needed }} builders)</td>
         <td>
-            <form action="{{ route('game.build.cancel') }}" method="POST" style="display:inline;">
+            <form action="{{ route('game.build.cancel') }}" method="POST" class="inline-form">
                 @csrf
                 <input type="hidden" name="q_id" value="{{ $bq->id }}">
                 <a href="#" onclick="this.closest('form').submit(); return false;">Cancel</a>
             </form>
         </td>
-        <td style="font-size:10px;">
-            <form action="{{ route('game.build.move-top') }}" method="POST" style="display:inline;">
+        <td>
+            <form action="{{ route('game.build.move-top') }}" method="POST" class="inline-form">
                 @csrf
                 <input type="hidden" name="q_id" value="{{ $bq->id }}">
                 <a href="#" onclick="this.closest('form').submit(); return false;">To Top</a>
             </form>
             |
-            <form action="{{ route('game.build.move-bottom') }}" method="POST" style="display:inline;">
+            <form action="{{ route('game.build.move-bottom') }}" method="POST" class="inline-form">
                 @csrf
                 <input type="hidden" name="q_id" value="{{ $bq->id }}">
                 <a href="#" onclick="this.closest('form').submit(); return false;">To Bottom</a>
@@ -150,7 +148,7 @@ function showBuild() {
 @if($buildQueue->count() > 1)
 <tr>
     <td colspan="5" align="center">
-        <form action="{{ route('game.build.cancel-all') }}" method="POST" style="display:inline;">
+        <form action="{{ route('game.build.cancel-all') }}" method="POST" class="inline-form">
             @csrf
             <a href="#" onclick="this.closest('form').submit(); return false;">Cancel All</a>
         </form>
@@ -166,7 +164,8 @@ function showBuild() {
 {{-- Building List Table --}}
 <form action="{{ route('game.build.status') }}" method="POST">
 @csrf
-<table border="1" cellspacing="1" cellpadding="1" bordercolor="darkslategray">
+<div class="table-scroll">
+<table class="game-table building-table">
 <tr>
     <td class="header">&nbsp;</td>
     <td class="header">Building</td>
@@ -174,9 +173,9 @@ function showBuild() {
     <td class="header">Land</td>
     <td class="header">Status</td>
     <td class="header">Working</td>
-    <td class="header">Workers</td>
-    <td class="header">Production</td>
-    <td class="header">Consumption</td>
+    <td class="header hide-mobile">Workers</td>
+    <td class="header hide-mobile">Production</td>
+    <td class="header hide-mobile">Consumption</td>
 </tr>
 @foreach($displayOrder as $i)
     @php
@@ -193,7 +192,7 @@ function showBuild() {
         {{-- Status dropdown or empty --}}
         @if($b['allow_off'])
             <td style="color:{{ $color }}">
-                <select name="{{ $b['db_column'] }}_status" style="font-size:10px;">
+                <select name="{{ $b['db_column'] }}_status">
                     @for($s = 0; $s <= 10; $s++)
                         @php $sIndex = $s * 10; @endphp
                         <option value="{{ $s }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }} %</option>
@@ -205,10 +204,10 @@ function showBuild() {
         @endif
 
         <td style="color:{{ $color }}" align="right">{{ number_format($stats['bWorking']) }}</td>
-        <td style="color:{{ $color }}" align="right">{{ number_format($stats['workers']) }}</td>
+        <td class="hide-mobile" style="color:{{ $color }}" align="right">{{ number_format($stats['workers']) }}</td>
 
         {{-- Production --}}
-        <td style="color:{{ $color }}; font-size:10px;">
+        <td class="hide-mobile" style="color:{{ $color }}">
             @if(!empty($stats['production']))
                 {!! $stats['production'] !!}
             @else
@@ -217,7 +216,7 @@ function showBuild() {
         </td>
 
         {{-- Consumption --}}
-        <td style="color:{{ $color }}; font-size:10px;">
+        <td class="hide-mobile" style="color:{{ $color }}">
             @if(!empty($stats['consumption']))
                 {!! $stats['consumption'] !!}
             @else
@@ -230,20 +229,21 @@ function showBuild() {
     <td class="header" colspan="2" align="right"><b>Totals</b></td>
     <td class="header" align="right">{{ number_format($totalBuildings) }}</td>
     <td class="header" align="right">{{ number_format($totalLand) }}</td>
-    <td class="header"><input type="submit" value="Update" style="font-size:10px; width:60px;"></td>
+    <td class="header"><input type="submit" value="Update" style="width:60px;"></td>
     <td class="header">&nbsp;</td>
-    <td class="header" align="right">{{ number_format($totalWorkers) }}</td>
-    <td class="header">&nbsp;</td>
-    <td class="header">&nbsp;</td>
+    <td class="header hide-mobile" align="right">{{ number_format($totalWorkers) }}</td>
+    <td class="header hide-mobile">&nbsp;</td>
+    <td class="header hide-mobile">&nbsp;</td>
 </tr>
 </table>
+</div>
 </form>
 
 <br>
 <br>
 
 {{-- Population Summary --}}
-<table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray">
+<table class="game-table">
 <tr><td colspan="2" class="header"><b>Population:</b></td></tr>
 <tr><td align="right">Total:</td><td>{{ number_format($player->people) }}</td></tr>
 <tr><td align="right">Working:</td><td>{{ number_format($totalWorkers) }}</td></tr>
@@ -251,7 +251,7 @@ function showBuild() {
 @if($free < 0)
     <tr>
         <td colspan="2">
-            <span style="color:red;">
+            <span class="text-error">
                 You do not have enough people for your production.<br>
                 You need additional {{ number_format(abs($free)) }} people.
             </span>

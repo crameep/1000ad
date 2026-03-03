@@ -1,68 +1,46 @@
-{{-- Resource bar - ported from index.cfm resource display --}}
+{{-- Resource bar --}}
 <div class="resource-bar">
-    <span>Score: {{ number_format($player->score) }}</span>
-    <span>Population: {{ number_format($player->people) }}</span>
-    <span>Gold: {{ number_format($player->gold) }}</span>
+    <span class="text-gold"><b>Score:</b> {{ number_format($player->score) }}</span>
+    <span><b>Pop:</b> {{ number_format($player->people) }}</span>
+    <span><b>Gold:</b> {{ number_format($player->gold) }}</span>
     <span>
-        <form action="{{ route('game.end-turn') }}" method="POST" style="display:inline;">
+        <form action="{{ route('game.end-turn') }}" method="POST" class="inline-form">
             @csrf
-            <a href="#" onclick="this.closest('form').submit(); return false;">END TURN</a>
+            <a href="#" onclick="this.closest('form').submit(); return false;"><b>END TURN</b></a>
         </form>
     </span>
 </div>
 
 {{-- Land and resources --}}
-<table style="width:100%; margin: 2px 0;">
-<tr>
-    <td>
-        <table style="border-collapse:collapse;">
-        <tr>
-            <td style="background:#633; padding:2px 4px;"><b>Total:</b></td>
-            <td style="background:#633; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/mland.gif" alt="Mountain" style="vertical-align:middle;">{{ number_format($player->mland) }}
-            </td>
-            <td style="background:#633; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/fland.gif" alt="Forest" style="vertical-align:middle;">{{ number_format($player->fland) }}
-            </td>
-            <td style="background:#633; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/pland.gif" alt="Plains" style="vertical-align:middle;">{{ number_format($player->pland) }}
-            </td>
-        </tr>
-        <tr>
-            <td style="background:#363; padding:2px 4px;"><b>Free:</b></td>
-            <td style="background:#363; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/mland_free.gif" alt="Free Mountain" style="vertical-align:middle;">{{ number_format($freeM) }}
-            </td>
-            <td style="background:#363; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/fland_free.gif" alt="Free Forest" style="vertical-align:middle;">{{ number_format($freeF) }}
-            </td>
-            <td style="background:#363; padding:2px 4px; white-space:nowrap;">
-                <img src="/images/pland_free.gif" alt="Free Plains" style="vertical-align:middle;">{{ number_format($freeP) }}
-            </td>
-        </tr>
-        </table>
-    </td>
-    <td style="text-align:right;">
-        <table style="border-collapse:collapse;">
-        <tr>
-            <td style="white-space:nowrap;" title="You have {{ number_format($player->wood) }} wood available">
-                <img src="/images/wood.gif" alt="Wood" style="vertical-align:middle;">{{ number_format($player->wood) }}
-            </td>
-            <td style="width:10px;">&nbsp;</td>
-            <td style="white-space:nowrap;" title="You have {{ number_format($player->iron) }} iron available">
-                <img src="/images/iron.gif" alt="Iron" style="vertical-align:middle;">{{ number_format($player->iron) }}
-            </td>
-        </tr>
-        <tr>
-            <td style="white-space:nowrap;" title="You have {{ number_format($player->food) }} food available">
-                <img src="/images/food.gif" alt="Food" style="vertical-align:middle;">{{ number_format($player->food) }}
-            </td>
-            <td style="width:10px;">&nbsp;</td>
-            <td style="white-space:nowrap;" title="You have {{ number_format($player->tools) }} tools available">
-                <img src="/images/tools.gif" alt="Tools" style="vertical-align:middle;">{{ number_format($player->tools) }}
-            </td>
-        </tr>
-        </table>
-    </td>
-</tr>
-</table>
+<div class="resource-panels">
+    <div class="land-panel">
+        <div class="land-row" style="margin-bottom:2px;">
+            <span class="land-total-cell land-label"><b>Total:</b></span>
+            <span class="land-total-cell"><img src="/images/mland.gif" alt="Mountain">{{ number_format($player->mland) }}</span>
+            <span class="land-total-cell"><img src="/images/fland.gif" alt="Forest">{{ number_format($player->fland) }}</span>
+            <span class="land-total-cell"><img src="/images/pland.gif" alt="Plains">{{ number_format($player->pland) }}</span>
+        </div>
+        <div class="land-row">
+            <span class="land-free-cell land-label"><b>Free:</b></span>
+            <span class="land-free-cell"><img src="/images/mland_free.gif" alt="Free Mountain">{{ number_format($freeM) }}</span>
+            <span class="land-free-cell"><img src="/images/fland_free.gif" alt="Free Forest">{{ number_format($freeF) }}</span>
+            <span class="land-free-cell"><img src="/images/pland_free.gif" alt="Free Plains">{{ number_format($freeP) }}</span>
+        </div>
+    </div>
+    <div class="goods-panel">
+        <div class="goods-grid">
+            <span class="resource-item" title="Wood: {{ number_format($player->wood) }}">
+                <img src="/images/wood.gif" alt="Wood"> {{ number_format($player->wood) }}
+            </span>
+            <span class="resource-item" title="Iron: {{ number_format($player->iron) }}">
+                <img src="/images/iron.gif" alt="Iron"> {{ number_format($player->iron) }}
+            </span>
+            <span class="resource-item" title="Food: {{ number_format($player->food) }}">
+                <img src="/images/food.gif" alt="Food"> {{ number_format($player->food) }}
+            </span>
+            <span class="resource-item" title="Tools: {{ number_format($player->tools) }}">
+                <img src="/images/tools.gif" alt="Tools"> {{ number_format($player->tools) }}
+            </span>
+        </div>
+    </div>
+</div>

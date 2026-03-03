@@ -2,20 +2,16 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="100%" style="font-size:16px;"><b>Status</b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Status</h2>
+</div>
 
 <br>
 
-<table border="0" cellspacing="0" cellpadding="0" align="left">
-<tr>
-    <td width="10">&nbsp;</td>
-    <td valign="top">
+<div class="status-grid">
+    <div class="status-card">
         {{-- Goods table --}}
-        <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;" width="150">
+        <table class="game-table">
         <tr>
             <td colspan="3" style="background-color:darkslategray;" align="center"><b>Goods</b></td>
         </tr>
@@ -69,20 +65,19 @@
             <td align="right" style="background-color:darkslategray;"><b>{{ number_format($totalGoods) }}</b></td>
         </tr>
         <tr>
-            <td colspan="2"><span style="font-size:10px;">Warehouse<br>space</span></td>
+            <td colspan="2"><span class="text-small">Warehouse<br>space</span></td>
             <td align="right">{{ number_format($warehouseSpace) }}</td>
         </tr>
         <tr>
-            <td colspan="2"><span style="font-size:10px;">@if($extraSpace < 0)Needed<br>space:@else Extra<br>Space:@endif</span></td>
+            <td colspan="2"><span class="text-small">@if($extraSpace < 0)Needed<br>space:@else Extra<br>Space:@endif</span></td>
             <td align="right">{{ number_format(abs($extraSpace)) }}</td>
         </tr>
         </table>
-        <br>
-    </td>
-    <td width="10">&nbsp;</td>
-    <td valign="top">
+    </div>
+
+    <div class="status-card">
         {{-- Army table --}}
-        <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;" width="150">
+        <table class="game-table">
         <tr>
             <td colspan="2" style="background-color:darkslategray;" align="center"><b>Army</b></td>
         </tr>
@@ -123,19 +118,19 @@
             <td align="right" style="background-color:darkslategray;"><b>{{ number_format($totalArmy) }}</b></td>
         </tr>
         <tr>
-            <td><span style="font-size:10px;">Fort Space</span></td>
+            <td><span class="text-small">Fort Space</span></td>
             <td align="right">{{ number_format($maxArmy) }}</td>
         </tr>
         <tr>
-            <td><span style="font-size:10px;">Free Space</span></td>
+            <td><span class="text-small">Free Space</span></td>
             <td align="right">{{ number_format($armyFreeSpace) }}</td>
         </tr>
         </table>
-    </td>
-    <td width="10">&nbsp;</td>
-    <td valign="top">
+    </div>
+
+    <div class="status-card">
         {{-- People table --}}
-        <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;" width="150">
+        <table class="game-table">
         <tr>
             <td colspan="2" style="background-color:darkslategray;" align="center"><b>People</b></td>
         </tr>
@@ -152,16 +147,16 @@
             <td align="right">{{ number_format($peopleFreeSpace) }}</td>
         </tr>
         </table>
-    </td>
-</tr>
-</table>
+    </div>
+</div>
 
-<br clear="all">
+<br>
 <br>
 
 {{-- Monthly Summary --}}
 Monthly Summary (approximately):
-<table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;">
+<div class="table-scroll">
+<table class="game-table">
 <tr>
     <td class="header">Goods</td>
     <td class="header">Total Gain/Loss</td>
@@ -216,4 +211,5 @@ Monthly Summary (approximately):
     <td align="right" class="small">---</td>
 </tr>
 </table>
+</div>
 @endsection

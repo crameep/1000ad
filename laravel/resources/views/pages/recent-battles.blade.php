@@ -2,37 +2,35 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%" style="font-size:16px;"><b>Recent Battles</b></td>
-    <td class="header" align="center" width="8%"><b></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Recent Battles</h2>
+</div>
 
 {{-- View Detail --}}
 @if($pageFlag === 'viewDetail' && $battleDetail)
     <br>
-    <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;">
+    <div class="table-scroll">
+    <table class="game-table">
     <tr>
-        <td style="background-color:darkslategray;"><span style="color:white;">Date/Time</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Attacker</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Defender</span></td>
-        <td style="background-color:darkslategray;"><span style="color:white;">Result</span></td>
+        <td class="bg-header"><span class="text-white">Date/Time</span></td>
+        <td class="bg-header"><span class="text-white">Attacker</span></td>
+        <td class="bg-header"><span class="text-white">Defender</span></td>
+        <td class="bg-header"><span class="text-white">Result</span></td>
     </tr>
     <tr>
-        <td valign="top"><span style="font-size:10px;">
+        <td valign="top"><span class="text-small">
             {{ $battleDetail->created_on->format('m/d/y') }}<br>{{ $battleDetail->created_on->format('h:i A') }}
         </span></td>
         <td valign="top">
             {{ $battleDetail->attacker_name }} ({{ $battleDetail->attack_id }})
             @if($battleDetail->attack_alliance)
-                <br><span style="font-size:10px;"><b>{{ $battleDetail->attack_alliance }}</b></span>
+                <br><span class="text-small"><b>{{ $battleDetail->attack_alliance }}</b></span>
             @endif
         </td>
         <td valign="top">
             {{ $battleDetail->defender_name }} ({{ $battleDetail->defense_id }})
             @if($battleDetail->defense_alliance)
-                <br><span style="font-size:10px;"><b>{{ $battleDetail->defense_alliance }}</b></span>
+                <br><span class="text-small"><b>{{ $battleDetail->defense_alliance }}</b></span>
             @endif
         </td>
         <td valign="top">
@@ -47,22 +45,24 @@
     <tr><td colspan="10">{!! $battleDetail->battle_details !!}</td></tr>
     @endif
     </table>
+    </div>
     <br>
 @endif
 
 {{-- Battle Results --}}
 @if($pageFlag === 'view_battles')
     @if($battles->isEmpty())
-        <span style="color:red;">No Battles found.</span><br>
+        <span class="text-danger">No Battles found.</span><br>
     @else
-        <table border="1" cellspacing="1" cellpadding="1" style="border-color:darkslategray;">
+        <div class="table-scroll">
+        <table class="game-table">
         <tr>
-            <td style="background-color:darkslategray;"><span style="color:white;">&nbsp;</span></td>
-            <td style="background-color:darkslategray;"><span style="color:white;">Date/Time</span></td>
-            <td style="background-color:darkslategray;"><span style="color:white;">Type</span></td>
-            <td style="background-color:darkslategray;"><span style="color:white;">Attacker</span></td>
-            <td style="background-color:darkslategray;"><span style="color:white;">Defender</span></td>
-            <td style="background-color:darkslategray;"><span style="color:white;">Result</span></td>
+            <td class="bg-header"><span class="text-white">&nbsp;</span></td>
+            <td class="bg-header"><span class="text-white">Date/Time</span></td>
+            <td class="bg-header"><span class="text-white">Type</span></td>
+            <td class="bg-header"><span class="text-white">Attacker</span></td>
+            <td class="bg-header"><span class="text-white">Defender</span></td>
+            <td class="bg-header"><span class="text-white">Result</span></td>
         </tr>
         @foreach($battles as $idx => $v)
         @php
@@ -76,8 +76,8 @@
             }
         @endphp
         <tr>
-            <td valign="top" align="right"><span style="font-size:10px;">{{ $idx + 1 }}.</span></td>
-            <td valign="top"><span style="font-size:10px;">
+            <td valign="top" align="right"><span class="text-small">{{ $idx + 1 }}.</span></td>
+            <td valign="top"><span class="text-small">
                 @if($showDetail)
                     <a href="{{ route('game.recent-battles.detail', $v->id) }}">
                 @endif
@@ -93,13 +93,13 @@
             <td valign="top">
                 {{ $v->attacker_name }} ({{ $v->attack_id }})
                 @if($v->attack_alliance)
-                    <br><span style="font-size:10px;"><b>{{ $v->attack_alliance }}</b></span>
+                    <br><span class="text-small"><b>{{ $v->attack_alliance }}</b></span>
                 @endif
             </td>
             <td valign="top">
                 {{ $v->defender_name }} ({{ $v->defense_id }})
                 @if($v->defense_alliance)
-                    <br><span style="font-size:10px;"><b>{{ $v->defense_alliance }}</b></span>
+                    <br><span class="text-small"><b>{{ $v->defense_alliance }}</b></span>
                 @endif
             </td>
             <td valign="top">
@@ -111,10 +111,11 @@
             </td>
         </tr>
         @if(($idx + 1) % 10 === 0)
-        <tr><td colspan="6" style="background-color:darkslategray;" height="5"></td></tr>
+        <tr><td colspan="6" class="bg-header" height="5"></td></tr>
         @endif
         @endforeach
         </table>
+        </div>
     @endif
 @endif
 

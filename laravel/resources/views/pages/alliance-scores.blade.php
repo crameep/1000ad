@@ -1,17 +1,19 @@
 @extends('layouts.game')
 
 @section('content')
-<table width="100%" cellpadding="2" cellspacing="0">
-    <tr>
-        <td class="header" colspan="5">Alliance Scores</td>
-    </tr>
+<div class="page-title-bar">
+    <h2>Alliance Scores</h2>
+</div>
+
+<div class="table-scroll">
+<table class="game-table">
     <tr>
         <td class="small" colspan="5">
             Total alliances: {{ $totalAlliances }} |
             Players in alliances: {{ $playersInAlliances }} / {{ $totalPlayers }}
         </td>
     </tr>
-    <tr style="background-color: #333;">
+    <tr class="bg-header">
         <td class="small"><b>#</b></td>
         <td class="small">
             <a href="{{ route('game.alliance-scores', ['orderString' => 'tag']) }}"><b>Alliance</b></a>
@@ -37,15 +39,16 @@
     </tr>
     @empty
     <tr>
-        <td colspan="5" class="small" style="text-align: center;">
+        <td colspan="5" class="small text-center">
             No alliances with 3+ members yet.
         </td>
     </tr>
     @endforelse
 </table>
+</div>
 
 <br>
-<div style="text-align: center;">
+<div class="text-center">
     <a href="{{ route('game.scores') }}">Empire Scores</a> |
     <a href="{{ route('game.battle-scores') }}">Battle Scores</a> |
     <a href="{{ route('game.recent-battles') }}">Recent Battles</a>

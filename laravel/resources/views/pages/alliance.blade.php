@@ -2,165 +2,151 @@
 @extends('layouts.game')
 
 @section('content')
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr>
-    <td class="header" align="center" width="92%"><b>Alliance</b></td>
-    <td class="header" align="center" width="8%"><b><a href="javascript:openHelp('alliance')">Help</a></b></td>
-</tr>
-</table>
+<div class="page-title-bar">
+    <h2>Alliance</h2>
+    <a href="javascript:openHelp('alliance')" class="help-link">Help</a>
+</div>
 
 @if(!$hasAlliance)
     {{-- ============================================ --}}
     {{-- NO ALLIANCE: Show Join / Create forms --}}
     {{-- ============================================ --}}
     <br>
-    <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray" width="250">
+    <div class="form-panel" style="max-width:250px;">
     <form action="{{ route('game.alliance.join') }}" method="POST">
         @csrf
-        <tr>
-            <td class="header">Join Alliance</td>
-        </tr>
-        <tr>
-            <td nowrap>Alliance Tag:
-                <select name="join_alliance_id">
-                    <option value="0">--- Select One ---</option>
-                    @foreach($alliances as $a)
-                        <option value="{{ $a->id }}">{{ $a->tag }}</option>
-                    @endforeach
-                </select>
-                <br>
-                Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
-                <center>
-                <input type="submit" value="Join" style="width:100px">
-            </td>
-        </tr>
+        <div class="form-panel-header">Join Alliance</div>
+        <div class="form-panel-body">
+            Alliance Tag:
+            <select name="join_alliance_id">
+                <option value="0">--- Select One ---</option>
+                @foreach($alliances as $a)
+                    <option value="{{ $a->id }}">{{ $a->tag }}</option>
+                @endforeach
+            </select>
+            <br>
+            Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
+            <div class="text-center">
+            <input type="submit" value="Join" style="width:100px">
+            </div>
+        </div>
     </form>
-    </table>
+    </div>
 
     <br><br>
 
-    <table border="1" cellpadding="1" cellspacing="1" bordercolor="darkslategray" width="250">
+    <div class="form-panel" style="max-width:250px;">
     <form action="{{ route('game.alliance.create') }}" method="POST">
         @csrf
-        <tr>
-            <td class="header">Create New Alliance</td>
-        </tr>
-        <tr>
-            <td nowrap>Alliance Tag:
-                <input type="text" name="tag" size="20" maxlength="15">
-                <br>
-                Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
-                <center>
-                <input type="submit" value="Create Alliance" style="width:100px">
-            </td>
-        </tr>
+        <div class="form-panel-header">Create New Alliance</div>
+        <div class="form-panel-body">
+            Alliance Tag:
+            <input type="text" name="tag" size="20" maxlength="15">
+            <br>
+            Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
+            <div class="text-center">
+            <input type="submit" value="Create Alliance" style="width:100px">
+            </div>
+        </div>
     </form>
-    </table>
+    </div>
     <br>
 
 @else
     {{-- ============================================ --}}
     {{-- HAS ALLIANCE --}}
     {{-- ============================================ --}}
-    <center><font size="4"><b>Alliance: {{ $alliance->tag }}</b></font></center>
+    <div class="text-center"><span class="text-lg"><b>Alliance: {{ $alliance->tag }}</b></span></div>
     <br>
 
     @if($isLeader)
         {{-- ============================================ --}}
         {{-- LEADER VIEW: Editable relations --}}
         {{-- ============================================ --}}
-        <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
-        <tr>
-            <td colspan="2" class="header" align="center">Alliance Relations</td>
-        </tr>
+        <div class="form-panel" style="max-width:400px;">
+        <div class="form-panel-header text-center">Alliance Relations</div>
         <form action="{{ route('game.alliance.relations') }}" method="POST">
             @csrf
-            <tr>
-                <td valign="top" width="50%" align="center"><b>Allies:</b><br>
-                    @for($i = 1; $i <= 5; $i++)
-                        @php $aID = $alliance->{"ally{$i}"} ?? 0; @endphp
-                        <select name="n_ally{{ $i }}">
-                            <option value="0">--- None ---</option>
-                            @foreach($otherAlliances as $oa)
-                                <option value="{{ $oa->id }}" @if($oa->id == $aID) selected @endif>{{ $oa->tag }}</option>
-                            @endforeach
-                        </select>
-                        <br>
-                    @endfor
-                </td>
-                <td valign="top" width="50%" align="center"><b>War:</b><br>
-                    @for($i = 1; $i <= 5; $i++)
-                        @php $wID = $alliance->{"war{$i}"} ?? 0; @endphp
-                        <select name="n_war{{ $i }}">
-                            <option value="0">--- None ---</option>
-                            @foreach($otherAlliances as $oa)
-                                <option value="{{ $oa->id }}" @if($oa->id == $wID) selected @endif>{{ $oa->tag }}</option>
-                            @endforeach
-                        </select>
-                        <br>
-                    @endfor
-                </td>
-            </tr>
-            <tr>
-                <td valign="top">
-                    <b>Alliances that have your alliance on the ally list:</b><br>
-                    @forelse($alliedBy as $tag)
-                        {{ $tag }}<br>
-                    @empty
-                        None
-                    @endforelse
-                </td>
-                <td valign="top">
-                    <b>Alliances that have your alliance on the war list:</b><br>
-                    @forelse($warredBy as $tag)
-                        {{ $tag }}<br>
-                    @empty
-                        None
-                    @endforelse
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" align="center"><input type="submit" value="Change Relations"></td>
-            </tr>
+            <div class="form-panel-body">
+                <div style="display:flex; gap:1rem;">
+                    <div style="flex:1;" class="text-center"><b>Allies:</b><br>
+                        @for($i = 1; $i <= 5; $i++)
+                            @php $aID = $alliance->{"ally{$i}"} ?? 0; @endphp
+                            <select name="n_ally{{ $i }}">
+                                <option value="0">--- None ---</option>
+                                @foreach($otherAlliances as $oa)
+                                    <option value="{{ $oa->id }}" @if($oa->id == $aID) selected @endif>{{ $oa->tag }}</option>
+                                @endforeach
+                            </select>
+                            <br>
+                        @endfor
+                    </div>
+                    <div style="flex:1;" class="text-center"><b>War:</b><br>
+                        @for($i = 1; $i <= 5; $i++)
+                            @php $wID = $alliance->{"war{$i}"} ?? 0; @endphp
+                            <select name="n_war{{ $i }}">
+                                <option value="0">--- None ---</option>
+                                @foreach($otherAlliances as $oa)
+                                    <option value="{{ $oa->id }}" @if($oa->id == $wID) selected @endif>{{ $oa->tag }}</option>
+                                @endforeach
+                            </select>
+                            <br>
+                        @endfor
+                    </div>
+                </div>
+                <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                    <div style="flex:1;">
+                        <b>Alliances that have your alliance on the ally list:</b><br>
+                        @forelse($alliedBy as $tag)
+                            {{ $tag }}<br>
+                        @empty
+                            None
+                        @endforelse
+                    </div>
+                    <div style="flex:1;">
+                        <b>Alliances that have your alliance on the war list:</b><br>
+                        @forelse($warredBy as $tag)
+                            {{ $tag }}<br>
+                        @empty
+                            None
+                        @endforelse
+                    </div>
+                </div>
+                <div class="text-center" style="margin-top:0.5rem;">
+                    <input type="submit" value="Change Relations">
+                </div>
+            </div>
         </form>
-        </table>
+        </div>
 
         <br>
 
         {{-- Alliance News (editable) --}}
-        <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
+        <div class="form-panel" style="max-width:400px;">
         <form action="{{ route('game.alliance.news') }}" method="POST">
             @csrf
-            <tr>
-                <td class="header" align="center">Alliance News:</td>
-            </tr>
-            <tr>
-                <td><textarea name="news" rows="5" cols="45">{{ $alliance->news }}</textarea></td>
-            </tr>
-            <tr>
-                <td align="center"><input type="submit" value="Update News"></td>
-            </tr>
+            <div class="form-panel-header text-center">Alliance News:</div>
+            <div class="form-panel-body">
+                <textarea name="news" rows="5" cols="45" class="w-full">{{ $alliance->news }}</textarea>
+                <div class="text-center"><input type="submit" value="Update News"></div>
+            </div>
         </form>
-        </table>
+        </div>
 
         <br>
 
         {{-- Leader Options: Change Password --}}
-        <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
+        <div class="form-panel" style="max-width:400px;">
         <form action="{{ route('game.alliance.password') }}" method="POST">
             @csrf
-            <tr>
-                <td class="header" align="center">Leader Options:</td>
-            </tr>
-            <tr>
-                <td>
-                    Change alliance password to
-                    <input type="text" value="{{ $alliance->passwd }}" name="password" size="10" maxlength="20">
-                    <input type="submit" value="Change">
-                </td>
-            </tr>
+            <div class="form-panel-header text-center">Leader Options:</div>
+            <div class="form-panel-body">
+                Change alliance password to
+                <input type="text" value="{{ $alliance->passwd }}" name="password" size="10" maxlength="20">
+                <input type="submit" value="Change">
+            </div>
         </form>
-        </table>
+        </div>
 
         <br>
 
@@ -174,63 +160,59 @@
         {{-- ============================================ --}}
         {{-- MEMBER VIEW: Read-only relations --}}
         {{-- ============================================ --}}
-        <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
-        <tr>
-            <td colspan="2" class="header" align="center">Alliance Relations</td>
-        </tr>
-        <tr>
-            <td valign="top" width="50%"><b>Allies:</b><br>
-                @forelse($allyTags as $tag)
-                    {{ $tag }}<br>
-                @empty
-                    No Allies
-                @endforelse
-            </td>
-            <td valign="top" width="50%"><b>War:</b><br>
-                @forelse($warTags as $tag)
-                    {{ $tag }}<br>
-                @empty
-                    No War
-                @endforelse
-            </td>
-        </tr>
-        <tr>
-            <td valign="top">
-                <b>Alliances that have your alliance on the ally list:</b><br>
-                @forelse($alliedBy as $tag)
-                    {{ $tag }}<br>
-                @empty
-                    None
-                @endforelse
-            </td>
-            <td valign="top">
-                <b>Alliances that have your alliance on the war list:</b><br>
-                @forelse($warredBy as $tag)
-                    {{ $tag }}<br>
-                @empty
-                    None
-                @endforelse
-            </td>
-        </tr>
-        </table>
+        <div class="form-panel" style="max-width:400px;">
+        <div class="form-panel-header text-center">Alliance Relations</div>
+        <div class="form-panel-body">
+            <div style="display:flex; gap:1rem;">
+                <div style="flex:1;"><b>Allies:</b><br>
+                    @forelse($allyTags as $tag)
+                        {{ $tag }}<br>
+                    @empty
+                        No Allies
+                    @endforelse
+                </div>
+                <div style="flex:1;"><b>War:</b><br>
+                    @forelse($warTags as $tag)
+                        {{ $tag }}<br>
+                    @empty
+                        No War
+                    @endforelse
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                <div style="flex:1;">
+                    <b>Alliances that have your alliance on the ally list:</b><br>
+                    @forelse($alliedBy as $tag)
+                        {{ $tag }}<br>
+                    @empty
+                        None
+                    @endforelse
+                </div>
+                <div style="flex:1;">
+                    <b>Alliances that have your alliance on the war list:</b><br>
+                    @forelse($warredBy as $tag)
+                        {{ $tag }}<br>
+                    @empty
+                        None
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        </div>
 
         <br>
 
         {{-- Alliance News (read-only) --}}
-        <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
-        <tr>
-            <td colspan="2" class="header" align="center">Alliance News:</td>
-        </tr>
-        <tr>
-            <td>
-                @if(trim($alliance->news) === '')
-                    No Alliance News
-                @else
-                    {!! nl2br(e($alliance->news)) !!}
-                @endif
-            </td>
-        </tr>
-        </table>
+        <div class="form-panel" style="max-width:400px;">
+        <div class="form-panel-header text-center">Alliance News:</div>
+        <div class="form-panel-body">
+            @if(trim($alliance->news) === '')
+                No Alliance News
+            @else
+                {!! nl2br(e($alliance->news)) !!}
+            @endif
+        </div>
+        </div>
 
         <br><br>
 
@@ -245,7 +227,7 @@
     {{-- MEMBER LIST (shown for both leader and member) --}}
     {{-- ============================================ --}}
     <br>
-    <table border="1" cellpadding="1" cellspacing="1" width="400" bordercolor="darkslategray">
+    <table class="game-table" style="max-width:400px;">
     <tr>
         <td colspan="2" class="header" align="center">Alliance Members:</td>
     </tr>
@@ -256,7 +238,7 @@
             @if($member->alliance_member_type == 1)</u></b>@endif
 
             @if($member->id == $alliance->leader_id)
-                <font color="red"><b>&nbsp;&nbsp;&nbsp;Alliance Leader</b></font>
+                <span class="text-danger"><b>&nbsp;&nbsp;&nbsp;Alliance Leader</b></span>
             @endif
             <br>
 
@@ -266,9 +248,9 @@
 
             @if($player->alliance_member_type == 1 || $player->id == $alliance->leader_id)
                 Army: {{ number_format($member->total_army) }}<br>
-                <font color="yellow" size="1">
+                <span class="text-warning text-sm">
                 @if(!$member->last_load)
-                    <font color="red">Never Played</font>
+                    <span class="text-danger">Never Played</span>
                 @else
                     @php
                         $totalMinutes = (int) $member->last_load->diffInMinutes(now());
@@ -276,19 +258,19 @@
                         $minutes = $totalMinutes - ($hours * 60);
                     @endphp
                     @if($hours == 0 && $minutes <= 10)
-                        <font color="red">* Online Now</font>
+                        <span class="text-danger">* Online Now</span>
                     @else
                         Last played: @if($hours > 0){{ $hours }} hours and @endif {{ $minutes }} minutes ago.
                     @endif
                     <br>
                 @endif
-                </font>
+                </span>
 
                 @if($member->id != $player->id && $player->id == $alliance->leader_id)
-                    <font size="1">
+                    <span class="text-sm">
                     <a href="{{ route('game.search') }}?empireNo={{ $member->id }}&searchType=empireNo">View Army</a>
                     <br>
-                    <form action="{{ route('game.alliance.toggle-status', $member->id) }}" method="POST" style="display:inline;">
+                    <form action="{{ route('game.alliance.toggle-status', $member->id) }}" method="POST" class="inline-form">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">
                             @if($member->alliance_member_type == 1)
@@ -299,22 +281,22 @@
                         </a>
                     </form>
                     <br>
-                    <form action="{{ route('game.alliance.remove', $member->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Remove {{ e($member->name) }} from the alliance?')">
+                    <form action="{{ route('game.alliance.remove', $member->id) }}" method="POST" class="inline-form" onsubmit="return confirm('Remove {{ e($member->name) }} from the alliance?')">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">Remove From Alliance</a>
                     </form>
                     <br>
-                    <form action="{{ route('game.alliance.give-leadership', $member->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Give leadership to {{ e($member->name) }}?')">
+                    <form action="{{ route('game.alliance.give-leadership', $member->id) }}" method="POST" class="inline-form" onsubmit="return confirm('Give leadership to {{ e($member->name) }}?')">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">Give Leadership</a>
                     </form>
                     <br>
-                    </font>
+                    </span>
                 @endif
             @endif
 
             @if(!$loop->last)
-                <hr noshade size="2" color="darkslategray">
+                <hr>
             @endif
         @endforeach
     </td></tr>

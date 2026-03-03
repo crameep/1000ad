@@ -1,45 +1,45 @@
-{{-- Score row partial - ported from scores_show.cfm --}}
+{{-- Score row partial --}}
 @php
-    // Determine color based on relationship
+    // Determine color class based on relationship
     if ($p->id === $player->id) {
-        $color = 'Aqua';
+        $colorClass = 'score-self';
     } elseif ($p->alliance_id > 0 && $p->alliance_id == $myAllianceID) {
-        $color = 'Fuchsia';
+        $colorClass = 'score-alliance';
     } elseif ($p->alliance_id > 0 && in_array($p->alliance_id, $allies)) {
-        $color = 'PeachPuff';
+        $colorClass = 'score-ally';
     } elseif ($p->alliance_id > 0 && in_array($p->alliance_id, $wars)) {
-        $color = 'Crimson';
+        $colorClass = 'score-enemy';
     } elseif ($p->turn <= 72) {
-        $color = 'Yellow';
+        $colorClass = 'score-protected';
     } else {
-        $color = 'White';
+        $colorClass = 'score-default';
     }
 
     $isOnline = $p->last_load && abs(now()->diffInMinutes($p->last_load)) < 10;
 @endphp
-<tr>
-    <td align="right"><span style="font-size:10px; color:{{ $color }}; cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">
-        @if($isOnline)*@endif{{ $rowNum }}</span>
+<tr class="{{ $colorClass }}">
+    <td class="text-right text-small" style="cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">
+        @if($isOnline)*@endif{{ $rowNum }}
     </td>
-    <td><span style="font-size:10px; color:{{ $color }}; cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">{{ $p->name }} ({{ $p->id }})</span></td>
-    <td><span style="font-size:10px; color:{{ $color }};">{{ $empireNames[$p->civ] ?? 'Unknown' }}</span></td>
+    <td class="text-small" style="cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">{{ $p->name }} ({{ $p->id }})</td>
+    <td class="text-small">{{ $empireNames[$p->civ] ?? 'Unknown' }}</td>
     @if(!$deathmatchMode && $allianceMaxMembers > 0)
-    <td align="center"><span style="font-size:10px; color:{{ $color }};">
+    <td class="text-center text-small">
         @if($p->tag)
             @if($p->id == $p->leader_id)[{{ $p->tag }}]@else{{ $p->tag }}@endif
         @else
             &nbsp;
         @endif
-    </span></td>
+    </td>
     @endif
     @if($p->total_land <= 0)
-    <td align="center" colspan="5"><span style="font-size:10px; color:red;"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></span></td>
+    <td class="text-center text-small text-error" colspan="5"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></td>
     @else
-    <td align="right"><span style="font-size:10px; color:{{ $color }};">{{ number_format($p->research_levels) }}</span></td>
-    <td align="right"><span style="font-size:10px; color:{{ $color }};">{{ number_format($p->total_land) }}</span></td>
-    <td align="right"><span style="font-size:10px; color:{{ $color }};">{{ number_format($p->score) }}</span></td>
+    <td class="text-right text-small">{{ number_format($p->research_levels) }}</td>
+    <td class="text-right text-small">{{ number_format($p->total_land) }}</td>
+    <td class="text-right text-small">{{ number_format($p->score) }}</td>
     @endif
 </tr>
 @if($rowNum % 5 === 0)
-<tr><td colspan="9" style="background-color:darkslategray;" height="10"></td></tr>
+<tr><td colspan="9" class="bg-header" style="height:4px; padding:0;"></td></tr>
 @endif
