@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ManageController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show the empire management page.
      * Route: GET /game/manage
@@ -58,11 +60,17 @@ class ManageController extends Controller
         $maceProduction = max(0, (int) $request->input('maceProduction', 0));
 
         if ($bowProduction < 0 || $swordProduction < 0 || $maceProduction < 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot set negative production');
+            }
             session()->flash('game_message', 'Cannot set negative production');
             return redirect()->route('game.manage');
         }
 
         if ($bowProduction + $swordProduction + $maceProduction > $player->weapon_smith) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You can have a maximum of {$player->weapon_smith} units produced.");
+            }
             session()->flash('game_message', "You can have a maximum of {$player->weapon_smith} units produced.");
             return redirect()->route('game.manage');
         }
@@ -72,6 +80,10 @@ class ManageController extends Controller
             'sword_weapon_smith' => $swordProduction,
             'mace_weapon_smith' => $maceProduction,
         ]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Weapon production updated.');
+        }
 
         return redirect()->route('game.manage');
     }
@@ -89,6 +101,10 @@ class ManageController extends Controller
 
         if ($foodRatio >= -3 && $foodRatio <= 3) {
             $player->update(['food_ratio' => $foodRatio]);
+        }
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Food ratio updated.');
         }
 
         return redirect()->route('game.manage');
@@ -153,7 +169,14 @@ class ManageController extends Controller
         }
 
         if ($messages) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($messages);
+            }
             session()->flash('game_message', $messages);
+        }
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Land conversion completed.');
         }
 
         return redirect()->route('game.manage');

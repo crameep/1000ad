@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ResearchController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show research page.
      * Ported from research.cfm
@@ -116,6 +118,10 @@ class ResearchController extends Controller
             $player->update([
                 'current_research' => $newResearch,
             ]);
+        }
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Research focus updated.');
         }
 
         return redirect()->route('game.research');

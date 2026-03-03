@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\PlayerMessage;
 use App\Services\TurnService;
 use Illuminate\Http\Request;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class GameController extends Controller
 {
+    use ReturnsJson;
+
     protected TurnService $turnService;
 
     public function __construct(TurnService $turnService)
@@ -86,11 +89,14 @@ class GameController extends Controller
      * End a single turn.
      * Ported from eflag_endturn.cfm eflag=end_turn
      */
-    public function endTurn()
+    public function endTurn(Request $request)
     {
         $player = Auth::user();
 
         if ($player->killed_by > 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Sorry, but you\'re already dead.');
+            }
             session()->flash('game_message', 'Sorry, but you\'re already dead.');
             return redirect()->route('game.main');
         }
@@ -102,7 +108,15 @@ class GameController extends Controller
             }
         } else {
             $minutesPerTurn = config('game.minutes_per_turn');
-            session()->flash('game_message', "You do not have any months remaining (1 free month every {$minutesPerTurn} minutes)");
+            $noTurnsMessage = "You do not have any months remaining (1 free month every {$minutesPerTurn} minutes)";
+            if ($request->expectsJson()) {
+                return $this->jsonError($noTurnsMessage);
+            }
+            session()->flash('game_message', $noTurnsMessage);
+        }
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message ?? 'Turn processed.');
         }
 
         return redirect()->route('game.main');
@@ -117,6 +131,9 @@ class GameController extends Controller
         $player = Auth::user();
 
         if ($player->killed_by > 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Sorry, but you\'re already dead.');
+            }
             session()->flash('game_message', 'Sorry, but you\'re already dead.');
             return redirect()->route('game.main');
         }
@@ -128,6 +145,9 @@ class GameController extends Controller
         $qty = min((int) $request->turns, 12);
 
         if ($qty <= 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot end less than 0 turns.');
+            }
             session()->flash('game_message', 'Cannot end less than 0 turns.');
             return redirect()->route('game.main');
         }
@@ -150,6 +170,10 @@ class GameController extends Controller
 
         if (!empty($messages)) {
             session()->flash('game_message', $messages);
+        }
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $messages ?: 'Turns processed.');
         }
 
         return redirect()->route('game.main');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\BuildQueue;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class BuildingController extends Controller
 {
+    use ReturnsJson;
+
     protected GameDataService $gameData;
 
     public function __construct(GameDataService $gameData)
@@ -201,6 +204,9 @@ class BuildingController extends Controller
         $qty = (int) $request->qty;
 
         if (!isset($buildings[$buildingNo])) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Invalid building to build.');
+            }
             session()->flash('game_message', 'Invalid building to build.');
             return redirect()->route('game.build');
         }
@@ -237,12 +243,24 @@ class BuildingController extends Controller
         $needLand = $qty * $b['sq'];
 
         if ($needLand > $hasLand) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have that much free land. (needed {$needLand})");
+            }
             session()->flash('game_message', "You do not have that much free land. (needed {$needLand})");
         } elseif ($needGold > $player->gold) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough gold.<br>You need {$needGold}");
+            }
             session()->flash('game_message', "You do not have enough gold.<br>You need {$needGold}");
         } elseif ($needWood > $player->wood) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough wood.<br>You need {$needWood}");
+            }
             session()->flash('game_message', "You do not have enough wood.<br>You need {$needWood}");
         } elseif ($needIron > $player->iron) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough iron.<br>You need {$needIron}");
+            }
             session()->flash('game_message', "You do not have enough iron.<br>You need {$needIron}");
         } else {
             // Get next position
@@ -268,7 +286,11 @@ class BuildingController extends Controller
                 'iron' => $player->iron - $needIron,
             ]);
 
-            session()->flash('game_message', "{$qty} {$b['name']} added to your queue.<br>Total Cost: {$needGold} gold, {$needWood} wood, {$needIron} iron.");
+            $message = "{$qty} {$b['name']} added to your queue.<br>Total Cost: {$needGold} gold, {$needWood} wood, {$needIron} iron.";
+            if ($request->expectsJson()) {
+                return $this->jsonSuccess($player, $message);
+            }
+            session()->flash('game_message', $message);
         }
 
         return redirect()->route('game.build');
@@ -363,6 +385,9 @@ class BuildingController extends Controller
             $queueItem->delete();
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Build queue item cancelled.');
+        }
         return redirect()->route('game.build');
     }
 
@@ -370,7 +395,7 @@ class BuildingController extends Controller
      * Cancel all build queue items.
      * Ported from eflag_build.cfm eflag=cancel_all
      */
-    public function cancelAll()
+    public function cancelAll(Request $request)
     {
         $player = Auth::user();
         $buildings = session('buildings');
@@ -397,6 +422,9 @@ class BuildingController extends Controller
             $queueItem->delete();
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'All build queue items cancelled.');
+        }
         return redirect()->route('game.build');
     }
 
@@ -421,6 +449,9 @@ class BuildingController extends Controller
             ->where('id', $request->q_id)
             ->update(['pos' => 0]);
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Build queue item moved to top.');
+        }
         return redirect()->route('game.build');
     }
 
@@ -444,6 +475,9 @@ class BuildingController extends Controller
             ->where('id', $request->q_id)
             ->update(['pos' => $newPos]);
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Build queue item moved to bottom.');
+        }
         return redirect()->route('game.build');
     }
 
@@ -476,6 +510,9 @@ class BuildingController extends Controller
             $player->update($updates);
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Building status updated.');
+        }
         return redirect()->route('game.build');
     }
 }

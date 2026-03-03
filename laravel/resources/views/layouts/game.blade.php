@@ -22,7 +22,10 @@
         }
     </script>
 </head>
-<body>
+<body data-badge-count="{{ ($player->has_new_messages ? 1 : 0) + ($player->has_main_news ? 1 : 0) }}">
+
+{{-- Toast container --}}
+<div id="toast-container" aria-live="polite"></div>
 
 <div class="game-container">
     {{-- Header --}}
@@ -32,7 +35,7 @@
     </div>
     <div class="game-date">{{ $gameDate }}</div>
 
-    {{-- Flash messages --}}
+    {{-- Flash messages (converted to toast by JS, kept as fallback for no-JS) --}}
     @if(session('game_message'))
         <div class="eflag-message">{!! session('game_message') !!}</div>
     @endif
@@ -48,13 +51,41 @@
     @endif
 
     {{-- Turn info --}}
-    <div class="turn-info">
-        ({{ $playerTurns }} months remaining,
+    <div class="turn-info" id="turn-info">
+        (<span id="turn-count">{{ $playerTurns }}</span> months remaining,
+        <span id="turn-timer">
         @if($playerTurns >= $maxTurnsStored)
             maximum turns stored)
         @else
-            next free month in {{ intdiv($nextTurnSeconds, 60) }} minutes and {{ $nextTurnSeconds % 60 }} seconds)
+            next free month in {{ intdiv((int)$nextTurnSeconds, 60) }} minutes and {{ ((int)$nextTurnSeconds) % 60 }} seconds)
         @endif
+        </span>
+    </div>
+
+    {{-- Quick turn presets (always visible) --}}
+    <div class="turn-presets-bar" id="turn-presets">
+        <span class="turn-presets-label">End Turns:</span>
+        <button type="button" class="turn-btn" data-turns="1">1</button>
+        <button type="button" class="turn-btn" data-turns="5">5</button>
+        <button type="button" class="turn-btn" data-turns="10">10</button>
+        <button type="button" class="turn-btn" data-turns="12">Max</button>
+        <button type="button" class="toast-toggle-btn" id="toast-toggle" title="Toggle notifications">&#x1F514;</button>
+        <noscript>
+            <form action="{{ route('game.end-turns') }}" method="POST" class="inline-form">
+                @csrf
+                End <input type="number" name="turns" value="1" min="1" max="12" style="width:45px;"> Turn(s)
+                <input type="submit" value="Go">
+            </form>
+        </noscript>
+    </div>
+
+    {{-- Collapsible turn report (used when toasts are muted) --}}
+    <div class="turn-report-box" id="turn-report-box" style="display:none;">
+        <button class="turn-report-toggle" id="turn-report-toggle">
+            <span id="turn-report-title">Turn Report</span>
+            <span class="turn-report-arrow" id="turn-report-arrow">&#9660;</span>
+        </button>
+        <div class="turn-report-content" id="turn-report-content" style="display:none;"></div>
     </div>
 
     {{-- Mobile menu toggle --}}
@@ -90,6 +121,12 @@
         &copy; Copyright Ader Software 2000, 2001
     </div>
 </div>
+
+<script src="{{ asset('js/game.js') }}"></script>
+<script>
+// Initialize turn timer with server data
+Game.TurnTimer.init({{ $nextTurnSeconds }}, {{ $playerTurns }}, {{ $maxTurnsStored }}, {{ $minutesPerTurn }});
+</script>
 
 <script>
 if ('serviceWorker' in navigator) {

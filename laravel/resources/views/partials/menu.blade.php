@@ -2,14 +2,6 @@
 <div class="panel">
     <div class="panel-header">Menu</div>
     <div class="panel-body" style="padding:0;">
-        <div class="end-turn-form">
-            <form action="{{ route('game.end-turns') }}" method="POST" id="endTurnForm">
-                @csrf
-                End <input type="number" name="turns" value="1" min="1" max="12" style="width:45px;"> Turn(s)
-                <input type="submit" value="Go">
-            </form>
-        </div>
-
         <ul class="menu-list">
             <li>
                 <a href="{{ route('game.main') }}">

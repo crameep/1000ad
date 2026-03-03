@@ -20,6 +20,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\WallController;
+use App\Http\Controllers\Api\GameApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -165,4 +166,7 @@ Route::middleware(['auth', 'game.session'])->prefix('game')->group(function () {
     // Chat
     Route::get('/chat', [ChatController::class, 'index'])->name('game.chat');
     Route::post('/chat', [ChatController::class, 'postMessage'])->name('game.chat.post');
+
+    // API endpoints (AJAX)
+    Route::get('/api/state', [GameApiController::class, 'state'])->name('game.api.state');
 });

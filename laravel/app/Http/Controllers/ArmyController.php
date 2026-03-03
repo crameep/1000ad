@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\AttackQueue;
 use App\Models\TrainQueue;
 use App\Services\GameDataService;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ArmyController extends Controller
 {
+    use ReturnsJson;
+
     protected GameDataService $gameData;
 
     public function __construct(GameDataService $gameData)
@@ -366,6 +369,9 @@ class ArmyController extends Controller
         }
 
         if (!empty($error)) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($error);
+            }
             session()->flash('game_message', $error);
             return redirect()->route('game.army');
         }
@@ -395,7 +401,11 @@ class ArmyController extends Controller
             'people' => $player->people - $totalQty,
         ]);
 
-        session()->flash('game_message', "Training {$totalQty} soldiers.");
+        $message = "Training {$totalQty} soldiers.";
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
+        session()->flash('game_message', $message);
         return redirect()->route('game.army');
     }
 
@@ -470,6 +480,9 @@ class ArmyController extends Controller
             $tq->delete();
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Training cancelled.');
+        }
         return redirect()->route('game.army');
     }
 
@@ -491,12 +504,18 @@ class ArmyController extends Controller
         $totalDisband = array_sum($qty);
 
         if ($totalDisband <= 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('No soldiers selected to disband.');
+            }
             return redirect()->route('game.army');
         }
 
         // Validate no negative values
         foreach ($qty as $val) {
             if ($val < 0) {
+                if ($request->expectsJson()) {
+                    return $this->jsonError('Sorry, cannot disband negative army.');
+                }
                 session()->flash('game_message', 'Sorry, cannot disband negative army.');
                 return redirect()->route('game.army');
             }
@@ -516,7 +535,11 @@ class ArmyController extends Controller
 
         foreach ($checks as $i => $check) {
             if ($qty[$i] > ($player->{$check['field']} ?? 0)) {
-                session()->flash('game_message', "Cannot disband {$qty[$i]} {$check['name']}. You have only {$player->{$check['field']}}.");
+                $errorMsg = "Cannot disband {$qty[$i]} {$check['name']}. You have only {$player->{$check['field']}}.";
+                if ($request->expectsJson()) {
+                    return $this->jsonError($errorMsg);
+                }
+                session()->flash('game_message', $errorMsg);
                 return redirect()->route('game.army');
             }
         }
@@ -574,6 +597,9 @@ class ArmyController extends Controller
             . "<br>You have received {$getIron} iron, {$getWood} wood, {$getSwords} swords, "
             . "{$getBows} bows, {$getHorses} horses and {$getMaces} maces.";
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $msg);
+        }
         session()->flash('game_message', $msg);
         return redirect()->route('game.army');
     }

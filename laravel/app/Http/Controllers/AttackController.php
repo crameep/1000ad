@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\Alliance;
 use App\Models\AttackNews;
 use App\Models\AttackQueue;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\DB;
  */
 class AttackController extends Controller
 {
+    use ReturnsJson;
+
     /**
      * Show attack page.
      * Ported from attack.cfm
@@ -172,6 +175,9 @@ class AttackController extends Controller
                 : null;
             $deathmatchStarted = $deathmatchStart && $deathmatchStart->isPast();
             if (!$deathmatchStarted) {
+                if ($request->expectsJson()) {
+                    return $this->jsonError('Cannot attack before official deathmatch starts.');
+                }
                 return back()->with('game_message', 'Cannot attack before official deathmatch starts.');
             }
         }
@@ -195,7 +201,7 @@ class AttackController extends Controller
      * Launch army attack.
      * Ported from eflag_attack.cfm eflag=attack_empire
      */
-    protected function attackEmpire(Request $request, Player $player): \Illuminate\Http\RedirectResponse
+    protected function attackEmpire(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $soldiers = session('soldiers');
         $constants = session('constants');
@@ -271,60 +277,68 @@ class AttackController extends Controller
         $uniqueUnitName = $soldiers[9]['name'] ?? 'Unique Unit';
 
         // Validation chain (matching original CF logic order)
+        $error = null;
         if ($attackPlayerId === $player->id) {
-            return back()->with('game_message', "Are you nuts? You can't attack yourself!!!");
+            $error = "Are you nuts? You can't attack yourself!!!";
         } elseif ($player->food < $eatSoldiersFood) {
-            return back()->with('game_message', "You do not have enough food to send your soldiers. You need " . number_format($eatSoldiersFood) . " to send that much army.");
+            $error = "You do not have enough food to send your soldiers. You need " . number_format($eatSoldiersFood) . " to send that much army.";
         } elseif ($attackAlly) {
-            return back()->with('game_message', 'You cannot attack your allies.');
+            $error = 'You cannot attack your allies.';
         } elseif ($player->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack under protection.');
+            $error = 'Cannot attack under protection.';
         } elseif ($attackPlayer && $attackPlayer->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack players under protection.');
+            $error = 'Cannot attack players under protection.';
         } elseif ($attackPlayer && $attackPlayer->killed_by > 0) {
-            return back()->with('game_message', 'Cannot attack dead empires.');
+            $error = 'Cannot attack dead empires.';
         } elseif ($attackPlayer && $attackPlayer->alliance_id === $player->alliance_id && $player->alliance_id > 0) {
-            return back()->with('game_message', 'Cannot attack empires in your alliance.');
+            $error = 'Cannot attack empires in your alliance.';
         } elseif ($attackType < 0 || $attackType > 3) {
-            return back()->with('game_message', 'Invalid attack type!');
+            $error = 'Invalid attack type!';
         } elseif ($sendSwordsman < 0) {
-            return back()->with('game_message', 'Cannot send negative swordsman!');
+            $error = 'Cannot send negative swordsman!';
         } elseif ($sendArchers < 0) {
-            return back()->with('game_message', 'Cannot send negative archers!');
+            $error = 'Cannot send negative archers!';
         } elseif ($sendHorseman < 0) {
-            return back()->with('game_message', 'Cannot send negative horseman!');
+            $error = 'Cannot send negative horseman!';
         } elseif ($sendMacemen < 0) {
-            return back()->with('game_message', 'Cannot send negative macemen!');
+            $error = 'Cannot send negative macemen!';
         } elseif ($sendUunit < 0) {
-            return back()->with('game_message', "Cannot send negative {$uniqueUnitName}s");
+            $error = "Cannot send negative {$uniqueUnitName}s";
         } elseif ($sendTrainedPeasants < 0) {
-            return back()->with('game_message', 'Cannot send negative trained peasants!');
+            $error = 'Cannot send negative trained peasants!';
         } elseif ($totalArmy === 0) {
-            return back()->with('game_message', 'Cannot send 0 total army!');
+            $error = 'Cannot send 0 total army!';
         } elseif ($sendWine > $totalArmy) {
-            return back()->with('game_message', 'You can only send 1 wine per soldier.');
+            $error = 'You can only send 1 wine per soldier.';
         } elseif ($sendWine < 0) {
-            return back()->with('game_message', 'Cannot send less than 0 wine.');
+            $error = 'Cannot send less than 0 wine.';
         } elseif ($sendWine > $player->wine) {
-            return back()->with('game_message', 'You do not have that much wine.');
+            $error = 'You do not have that much wine.';
         } elseif ($sendUunit > $player->uunit) {
-            return back()->with('game_message', "You do not have that many {$uniqueUnitName}");
+            $error = "You do not have that many {$uniqueUnitName}";
         } elseif ($sendSwordsman > $player->swordsman) {
-            return back()->with('game_message', 'You do not have that many swordsman.');
+            $error = 'You do not have that many swordsman.';
         } elseif ($sendArchers > $player->archers) {
-            return back()->with('game_message', 'You do not have that many archers.');
+            $error = 'You do not have that many archers.';
         } elseif ($sendHorseman > $player->horseman) {
-            return back()->with('game_message', 'You do not have that many horseman.');
+            $error = 'You do not have that many horseman.';
         } elseif ($sendMacemen > $player->macemen) {
-            return back()->with('game_message', 'You do not have that many macemen.');
+            $error = 'You do not have that many macemen.';
         } elseif ($sendTrainedPeasants > $player->trained_peasants) {
-            return back()->with('game_message', 'You do not have that many trained peasants.');
+            $error = 'You do not have that many trained peasants.';
         } elseif (!$attackPlayer) {
-            return back()->with('game_message', "Empire No. {$attackPlayerId} does not exist.");
+            $error = "Empire No. {$attackPlayerId} does not exist.";
         } elseif ($existingAttacks >= 1 && !$deathmatchMode) {
-            return back()->with('game_message', 'Your armies are already attacking someone. Please wait for them to come back.');
+            $error = 'Your armies are already attacking someone. Please wait for them to come back.';
         } elseif ($needGold > $player->gold) {
-            return back()->with('game_message', "You do not have enough gold to pay your soldiers to fight<br>(You need {$needGold} gold)");
+            $error = "You do not have enough gold to pay your soldiers to fight<br>(You need {$needGold} gold)";
+        }
+
+        if ($error !== null) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($error);
+            }
+            return back()->with('game_message', $error);
         }
 
         // All checks passed - create the attack
@@ -365,6 +379,9 @@ class AttackController extends Controller
             $message .= number_format($sendWine) . " units of wine will boost army strength by " . number_format($percentWine) . "%<br>";
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
         return redirect()->route('game.attack')->with('game_message', $message);
     }
 
@@ -372,7 +389,7 @@ class AttackController extends Controller
      * Launch catapult attack.
      * Ported from eflag_attack.cfm eflag=catapult_attack
      */
-    protected function catapultAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse
+    protected function catapultAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $deathmatchMode = config('game.deathmatch_mode');
 
@@ -407,32 +424,40 @@ class AttackController extends Controller
         $needGold = $sendCatapults * 5;
 
         // Validation
+        $error = null;
         if ($attackPlayerId === $player->id) {
-            return back()->with('game_message', "Are you nuts? You can't attack yourself!!!");
+            $error = "Are you nuts? You can't attack yourself!!!";
         } elseif ($attackAlly) {
-            return back()->with('game_message', 'You cannot attack your allies.');
+            $error = 'You cannot attack your allies.';
         } elseif ($player->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack under protection.');
+            $error = 'Cannot attack under protection.';
         } elseif ($attackPlayer && $attackPlayer->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack players under protection.');
+            $error = 'Cannot attack players under protection.';
         } elseif ($attackPlayer && $attackPlayer->alliance_id === $player->alliance_id && $player->alliance_id > 0) {
-            return back()->with('game_message', 'Cannot attack empires in your alliance.');
+            $error = 'Cannot attack empires in your alliance.';
         } elseif ($attackPlayer && $attackPlayer->killed_by > 0) {
-            return back()->with('game_message', 'Cannot attack dead empires.');
+            $error = 'Cannot attack dead empires.';
         } elseif ($attackType < 10 || $attackType > 12) {
-            return back()->with('game_message', 'Invalid attack type!');
+            $error = 'Invalid attack type!';
         } elseif ($sendCatapults <= 0) {
-            return back()->with('game_message', 'Cannot send negative or 0 catapults!');
+            $error = 'Cannot send negative or 0 catapults!';
         } elseif ($sendCatapults > $player->catapults) {
-            return back()->with('game_message', 'You do not have that many catapults.');
+            $error = 'You do not have that many catapults.';
         } elseif ($sendCatapults > $player->town_center) {
-            return back()->with('game_message', 'You do not have that many town centers to support your catapults.');
+            $error = 'You do not have that many town centers to support your catapults.';
         } elseif (!$attackPlayer) {
-            return back()->with('game_message', "Empire No. {$attackPlayerId} does not exist.");
+            $error = "Empire No. {$attackPlayerId} does not exist.";
         } elseif ($needGold > $player->gold) {
-            return back()->with('game_message', "You do not have enough gold to pay for the catapults<br>(You need {$needGold} gold)");
+            $error = "You do not have enough gold to pay for the catapults<br>(You need {$needGold} gold)";
         } elseif ($existingAttacks >= 1) {
-            return back()->with('game_message', 'Your armies are already attacking someone. Please wait for them to come back.');
+            $error = 'Your armies are already attacking someone. Please wait for them to come back.';
+        }
+
+        if ($error !== null) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($error);
+            }
+            return back()->with('game_message', $error);
         }
 
         // Create the attack
@@ -450,14 +475,18 @@ class AttackController extends Controller
             'gold' => DB::raw("gold - {$needGold}"),
         ]);
 
-        return redirect()->route('game.attack')->with('game_message', "<b>Your catapults are preparing to attack {$attackPlayer->name} (#{$attackPlayerId}).<br>They will reach their destination in 3 turns.</b><br>Your catapults have been paid {$needGold} for this expedition.<br>");
+        $message = "<b>Your catapults are preparing to attack {$attackPlayer->name} (#{$attackPlayerId}).<br>They will reach their destination in 3 turns.</b><br>Your catapults have been paid {$needGold} for this expedition.<br>";
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
+        return redirect()->route('game.attack')->with('game_message', $message);
     }
 
     /**
      * Launch thief attack.
      * Ported from eflag_attack.cfm eflag=thief_attack
      */
-    protected function thiefAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse
+    protected function thiefAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $soldiers = session('soldiers');
         $deathmatchMode = config('game.deathmatch_mode');
@@ -493,36 +522,44 @@ class AttackController extends Controller
         $needGold = round($sendThieves * $soldiers[8]['gold_per_turn']);
 
         // Validation
+        $error = null;
         if ($attackPlayerId === $player->id) {
-            return back()->with('game_message', "Are you nuts? You can't attack yourself!!!");
+            $error = "Are you nuts? You can't attack yourself!!!";
         } elseif ($attackAlly) {
-            return back()->with('game_message', 'You cannot attack your allies.');
+            $error = 'You cannot attack your allies.';
         } elseif ($player->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack under protection.');
+            $error = 'Cannot attack under protection.';
         } elseif ($attackPlayer && $attackPlayer->turn <= 72 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack players under protection.');
+            $error = 'Cannot attack players under protection.';
         } elseif ($attackPlayer && $attackPlayer->alliance_id === $player->alliance_id && $player->alliance_id > 0) {
-            return back()->with('game_message', 'Cannot attack empires in your alliance.');
+            $error = 'Cannot attack empires in your alliance.';
         } elseif ($attackPlayer && $attackPlayer->killed_by > 0) {
-            return back()->with('game_message', 'Cannot attack dead empires.');
+            $error = 'Cannot attack dead empires.';
         } elseif ($attackType < 20 || $attackType > 25) {
-            return back()->with('game_message', 'Invalid attack type!');
+            $error = 'Invalid attack type!';
         } elseif ($sendThieves <= 0) {
-            return back()->with('game_message', 'Cannot send negative or 0 thieves!');
+            $error = 'Cannot send negative or 0 thieves!';
         } elseif ($sendThieves > $player->thieves) {
-            return back()->with('game_message', 'You do not have that many thieves.');
+            $error = 'You do not have that many thieves.';
         } elseif ($sendThieves > $player->town_center) {
-            return back()->with('game_message', 'You do not have that many town centers to support your thieves.');
+            $error = 'You do not have that many town centers to support your thieves.';
         } elseif (!$attackPlayer) {
-            return back()->with('game_message', "Empire No. {$attackPlayerId} does not exist.");
+            $error = "Empire No. {$attackPlayerId} does not exist.";
         } elseif ($needGold > $player->gold) {
-            return back()->with('game_message', "You do not have enough gold to pay your thieves for the attack.<br>(You need {$needGold} gold)");
+            $error = "You do not have enough gold to pay your thieves for the attack.<br>(You need {$needGold} gold)";
         } elseif ($existingAttacks >= 1) {
-            return back()->with('game_message', 'Your armies are already attacking someone. Please wait for them to come back.');
+            $error = 'Your armies are already attacking someone. Please wait for them to come back.';
         } elseif ($player->score > $attackPlayer->score * 2 && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack empires that are half as small as you.');
+            $error = 'Cannot attack empires that are half as small as you.';
         } elseif ($player->score * 2 < $attackPlayer->score && !$deathmatchMode) {
-            return back()->with('game_message', 'Cannot attack empires that are twice as big as you.');
+            $error = 'Cannot attack empires that are twice as big as you.';
+        }
+
+        if ($error !== null) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($error);
+            }
+            return back()->with('game_message', $error);
         }
 
         // Create the attack
@@ -540,13 +577,17 @@ class AttackController extends Controller
             'gold' => DB::raw("gold - {$needGold}"),
         ]);
 
-        return redirect()->route('game.attack')->with('game_message', "<b>Your thieves are preparing to attack {$attackPlayer->name} (#{$attackPlayerId}).<br>They will reach their destination in 3 turns.</b><br>Your thieves have been paid {$needGold} for this expedition.");
+        $message = "<b>Your thieves are preparing to attack {$attackPlayer->name} (#{$attackPlayerId}).<br>They will reach their destination in 3 turns.</b><br>Your thieves have been paid {$needGold} for this expedition.";
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
+        return redirect()->route('game.attack')->with('game_message', $message);
     }
 
     /**
      * Public cancel route handler.
      */
-    public function cancel(Request $request): \Illuminate\Http\RedirectResponse
+    public function cancel(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         return $this->cancelAttack($request, Auth::user());
     }
@@ -555,7 +596,7 @@ class AttackController extends Controller
      * Cancel an active attack.
      * Ported from eflag_attack.cfm eflag=cancel_attack
      */
-    protected function cancelAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse
+    protected function cancelAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $queueId = (int) $request->input('armyID', 0);
 
@@ -564,6 +605,9 @@ class AttackController extends Controller
             ->first();
 
         if (!$attack) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Attack not found.');
+            }
             return redirect()->route('game.attack');
         }
 
@@ -587,14 +631,25 @@ class AttackController extends Controller
 
             $attack->delete();
 
-            return redirect()->route('game.attack')->with('game_message', "<b>Your army stopped preparing to attack {$targetName} (#{$attack->attack_player_id}).</b>");
+            $message = "<b>Your army stopped preparing to attack {$targetName} (#{$attack->attack_player_id}).</b>";
+            if ($request->expectsJson()) {
+                return $this->jsonSuccess($player, $message);
+            }
+            return redirect()->route('game.attack')->with('game_message', $message);
         } elseif ($attack->status === 1 || $attack->status === 2) {
             // On their way - set to returning
             $attack->update(['status' => 4]);
 
-            return redirect()->route('game.attack')->with('game_message', '<b>Your army is returning to your empire as you requested and should be back soon.</b>');
+            $message = '<b>Your army is returning to your empire as you requested and should be back soon.</b>';
+            if ($request->expectsJson()) {
+                return $this->jsonSuccess($player, $message);
+            }
+            return redirect()->route('game.attack')->with('game_message', $message);
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Attack cancelled.');
+        }
         return redirect()->route('game.attack');
     }
 }

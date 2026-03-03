@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\Player;
 use App\Models\PlayerMessage;
 use App\Models\TransferQueue;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
  */
 class TradeController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show the local trade page.
      * Ported from localtrade.cfm
@@ -117,16 +119,25 @@ class TradeController extends Controller
             + $buyIron * $ironPrice + $buyTools * $toolPrice;
 
         if ($buyWood < 0 || $buyIron < 0 || $buyFood < 0 || $buyTools < 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot buy negative amounts.');
+            }
             session()->flash('game_message', 'Cannot buy negative amounts.');
             return redirect()->route('game.localtrade');
         }
 
         if ($totalNewTrades > $tradesRemaining) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You can only trade ' . number_format($tradesRemaining) . ' more goods this month.');
+            }
             session()->flash('game_message', 'You can only trade ' . number_format($tradesRemaining) . ' more goods this month.');
             return redirect()->route('game.localtrade');
         }
 
         if ($needGold > $player->gold) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You do not have enough gold to buy those goods (you need ' . number_format($needGold) . ' gold).');
+            }
             session()->flash('game_message', 'You do not have enough gold to buy those goods (you need ' . number_format($needGold) . ' gold).');
             return redirect()->route('game.localtrade');
         }
@@ -155,6 +166,10 @@ class TradeController extends Controller
             $message .= number_format($buyTools) . ' tools bought for ' . number_format($buyTools * $toolPrice) . ' gold.<br>';
         }
         $message .= 'You spent a total of ' . number_format($needGold) . ' gold.';
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
 
         session()->flash('game_message', $message);
         return redirect()->route('game.localtrade');
@@ -189,28 +204,46 @@ class TradeController extends Controller
         $totalNewTrades = $sellWood + $sellFood + $sellIron + $sellTools;
 
         if ($sellWood < 0 || $sellIron < 0 || $sellFood < 0 || $sellTools < 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot sell negative amounts.');
+            }
             session()->flash('game_message', 'Cannot sell negative amounts.');
             return redirect()->route('game.localtrade');
         }
 
         if ($totalNewTrades > $tradesRemaining) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You can only trade ' . number_format($tradesRemaining) . ' more goods this turn.');
+            }
             session()->flash('game_message', 'You can only trade ' . number_format($tradesRemaining) . ' more goods this turn.');
             return redirect()->route('game.localtrade');
         }
 
         if ($sellWood > $player->wood) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You do not have that much wood to sell.');
+            }
             session()->flash('game_message', 'You do not have that much wood to sell.');
             return redirect()->route('game.localtrade');
         }
         if ($sellFood > $player->food) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You do not have that much food to sell.');
+            }
             session()->flash('game_message', 'You do not have that much food to sell.');
             return redirect()->route('game.localtrade');
         }
         if ($sellIron > $player->iron) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You do not have that much iron to sell.');
+            }
             session()->flash('game_message', 'You do not have that much iron to sell.');
             return redirect()->route('game.localtrade');
         }
         if ($sellTools > $player->tools) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You do not have that many tools to sell.');
+            }
             session()->flash('game_message', 'You do not have that many tools to sell.');
             return redirect()->route('game.localtrade');
         }
@@ -242,6 +275,10 @@ class TradeController extends Controller
         }
         $message .= 'You made a total of ' . number_format($getGold) . ' gold.';
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
+
         session()->flash('game_message', $message);
         return redirect()->route('game.localtrade');
     }
@@ -270,6 +307,9 @@ class TradeController extends Controller
 
         if ($bFood < 0 || $bWood < 0 || $bIron < 0 || $bTools < 0
             || $sFood < 0 || $sWood < 0 || $sIron < 0 || $sTools < 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot sell or buy negative numbers.');
+            }
             session()->flash('game_message', 'Cannot sell or buy negative numbers.');
             return redirect()->route('game.localtrade');
         }
@@ -277,6 +317,9 @@ class TradeController extends Controller
         $totalAutoTrade = $bFood + $bIron + $bWood + $bTools + $sFood + $sWood + $sIron + $sTools;
 
         if ($totalAutoTrade > $maxTrades) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You can only trade up to ' . number_format($maxTrades) . ' goods each month.');
+            }
             session()->flash('game_message', 'You can only trade up to ' . number_format($maxTrades) . ' goods each month.');
             return redirect()->route('game.localtrade');
         }
@@ -291,6 +334,10 @@ class TradeController extends Controller
             'auto_buy_tools' => $bTools,
             'auto_sell_tools' => $sTools,
         ]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Auto-trade settings updated.');
+        }
 
         return redirect()->route('game.localtrade');
     }
@@ -387,6 +434,9 @@ class TradeController extends Controller
         $buildings = session('buildings');
 
         if (config('game.deathmatch_mode')) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot view this page in deathmatch game.');
+            }
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -423,6 +473,9 @@ class TradeController extends Controller
         }
 
         if (!$sendOK) {
+            if ($request->expectsJson()) {
+                return $this->jsonError($message);
+            }
             session()->flash('game_message', $message);
             return redirect()->route('game.market', ['type' => 'sell']);
         }
@@ -432,11 +485,17 @@ class TradeController extends Controller
         $tradesRemaining = $maxTrades - $player->trades_this_turn;
 
         if ($totalSell == 0) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot sell 0 goods.');
+            }
             session()->flash('game_message', 'Cannot sell 0 goods.');
             return redirect()->route('game.market', ['type' => 'sell']);
         }
 
         if ($totalSell > $tradesRemaining) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You can sell only ' . $tradesRemaining . ' more goods this month.');
+            }
             session()->flash('game_message', 'You can sell only ' . $tradesRemaining . ' more goods this month.');
             return redirect()->route('game.market', ['type' => 'sell']);
         }
@@ -487,6 +546,10 @@ class TradeController extends Controller
         $message = 'Goods have been sent to the public market. They will reach the market in 3 months.<br>';
         $message .= 'Total value of the transport is ' . number_format($totalValue) . '.';
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message);
+        }
+
         session()->flash('game_message', $message);
         return redirect()->route('game.market', ['type' => 'sell']);
     }
@@ -502,6 +565,9 @@ class TradeController extends Controller
         $player = Auth::user();
 
         if (config('game.deathmatch_mode')) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot view this page in deathmatch game.');
+            }
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -510,6 +576,9 @@ class TradeController extends Controller
         $validGoods = ['wood', 'food', 'iron', 'tools', 'maces', 'swords', 'bows', 'horses'];
 
         if (!in_array($good, $validGoods)) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Invalid good type.');
+            }
             return redirect()->route('game.market', ['type' => 'buy']);
         }
 
@@ -606,6 +675,10 @@ class TradeController extends Controller
             }
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $message ?: 'No purchases made.');
+        }
+
         if (!empty($message)) {
             session()->flash('game_message', $message);
         }
@@ -619,11 +692,14 @@ class TradeController extends Controller
      *
      * Route: POST /market/withdraw/{id} -> game.market.withdraw
      */
-    public function withdrawFromMarket(int $id)
+    public function withdrawFromMarket(Request $request, int $id)
     {
         $player = Auth::user();
 
         if (config('game.deathmatch_mode')) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Cannot view this page in deathmatch game.');
+            }
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -633,6 +709,9 @@ class TradeController extends Controller
             ->first();
 
         if (!$transfer) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Transfer not found.');
+            }
             return redirect()->route('game.market', ['type' => 'sell']);
         }
 
@@ -649,6 +728,10 @@ class TradeController extends Controller
         ]);
 
         $transfer->delete();
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Goods withdrawn from market with a 10% fee.');
+        }
 
         session()->flash('game_message', 'Goods withdrawn from market with a 10% fee.');
         return redirect()->route('game.market', ['type' => 'sell']);

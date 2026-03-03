@@ -6,6 +6,7 @@ use App\Models\ExploreQueue;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Traits\ReturnsJson;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ExploreController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show explore page.
      * Ported from explore.cfm
@@ -122,20 +124,41 @@ class ExploreController extends Controller
 
         // Validation
         if ($player->people <= $qty) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You don't have that many people.");
+            }
             return back()->with('game_message', "You don't have that many people.");
         } elseif ($player->food < $exploreFood) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You don't have that much food.");
+            }
             return back()->with('game_message', "You don't have that much food.");
         } elseif ($seekLand < 0 || $seekLand > 3) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Invalid Option');
+            }
             return back()->with('game_message', 'Invalid Option');
         } elseif ($qty < 4) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You have to send at least 4 explorers.');
+            }
             return back()->with('game_message', 'You have to send at least 4 explorers.');
         } elseif ($withHorses === 1 && $player->horses < $qty) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough horses to send with your explorers (You need {$qty}).");
+            }
             return back()->with('game_message', "You do not have enough horses to send with your explorers (You need {$qty}).");
         } elseif ($withHorses === 2 && $player->horses < $qty * 2) {
             $need = $qty * 2;
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough horses to send with your explorers (You need {$need}).");
+            }
             return back()->with('game_message', "You do not have enough horses to send with your explorers (You need {$need}).");
         } elseif ($withHorses === 3 && $player->horses < $qty * 3) {
             $need = $qty * 3;
+            if ($request->expectsJson()) {
+                return $this->jsonError("You do not have enough horses to send with your explorers (You need {$need}).");
+            }
             return back()->with('game_message', "You do not have enough horses to send with your explorers (You need {$need}).");
         }
 
@@ -145,6 +168,9 @@ class ExploreController extends Controller
             ->sum('people');
 
         if ($currentExplorers + $qty > $maxExplorers) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You can only have a total of {$maxExplorers} explorers at a time.");
+            }
             return back()->with('game_message', "You can only have a total of {$maxExplorers} explorers at a time.");
         }
 
@@ -176,6 +202,10 @@ class ExploreController extends Controller
             'horses' => DB::raw("horses - {$useHorses}"),
         ]);
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Explorers sent successfully.');
+        }
+
         return redirect()->route('game.explore');
     }
 
@@ -196,12 +226,18 @@ class ExploreController extends Controller
             ->first();
 
         if (!$exploration) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Exploration not found.');
+            }
             return redirect()->route('game.explore');
         }
 
         $cancelTime = Carbon::now()->subMinutes(15);
 
         if ($exploration->turns_used > 0 || $exploration->created_on->lt($cancelTime)) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('You cannot cancel those explorers anymore.');
+            }
             return back()->with('game_message', 'You cannot cancel those explorers anymore.');
         }
 
@@ -213,6 +249,10 @@ class ExploreController extends Controller
         ]);
 
         $exploration->delete();
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Your explorers have been cancelled.');
+        }
 
         return redirect()->route('game.explore')->with('game_message', 'Your explorers have been cancelled.');
     }

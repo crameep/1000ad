@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class WallController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show the wall management page.
      * Ported from wall.cfm
@@ -67,6 +69,9 @@ class WallController extends Controller
         $wallBuildPerTurn = round((int) $request->input('wallBuildPerTurn', 0));
 
         if ($wallBuildPerTurn < 0 || $wallBuildPerTurn > 100) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('Percentage of builders have to be between 0 and 100.');
+            }
             session()->flash('game_message', 'Percentage of builders have to be between 0 and 100.');
             return redirect()->route('game.wall');
         }
@@ -74,6 +79,10 @@ class WallController extends Controller
         $player->update([
             'wall_build_per_turn' => $wallBuildPerTurn,
         ]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Wall build percentage updated.');
+        }
 
         return redirect()->route('game.wall');
     }

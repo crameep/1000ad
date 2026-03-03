@@ -1,6 +1,7 @@
-const CACHE_NAME = '1000ad-v1';
+const CACHE_NAME = '1000ad-v2';
 const SHELL_ASSETS = [
     '/css/game.css',
+    '/js/game.js',
     '/images/bg.gif',
     '/images/wood.gif',
     '/images/food.gif',
@@ -40,12 +41,28 @@ self.addEventListener('activate', function(event) {
     );
 });
 
-// Fetch: cache-first for static, network-first for HTML
+// Fetch: network-first for CSS/JS, cache-first for images, network-first for HTML
 self.addEventListener('fetch', function(event) {
     var url = new URL(event.request.url);
 
-    // Static assets: cache-first
-    if (url.pathname.match(/\.(css|js|gif|jpg|png|ico|woff2?|ttf|svg)$/)) {
+    // CSS and JS: network-first (these change during development)
+    if (url.pathname.match(/\.(css|js)$/)) {
+        event.respondWith(
+            fetch(event.request).then(function(response) {
+                var clone = response.clone();
+                caches.open(CACHE_NAME).then(function(cache) {
+                    cache.put(event.request, clone);
+                });
+                return response;
+            }).catch(function() {
+                return caches.match(event.request);
+            })
+        );
+        return;
+    }
+
+    // Images and fonts: cache-first (rarely change)
+    if (url.pathname.match(/\.(gif|jpg|png|ico|woff2?|ttf|svg)$/)) {
         event.respondWith(
             caches.match(event.request)
                 .then(function(cached) {

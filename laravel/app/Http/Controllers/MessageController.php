@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\ReturnsJson;
 use App\Models\BlockMessage;
 use App\Models\Player;
 use App\Models\PlayerMessage;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class MessageController extends Controller
 {
+    use ReturnsJson;
     /**
      * Show messages page with folder navigation.
      * Route: GET /game/messages/{folder?}
@@ -187,6 +189,10 @@ class MessageController extends Controller
             $resultMessages .= "Message sent to {$toPlayer->name}<br>";
         }
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, $resultMessages ?: 'Message sent.');
+        }
+
         if ($resultMessages) {
             session()->flash('game_message', $resultMessages);
         }
@@ -207,6 +213,10 @@ class MessageController extends Controller
             ->where('to_player_id', $player->id)
             ->update(['message_type' => 2]);
 
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Message deleted.');
+        }
+
         return redirect()->back();
     }
 
@@ -215,13 +225,17 @@ class MessageController extends Controller
      * Route: POST /game/messages/delete-all
      * Ported from eflag_player_messages.cfm eflag=delete_all_messages
      */
-    public function deleteAllMessages()
+    public function deleteAllMessages(Request $request)
     {
         $player = Auth::user();
 
         PlayerMessage::where('to_player_id', $player->id)
             ->where('message_type', 0)
             ->update(['message_type' => 2]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'All messages deleted.');
+        }
 
         return redirect()->route('game.messages');
     }
@@ -231,13 +245,17 @@ class MessageController extends Controller
      * Route: POST /game/messages/save/{id}
      * Ported from eflag_player_messages.cfm eflag=save_message
      */
-    public function saveMessage($id)
+    public function saveMessage(Request $request, $id)
     {
         $player = Auth::user();
 
         PlayerMessage::where('id', (int) $id)
             ->where('to_player_id', $player->id)
             ->update(['message_type' => 4]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Message saved.');
+        }
 
         return redirect()->route('game.messages');
     }
@@ -247,13 +265,17 @@ class MessageController extends Controller
      * Route: POST /game/messages/delete-all-saved
      * Ported from eflag_player_messages.cfm eflag=delete_all_saved
      */
-    public function deleteAllSaved()
+    public function deleteAllSaved(Request $request)
     {
         $player = Auth::user();
 
         PlayerMessage::where('to_player_id', $player->id)
             ->where('message_type', 4)
             ->update(['message_type' => 2]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'All saved messages deleted.');
+        }
 
         return redirect()->route('game.messages', ['folder' => 'saved']);
     }
@@ -263,13 +285,16 @@ class MessageController extends Controller
      * Route: POST /game/messages/block/{id}
      * Ported from eflag_player_messages.cfm eflag=addblock
      */
-    public function addBlock($id)
+    public function addBlock(Request $request, $id)
     {
         $player = Auth::user();
         $blockId = (int) $id;
 
         $targetPlayer = Player::find($blockId, ['id', 'name']);
         if (!$targetPlayer) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("Player #{$blockId} not found.");
+            }
             session()->flash('game_message', "Player #{$blockId} not found.");
             return redirect()->route('game.messages', ['folder' => 'options']);
         }
@@ -279,12 +304,18 @@ class MessageController extends Controller
             ->exists();
 
         if ($alreadyBlocked) {
+            if ($request->expectsJson()) {
+                return $this->jsonError("You're already blocking messages from player #{$blockId}");
+            }
             session()->flash('game_message', "You're already blocking messages from player #{$blockId}");
         } else {
             BlockMessage::create([
                 'player_id' => $player->id,
                 'block_player_id' => $blockId,
             ]);
+            if ($request->expectsJson()) {
+                return $this->jsonSuccess($player, "You will no longer receive messages from {$targetPlayer->name} (#{$blockId})");
+            }
             session()->flash('game_message', "You will no longer receive messages from {$targetPlayer->name} (#{$blockId})");
         }
 
@@ -296,13 +327,17 @@ class MessageController extends Controller
      * Route: POST /game/messages/unblock/{id}
      * Ported from eflag_player_messages.cfm eflag=unblock
      */
-    public function unblock($id)
+    public function unblock(Request $request, $id)
     {
         $player = Auth::user();
 
         BlockMessage::where('id', (int) $id)
             ->where('player_id', $player->id)
             ->delete();
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Player unblocked.');
+        }
 
         return redirect()->route('game.messages', ['folder' => 'options']);
     }
