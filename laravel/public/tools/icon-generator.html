@@ -95,14 +95,22 @@
 
 <div class="style-guide">
     <h3>Style Guide (applies to ALL icons)</h3>
-    <p><strong>Art style:</strong> Hand-painted medieval game icon, reminiscent of Age of Empires II</p>
-    <p><strong>Colors:</strong> Warm golds, ambers, deep browns. Matches the game's dark fantasy palette.</p>
-    <p><strong>Lighting:</strong> Soft top-left light source, subtle golden rim glow</p>
-    <p><strong>Perspective:</strong> Front-facing, flat/isometric. Not 3D rendered.</p>
-    <p><strong>Size:</strong> Generate at 1024x1024, will be displayed at 48x48 (desktop) and 32x32 (mobile)</p>
-    <p><strong>Background:</strong> Transparent (or solid dark #1a1510 if your tool doesn't support transparency)</p>
-    <p><strong>CRITICAL — Small-size readability:</strong> Icons MUST be identifiable at 32x32 pixels. Use ONE bold central object that fills 70-80% of the frame. Strong silhouette with thick outlines. High contrast between subject and background. NO fine details, NO tiny text, NO busy backgrounds. Each icon should be distinguishable from all others by shape alone. Think "bold logo" not "detailed illustration".</p>
-    <p><strong>Color coding:</strong> Each icon should have a dominant color that differs from similar icons (e.g. gold mine = gold tones, iron mine = blue-grey tones).</p>
+    <p><strong>Art style:</strong> Flat heraldic emblem / shield icon. Bold, graphic, simplified. Like a coat of arms symbol — NOT a detailed painting or illustration.</p>
+    <p><strong>Colors:</strong> Each icon gets ONE bright dominant color against a very dark background (#1a1510). Warm golds, bright reds, vivid blues, strong greens — saturated and punchy, not muted.</p>
+    <p><strong>Lighting:</strong> Flat with a subtle golden edge glow. No complex shadows or atmospheric lighting.</p>
+    <p><strong>Perspective:</strong> Flat front-facing. No perspective, no 3D, no depth.</p>
+    <p><strong>Size:</strong> Generate at 1024x1024, will be displayed at 48x48 (desktop) and <strong>32x32 (mobile)</strong></p>
+    <p><strong>Background:</strong> Solid dark #1a1510 or transparent. Completely clean — no ground, no sky, no scenery.</p>
+    <p><strong>CRITICAL — 32px readability:</strong> These icons MUST be instantly recognizable at 32x32 pixels. Rules:</p>
+    <ul style="margin:6px 0 6px 20px; font-size:14px;">
+        <li><strong>ONE object only.</strong> A single bold symbol — not a scene, not a building, not multiple items.</li>
+        <li><strong>Fills 85-90% of the frame.</strong> The object should be BIG. Almost touching the edges.</li>
+        <li><strong>Thick outlines.</strong> Think 3-4px outlines at 1024px. Crisp edges, not painterly/blurry.</li>
+        <li><strong>Flat color fills.</strong> 2-3 colors max per icon. Large solid color areas, not gradients or textures.</li>
+        <li><strong>No interior detail.</strong> No wood grain, no stone texture, no fabric folds. Just solid shapes.</li>
+        <li><strong>Unique silhouette.</strong> Each icon must have a completely different outline shape from every other icon.</li>
+    </ul>
+    <p><strong>Think:</strong> Mobile app icons, emoji, road signs — NOT oil paintings or game splash art.</p>
 </div>
 
 <div class="batch-section">
@@ -125,45 +133,45 @@
 <div id="unique-units"></div>
 
 <script>
-var stylePrefix = "Medieval fantasy game icon, hand-painted style, warm gold and amber tones, dark background (#1a1510), top-left lighting with golden rim glow, front-facing flat perspective. CRITICAL: Design for 32px display — ONE bold central object filling 70-80% of the frame, strong thick-outlined silhouette, high contrast, NO fine details or busy backgrounds. Reminiscent of Age of Empires II icon art. 1024x1024 pixel icon. Subject: ";
+var stylePrefix = "Flat bold heraldic emblem icon on dark background (#1a1510). ONE single object, simplified like a coat-of-arms symbol or mobile app icon. Fills 85-90% of the frame. Thick outlines, 2-3 flat saturated colors, NO textures, NO fine details, NO background scenery. Must be instantly recognizable when shrunk to 32x32 pixels. Subtle golden edge glow. 1024x1024 pixel icon. Subject: ";
 
 var buildings = [
-    { name: "Wood Cutter", file: "buildings/wood_cutter.png", desc: "A large woodcutting AXE embedded in a thick tree STUMP, centered and filling the frame. Green-brown tones. Bold silhouette — the axe shape is the key identifier. Minimal background." },
-    { name: "Hunter", file: "buildings/hunter.png", desc: "A large CROSSED BOW AND ARROWS over DEER ANTLERS, centered and filling the frame. Forest green-brown tones. The crossed bow shape is the key identifier. Minimal background." },
-    { name: "Farm", file: "buildings/farmer.png", desc: "A bold golden WHEAT SHEAF (bundle of wheat stalks tied together), centered and filling the frame. Warm golden-yellow tones. The wheat sheaf silhouette is the key identifier. Minimal background." },
-    { name: "House", file: "buildings/house.png", desc: "A simple medieval COTTAGE with a steep thatched roof and chimney with smoke, centered and filling the frame. Warm brown-orange tones. The house silhouette with peaked roof is the key identifier. Minimal background." },
-    { name: "Iron Mine", file: "buildings/iron_mine.png", desc: "A large PICKAXE crossed over a chunk of dark IRON ORE, centered and filling the frame. Cool blue-grey steel tones. The pickaxe-X shape is the key identifier. Minimal background." },
-    { name: "Gold Mine", file: "buildings/gold_mine.png", desc: "A large PICKAXE crossed over glowing GOLD NUGGETS, centered and filling the frame. Bright gold-yellow tones. Same shape as iron mine but golden color distinguishes it. Minimal background." },
-    { name: "Tool Maker", file: "buildings/tool_maker.png", desc: "A large HAMMER AND GEAR (cogwheel) overlapping, centered and filling the frame. Warm copper-brown tones. The hammer-and-gear shape is the key identifier. Minimal background." },
-    { name: "Weaponsmith", file: "buildings/weapon_smith.png", desc: "A glowing ANVIL with a SWORD being forged on it, orange-red sparks and heat glow, centered and filling the frame. Fiery orange-red tones. The anvil silhouette with glowing sword is the key identifier. Minimal background." },
-    { name: "Fort", file: "buildings/fort.png", desc: "A bold stone CASTLE KEEP with thick battlements and a gate, centered and filling the frame. Grey stone tones with a colored banner. The blocky castle silhouette is the key identifier. Minimal background." },
-    { name: "Tower", file: "buildings/tower.png", desc: "A single tall narrow WATCHTOWER with pointed roof and a glowing torch at top, centered and filling the frame. Grey stone with warm torch glow. The tall narrow tower silhouette is the key identifier. Minimal background." },
-    { name: "Town Center", file: "buildings/town_center.png", desc: "A grand BELL TOWER building with a large bell visible at top, arched entrance below, centered and filling the frame. Warm stone-gold tones. The bell tower silhouette is the key identifier. Minimal background." },
-    { name: "Market", file: "buildings/market.png", desc: "A large HANGING BALANCE SCALE (weighing scale) with a colorful cloth canopy behind it, centered and filling the frame. Colorful warm tones. The scale silhouette is the key identifier. Minimal background." },
-    { name: "Warehouse", file: "buildings/warehouse.png", desc: "A large wooden CRATE and BARREL stacked together, centered and filling the frame. Dark brown wood tones. The crate-and-barrel silhouette is the key identifier. Minimal background." },
-    { name: "Stable", file: "buildings/stable.png", desc: "A bold HORSE HEAD in profile looking left, with a horseshoe shape behind it, centered and filling the frame. Warm brown tones. The horse head silhouette is the key identifier. Minimal background." },
-    { name: "Mage Tower", file: "buildings/mage_tower.png", desc: "A tall stone TOWER topped with a large GLOWING PURPLE CRYSTAL, magical energy radiating from the crystal, centered and filling the frame. Purple-blue magical tones. The glowing crystal top distinguishes it from the regular tower. Minimal background." },
-    { name: "Winery", file: "buildings/winery.png", desc: "A large WINE BARREL with a GOBLET of red wine in front, centered and filling the frame. Deep red-burgundy and warm brown tones. The barrel-and-goblet silhouette is the key identifier. Minimal background." }
+    { name: "Wood Cutter", file: "buildings/wood_cutter.png", desc: "A single large DOUBLE-HEADED AXE, vertical, head at top. Bright green handle, silver blade. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Hunter", file: "buildings/hunter.png", desc: "A single large LONGBOW with one arrow nocked, vertical. Rich brown bow, bright white arrow. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Farm", file: "buildings/farmer.png", desc: "A single large WHEAT SHEAF — a fan-shaped bundle of golden wheat stalks tied at the base. Bright golden yellow. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "House", file: "buildings/house.png", desc: "A single simple HOUSE silhouette — peaked triangle roof, square base, one door, one window, chimney. Warm orange-brown. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Iron Mine", file: "buildings/iron_mine.png", desc: "A single large PICKAXE, diagonal. Cool blue-grey steel color. Fills 90% of frame. Flat colors, thick outline, no background objects. Blue tones distinguish from gold mine." },
+    { name: "Gold Mine", file: "buildings/gold_mine.png", desc: "A single large PICKAXE, diagonal, identical pose to iron mine but colored bright GOLD with golden glow. Fills 90% of frame. Flat colors, thick outline, no background objects. Gold color distinguishes from iron mine." },
+    { name: "Tool Maker", file: "buildings/tool_maker.png", desc: "A single large GEAR/COGWHEEL with a HAMMER overlaid diagonally across it. Copper-bronze color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Weaponsmith", file: "buildings/weapon_smith.png", desc: "A single large ANVIL shape, simple and bold, with bright orange-red glow emanating from it. Dark iron with fiery orange. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Fort", file: "buildings/fort.png", desc: "A simple CASTLE GATE silhouette — two blocky square towers with crenellations and an arched gate between them. Grey stone color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Tower", file: "buildings/tower.png", desc: "A single tall narrow TOWER silhouette — very tall and thin with a pointed conical roof. Grey with a bright yellow torch flame at top. Fills 90% of frame vertically. Flat colors, thick outline, no background objects." },
+    { name: "Town Center", file: "buildings/town_center.png", desc: "A single large BELL silhouette, like a church bell or liberty bell shape. Warm gold color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Market", file: "buildings/market.png", desc: "A single large BALANCE SCALE — the classic two-pan hanging scale shape. Bright gold color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Warehouse", file: "buildings/warehouse.png", desc: "A single large wooden BARREL, front-facing with visible staves and metal bands. Rich brown wood color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Stable", file: "buildings/stable.png", desc: "A single large HORSESHOE shape, open end facing up. Warm brown-gold color. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Mage Tower", file: "buildings/mage_tower.png", desc: "A single large GLOWING CRYSTAL — a faceted gem/crystal shape pointing upward. Bright purple with violet glow. Fills 90% of frame. Flat colors, thick outline, no background objects." },
+    { name: "Winery", file: "buildings/winery.png", desc: "A single large WINE GOBLET/CHALICE filled with red wine. Deep red and gold color. Fills 90% of frame. Flat colors, thick outline, no background objects." }
 ];
 
 var soldiers = [
-    { name: "Archer", file: "soldiers/archer.png", desc: "A single medieval ARCHER drawing a large LONGBOW, arrow nocked and pulled back. Upper body portrait filling the frame. Green-brown leather tones. The drawn bow shape is the key identifier. Minimal background." },
-    { name: "Swordsman", file: "soldiers/swordsman.png", desc: "A single medieval SWORDSMAN holding up a large STEEL SWORD, with a shield visible at his side. Upper body portrait filling the frame. Silver chainmail and blue tones. The raised sword silhouette is the key identifier. Minimal background." },
-    { name: "Horseman", file: "soldiers/horseman.png", desc: "A MOUNTED KNIGHT on a warhorse, lance raised, in profile facing right. The full horse-and-rider fills the frame. Silver armor and red cape. The mounted rider silhouette is the key identifier. Minimal background." },
-    { name: "Tower (Defense)", file: "soldiers/tower_defense.png", desc: "A short, wide defensive STONE TURRET with crenellations and a crossbow mounted on top, a flag flying. Centered and filling the frame. Grey stone with red flag. The squat fortified turret silhouette (shorter and wider than the building tower) is the key identifier. Minimal background." },
-    { name: "Catapult", file: "soldiers/catapult.png", desc: "A large wooden TREBUCHET/CATAPULT with its throwing arm raised, loaded with a stone boulder. Centered and filling the frame. Warm brown wood tones. The catapult arm silhouette is the key identifier. Minimal background." },
-    { name: "Macemen", file: "soldiers/macemen.png", desc: "A single armored WARRIOR raising a large spiked MACE overhead, heavy plate armor. Upper body portrait filling the frame. Dark iron-grey tones. The raised mace weapon shape is the key identifier. Minimal background." },
-    { name: "Trained Peasant", file: "soldiers/trained_peasant.png", desc: "A single PEASANT MILITIA holding a PITCHFORK upright like a spear, simple cloth clothing. Upper body portrait filling the frame. Earth-brown and tan tones. The pitchfork and simple clothing distinguish from other soldiers. Minimal background." },
-    { name: "Thieves", file: "soldiers/thieves.png", desc: "A single HOODED ROGUE in a dark hood and cloak, holding a DAGGER low, face partially shadowed. Upper body portrait filling the frame. Dark purple-black tones. The hooded silhouette and dagger are the key identifiers. Minimal background." }
+    { name: "Archer", file: "soldiers/archer.png", desc: "A single large DRAWN BOW with arrow — the bow is pulled back in a D-shape with arrow pointing right. Green and brown. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapon." },
+    { name: "Swordsman", file: "soldiers/swordsman.png", desc: "A single large LONGSWORD crossed over a SHIELD — sword diagonal, round shield behind. Silver blade, blue shield. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapons." },
+    { name: "Horseman", file: "soldiers/horseman.png", desc: "A bold simplified HORSE AND RIDER silhouette in profile, lance pointing forward. Silver-white on dark. Fills 90% of frame. Flat colors, thick outline, simplified like a chess knight piece." },
+    { name: "Tower (Defense)", file: "soldiers/tower_defense.png", desc: "A short wide SHIELD shape with CRENELLATIONS on top — like a castle battlement merged with a shield. Grey with a red cross. Fills 90% of frame. Flat colors, thick outline. Wider and squatter than the building tower icon." },
+    { name: "Catapult", file: "soldiers/catapult.png", desc: "A simplified CATAPULT/TREBUCHET side view — triangular frame with a long throwing arm raised diagonally, boulder at end. Brown wood color. Fills 90% of frame. Flat colors, thick outline, simplified to basic geometric shapes." },
+    { name: "Macemen", file: "soldiers/macemen.png", desc: "A single large SPIKED MACE weapon, vertical, head at top with prominent spikes radiating out. Dark iron grey. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapon." },
+    { name: "Trained Peasant", file: "soldiers/trained_peasant.png", desc: "A single large PITCHFORK, vertical, three prongs at top. Simple brown wood handle, grey metal tines. Fills 90% of frame. Flat colors, thick outline, no person visible, just the tool-weapon." },
+    { name: "Thieves", file: "soldiers/thieves.png", desc: "A single large curved DAGGER with a black MASK behind it — a simple domino/eye mask shape. Dark purple and black. Fills 90% of frame. Flat colors, thick outline, sinister feel." }
 ];
 
 var uniqueUnits = [
-    { name: "Berserker (Vikings)", file: "soldiers/unique/berserker.png", desc: "A fierce VIKING BERSERKER with a horned helmet, raising DUAL BATTLE AXES overhead, bear pelt on shoulders. Upper body portrait filling the frame. Icy blue and fur-brown tones. The horned helmet and twin axes are the key identifiers. Minimal background." },
-    { name: "Paladin (Franks)", file: "soldiers/unique/paladin.png", desc: "A noble PALADIN in gleaming golden plate armor, holding a GLOWING HOLY SWORD upright, blue cape behind. Upper body portrait filling the frame. Bright gold and royal blue tones. The golden armor and glowing sword are the key identifiers. Minimal background." },
-    { name: "Samurai (Japanese)", file: "soldiers/unique/samurai.png", desc: "A SAMURAI in distinctive red-laced armor (yoroi) and ornate KABUTO HELMET with face mask, KATANA held at ready. Upper body portrait filling the frame. Red and black lacquer tones. The kabuto helmet shape and katana are the key identifiers. Minimal background." },
-    { name: "Cataphract (Byzantines)", file: "soldiers/unique/cataphract.png", desc: "A MOUNTED HEAVY CAVALRY warrior on a fully armored horse, both rider and horse in gilded scale armor, lance raised. Full mount fills the frame in profile. Purple and gold Byzantine tones. The fully armored horse distinguishes from regular horseman. Minimal background." },
-    { name: "Horse Archer (Mongols)", file: "soldiers/unique/horse_archer.png", desc: "A MOUNTED ARCHER on a galloping horse, drawing a composite BOW while riding, fur-trimmed leather armor. Full mount fills the frame in profile. Earth-brown and tan tones. The bow-on-horseback silhouette distinguishes from regular horseman (lance) and regular archer (on foot). Minimal background." },
-    { name: "Shaman (Incas)", file: "soldiers/unique/shaman.png", desc: "An INCAN SHAMAN holding a tall GOLDEN STAFF topped with a glowing SUN DISK, elaborate feathered headdress, ceremonial robes. Upper body portrait filling the frame. Gold and bright feather tones (green, red). The sun-disk staff and feathered headdress are the key identifiers. Minimal background." }
+    { name: "Berserker (Vikings)", file: "soldiers/unique/berserker.png", desc: "TWO CROSSED BATTLE AXES forming an X, with a HORNED VIKING HELMET centered above the crossing point. Icy blue axes, brown helmet with white horns. Fills 90% of frame. Flat colors, thick outline." },
+    { name: "Paladin (Franks)", file: "soldiers/unique/paladin.png", desc: "A single GLOWING GOLDEN SWORD pointing upward with a FLEUR-DE-LIS emblem behind it. Bright gold sword, royal blue fleur-de-lis. Fills 90% of frame. Flat colors, thick outline, holy radiant glow." },
+    { name: "Samurai (Japanese)", file: "soldiers/unique/samurai.png", desc: "A single KATANA (curved Japanese sword) diagonal across a circular RED SUN disk. Silver blade, bright red circle. Fills 90% of frame. Flat colors, thick outline, Japanese aesthetic." },
+    { name: "Cataphract (Byzantines)", file: "soldiers/unique/cataphract.png", desc: "A bold ARMORED HORSE HEAD in profile with scale armor visible, a purple Byzantine cross behind. Gold-gilded horse, purple cross. Fills 90% of frame. Flat colors, thick outline. The armored horse head distinguishes from the regular horseman (full rider silhouette)." },
+    { name: "Horse Archer (Mongols)", file: "soldiers/unique/horse_archer.png", desc: "A COMPOSITE RECURVE BOW (distinctive curved shape, different from the longbow) with a HORSE SILHOUETTE behind it. Earth-brown bow, tan horse. Fills 90% of frame. Flat colors, thick outline. Recurve bow shape distinguishes from the regular archer's straight longbow." },
+    { name: "Shaman (Incas)", file: "soldiers/unique/shaman.png", desc: "A large GOLDEN SUN DISK with radiating rays, a vertical STAFF through the center. Bright gold sun, dark staff. Fills 90% of frame. Flat colors, thick outline, Incan solar symbol." }
 ];
 
 function renderCards(containerId, items) {

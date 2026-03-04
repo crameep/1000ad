@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 1000ad:latest
+    container_name: 1000ad
+    ports:
+      - "8080:80"
+    volumes:
+      # Persist the SQLite database outside the container
+      - game-data:/var/www/html/database
+      # Persist session files
+      - game-sessions:/var/www/html/storage/framework/sessions
+    environment:
+      - APP_NAME=1000 A.D.
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://your-unraid-ip:8080
+      - DB_CONNECTION=sqlite
+      - SESSION_DRIVER=file
+      - SESSION_LIFETIME=120
+      - LOG_CHANNEL=stderr
+    restart: unless-stopped
+
+volumes:
+  game-data:
+  game-sessions:
