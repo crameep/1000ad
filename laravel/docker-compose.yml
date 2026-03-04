@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 1000ad:latest
     container_name: 1000ad
     ports:
       - "${APP_PORT:-8080}:80"
