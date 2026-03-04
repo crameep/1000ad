@@ -75,6 +75,16 @@ class Game extends Model
         return $this->hasMany(Alliance::class, 'game_id');
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function prizePayouts()
+    {
+        return $this->hasMany(PrizePayout::class);
+    }
+
     // Scopes
 
     public function scopeActive($query)

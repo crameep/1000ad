@@ -24,6 +24,9 @@
                 <a href="{{ route('admin.players.index') }}" class="{{ request()->routeIs('admin.players.*') ? 'active' : '' }}">
                     Players
                 </a>
+                <a href="{{ route('admin.finance.index') }}" class="{{ request()->routeIs('admin.finance.*') ? 'active' : '' }}">
+                    Finance
+                </a>
                 <hr style="border-color:var(--border-dark); margin:8px 0;">
                 <a href="{{ route('lobby') }}">Back to Lobby</a>
                 <form action="{{ route('logout') }}" method="POST" style="margin:0;">

@@ -15,11 +15,16 @@ services:
       - APP_NAME=1000 A.D.
       - APP_ENV=production
       - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
       - APP_URL=${APP_URL:-http://localhost:8080}
       - DB_CONNECTION=sqlite
       - SESSION_DRIVER=file
       - SESSION_LIFETIME=120
       - LOG_CHANNEL=stderr
+      - STRIPE_KEY=${STRIPE_KEY:-}
+      - STRIPE_SECRET=${STRIPE_SECRET:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_EMPIRE_SLOT_PRICE_ID=${STRIPE_EMPIRE_SLOT_PRICE_ID:-}
     restart: unless-stopped
 
   tunnel:

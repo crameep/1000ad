@@ -118,6 +118,32 @@
             </div>
 
             <div class="form-section">
+                <h3>Tournament Prizes</h3>
+                <p class="text-muted text-small">Prize payouts auto-assigned to top scorers when the game ends.</p>
+                <div id="prize-tiers">
+                    @php $tiers = $game->setting('prize_tiers') ?? []; @endphp
+                    @forelse($tiers as $i => $tier)
+                        <div class="form-row prize-tier-row">
+                            <div class="form-group" style="flex:0 0 80px;">
+                                <label>Place</label>
+                                <input type="number" name="prize_place[]" value="{{ $tier['place'] }}" min="1" max="20">
+                            </div>
+                            <div class="form-group" style="flex:0 0 120px;">
+                                <label>Amount ($)</label>
+                                <input type="number" name="prize_amount[]" value="{{ $tier['amount_cents'] / 100 }}" min="0" step="0.01">
+                            </div>
+                            <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+                                <button type="button" class="btn btn-sm" onclick="this.closest('.prize-tier-row').remove()">Remove</button>
+                            </div>
+                        </div>
+                    @empty
+                        {{-- No prize tiers yet --}}
+                    @endforelse
+                </div>
+                <button type="button" class="btn btn-sm" onclick="addPrizeTier()">+ Add Prize Tier</button>
+            </div>
+
+            <div class="form-section">
                 <h3>Special Modes</h3>
                 <div class="form-group">
                     <label>
@@ -151,3 +177,16 @@
     </div>
 </div>
 @endsection
+
+<script>
+function addPrizeTier() {
+    var container = document.getElementById('prize-tiers');
+    var count = container.querySelectorAll('.prize-tier-row').length;
+    var row = document.createElement('div');
+    row.className = 'form-row prize-tier-row';
+    row.innerHTML = '<div class="form-group" style="flex:0 0 80px;"><label>Place</label><input type="number" name="prize_place[]" value="' + (count + 1) + '" min="1" max="20"></div>' +
+        '<div class="form-group" style="flex:0 0 120px;"><label>Amount ($)</label><input type="number" name="prize_amount[]" value="0" min="0" step="0.01"></div>' +
+        '<div class="form-group" style="flex:0 0 auto; align-self:flex-end;"><button type="button" class="btn btn-sm" onclick="this.closest(\'.prize-tier-row\').remove()">Remove</button></div>';
+    container.appendChild(row);
+}
+</script>

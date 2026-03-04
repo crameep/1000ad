@@ -411,14 +411,17 @@ td.header, th {
 }
 .land-icon {
     display: inline-block;
+    width: 16px;
+    height: 16px;
     margin-right: 3px;
-    font-size: 14px;
     vertical-align: middle;
-    line-height: 1;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
 }
 .land-free-cell .land-icon {
     opacity: 0.7;
-    font-size: 12px;
+    width: 14px;
+    height: 14px;
 }
 .resource-item {
     white-space: nowrap;
@@ -426,10 +429,12 @@ td.header, th {
 }
 .res-icon {
     display: inline-block;
-    font-size: 14px;
+    width: 16px;
+    height: 16px;
     vertical-align: middle;
-    line-height: 1;
     margin-right: 2px;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
 }
 .goods-grid {
     display: grid;
@@ -1860,6 +1865,9 @@ button.explore-btn {
 .status-setup { background: #3a3a1a; color: #cccc4c; border: 1px solid #5a5a2a; }
 .status-paused { background: #3a2a1a; color: #cc8c4c; border: 1px solid #5a4a2a; }
 .status-ended { background: #3a1a1a; color: #cc4c4c; border: 1px solid #5a2a2a; }
+.status-pending { background: #3a3a1a; color: #cccc4c; border: 1px solid #5a5a2a; }
+.status-paid { background: #1a3a1a; color: #4ccc4c; border: 1px solid #2a5a2a; }
+.status-cancelled { background: #3a1a1a; color: #cc4c4c; border: 1px solid #5a2a2a; }
 
 /* Admin alerts */
 .admin-alert {

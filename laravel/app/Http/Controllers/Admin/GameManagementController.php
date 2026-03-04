@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\Player;
+use App\Models\PrizePayout;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -86,6 +87,7 @@ class GameManagementController extends Controller
                 'extra_food_per_land' => config('game.extra_food_per_land'),
                 'people_burn_one_wood' => config('game.people_burn_one_wood'),
                 'max_empires_per_user' => (int) $request->max_empires_per_user,
+                'prize_tiers' => [],
             ],
             'created_by' => auth()->id(),
         ]);
@@ -135,6 +137,20 @@ class GameManagementController extends Controller
         // Update the max_empires_per_user in game settings JSON
         $game->setSetting('max_empires_per_user', (int) $request->max_empires_per_user);
 
+        // Parse prize tiers from form arrays
+        $prizeTiers = [];
+        $places = $request->input('prize_place', []);
+        $amounts = $request->input('prize_amount', []);
+        foreach ($places as $i => $place) {
+            if (!empty($place) && !empty($amounts[$i])) {
+                $prizeTiers[] = [
+                    'place' => (int) $place,
+                    'amount_cents' => (int) (floatval($amounts[$i]) * 100),
+                ];
+            }
+        }
+        $game->setSetting('prize_tiers', $prizeTiers);
+
         $game->update([
             'name' => $request->name,
             'description' => $request->description,
@@ -160,8 +176,55 @@ class GameManagementController extends Controller
         // Soft end — don't actually delete, just mark as ended
         $game->update(['status' => 'ended']);
 
+        // Auto-assign prizes if configured
+        $this->assignPrizes($game);
+
         return redirect()->route('admin.games.index')
             ->with('success', "Game '{$game->name}' has been ended.");
+    }
+
+    /**
+     * Auto-assign prize payouts to top scorers when a game ends.
+     */
+    private function assignPrizes(Game $game): void
+    {
+        $tiers = $game->setting('prize_tiers') ?? [];
+        if (empty($tiers)) {
+            return;
+        }
+
+        // Don't double-assign
+        if (PrizePayout::where('game_id', $game->id)->exists()) {
+            return;
+        }
+
+        // Get top N alive players by score descending
+        $topCount = count($tiers);
+        $topPlayers = Player::withoutGlobalScope('game')
+            ->where('game_id', $game->id)
+            ->where('killed_by', 0)
+            ->orderByDesc('score')
+            ->limit($topCount)
+            ->get();
+
+        // Sort tiers by place
+        usort($tiers, fn($a, $b) => $a['place'] <=> $b['place']);
+
+        foreach ($tiers as $i => $tier) {
+            $player = $topPlayers[$i] ?? null;
+            if (!$player) {
+                break;
+            }
+
+            PrizePayout::create([
+                'user_id' => $player->user_id,
+                'game_id' => $game->id,
+                'player_id' => $player->id,
+                'place' => $tier['place'],
+                'amount_cents' => $tier['amount_cents'],
+                'status' => 'pending',
+            ]);
+        }
     }
 
     /**

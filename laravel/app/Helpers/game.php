@@ -102,6 +102,46 @@ if (!function_exists('buildingIcon')) {
     }
 }
 
+if (!function_exists('resourceIcon')) {
+    /**
+     * Get the icon URL for a resource type.
+     */
+    function resourceIcon(string $resource): string
+    {
+        $path = "images/icons/resources/{$resource}.png";
+        if (file_exists(public_path($path))) {
+            return asset($path);
+        }
+        return '';
+    }
+}
+
+if (!function_exists('landIcon')) {
+    /**
+     * Get the icon URL for a land type.
+     */
+    function landIcon(string $type): string
+    {
+        $path = "images/icons/land/{$type}.png";
+        if (file_exists(public_path($path))) {
+            return asset($path);
+        }
+        return '';
+    }
+}
+
+if (!function_exists('ordinal')) {
+    /**
+     * Convert a number to its ordinal string (1st, 2nd, 3rd, etc.).
+     */
+    function ordinal(int $n): string
+    {
+        $s = ['th', 'st', 'nd', 'rd'];
+        $v = $n % 100;
+        return $n . ($s[($v - 20) % 10] ?? $s[$v] ?? $s[0]);
+    }
+}
+
 if (!function_exists('soldierIcon')) {
     /**
      * Get the icon URL for a soldier by type index and optional civ ID.

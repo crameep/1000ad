@@ -16,6 +16,20 @@
         <div class="admin-stat-value">{{ $activeGames }}</div>
         <div class="admin-stat-label">Active Games</div>
     </div>
+    <div class="admin-stat-card">
+        <div class="admin-stat-value">${{ number_format($totalRevenue / 100, 2) }}</div>
+        <div class="admin-stat-label">Total Revenue</div>
+    </div>
+    <div class="admin-stat-card">
+        <div class="admin-stat-value">${{ number_format($netBalance / 100, 2) }}</div>
+        <div class="admin-stat-label">Net Balance</div>
+    </div>
+    @if($pendingPayouts > 0)
+    <div class="admin-stat-card">
+        <div class="admin-stat-value">{{ $pendingPayouts }}</div>
+        <div class="admin-stat-label">Pending Payouts</div>
+    </div>
+    @endif
 </div>
 
 <div class="panel" style="margin-top:20px;">
@@ -29,6 +43,7 @@
                     <th>Status</th>
                     <th>Players</th>
                     <th>Turn Speed</th>
+                    <th style="text-align:right;">Revenue</th>
                     <th>Created</th>
                 </tr>
             </thead>
@@ -46,11 +61,12 @@
                         </td>
                         <td>{{ $game->player_count }} active / {{ $game->total_players }} total</td>
                         <td>{{ $game->minutes_per_turn }} min/turn</td>
+                        <td style="text-align:right;">@if($game->revenue_cents > 0)${{ number_format($game->revenue_cents / 100, 2) }}@else<span class="text-muted">-</span>@endif</td>
                         <td>{{ $game->created_at->format('M j, Y') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No games yet.</td>
+                        <td colspan="7" class="text-center text-muted">No games yet.</td>
                     </tr>
                 @endforelse
             </tbody>

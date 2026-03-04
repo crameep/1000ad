@@ -31,6 +31,16 @@ class User extends Authenticatable
         return $this->hasMany(EmpireSlot::class, 'user_id');
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function prizePayouts()
+    {
+        return $this->hasMany(PrizePayout::class);
+    }
+
     /**
      * Get the player record for a specific game.
      */

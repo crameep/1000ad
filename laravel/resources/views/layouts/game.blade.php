@@ -115,15 +115,15 @@
         <button type="button" class="turn-btn explore-btn" id="explore-50">Explore 50</button>
         <select class="explore-select" id="explore-land" title="Land type to seek">
             <option value="0">All Land</option>
-            <option value="1">&#9968; Mountains</option>
-            <option value="2">&#127794; Forest</option>
-            <option value="3">&#127806; Plains</option>
+            <option value="1">Mountains</option>
+            <option value="2">Forest</option>
+            <option value="3">Plains</option>
         </select>
         <select class="explore-select" id="explore-horses" title="Horses per explorer">
-            <option value="0">&#128052; 0x</option>
-            <option value="1">&#128052; 1x</option>
-            <option value="2">&#128052; 2x</option>
-            <option value="3">&#128052; 3x</option>
+            <option value="0">Horses: 0x</option>
+            <option value="1">Horses: 1x</option>
+            <option value="2">Horses: 2x</option>
+            <option value="3">Horses: 3x</option>
         </select>
         @if($exploreCount > 0)
             <span class="explore-status" id="explore-status">

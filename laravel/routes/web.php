@@ -72,6 +72,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('games', \App\Http\Controllers\Admin\GameManagementController::class);
     Route::post('games/{game}/duplicate', [\App\Http\Controllers\Admin\GameManagementController::class, 'duplicate'])->name('games.duplicate');
+    // Finance
+    Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+    Route::post('finance/payout/{payout}/mark-paid', [\App\Http\Controllers\Admin\FinanceController::class, 'markPaid'])->name('finance.mark-paid');
+    Route::post('finance/payout/{payout}/cancel', [\App\Http\Controllers\Admin\FinanceController::class, 'cancelPayout'])->name('finance.cancel-payout');
+
     Route::get('players', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'index'])->name('players.index');
     Route::get('players/{user}', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'show'])->name('players.show');
     Route::get('players/{player}/edit', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'editPlayer'])->name('players.edit');

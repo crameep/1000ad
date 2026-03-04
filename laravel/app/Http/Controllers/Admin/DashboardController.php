@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\Player;
+use App\Models\PrizePayout;
+use App\Models\Transaction;
 use App\Models\User;
 
 /**
@@ -20,6 +22,10 @@ class DashboardController extends Controller
         $totalGames = Game::count();
         $activeGames = Game::where('status', 'active')->count();
 
+        $totalRevenue = Transaction::sum('amount_cents');
+        $totalPrizesPaid = PrizePayout::where('status', 'paid')->sum('amount_cents');
+        $pendingPayouts = PrizePayout::where('status', 'pending')->count();
+
         $games = Game::orderBy('created_at', 'desc')->get()->map(function ($game) {
             $game->player_count = Player::withoutGlobalScope('game')
                 ->where('game_id', $game->id)
@@ -28,6 +34,7 @@ class DashboardController extends Controller
             $game->total_players = Player::withoutGlobalScope('game')
                 ->where('game_id', $game->id)
                 ->count();
+            $game->revenue_cents = Transaction::where('game_id', $game->id)->sum('amount_cents');
             return $game;
         });
 
@@ -36,6 +43,9 @@ class DashboardController extends Controller
             'totalGames' => $totalGames,
             'activeGames' => $activeGames,
             'games' => $games,
+            'totalRevenue' => $totalRevenue,
+            'netBalance' => $totalRevenue - $totalPrizesPaid,
+            'pendingPayouts' => $pendingPayouts,
         ]);
     }
 }

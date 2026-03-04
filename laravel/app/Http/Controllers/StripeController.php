@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EmpireSlot;
 use App\Models\Game;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Stripe\Checkout\Session as StripeSession;
 use Stripe\Stripe;
@@ -80,7 +81,7 @@ class StripeController extends Controller
             return redirect()->route('lobby')->with('error', 'Payment session mismatch.');
         }
 
-        $this->grantEmpireSlot($userId, $gameId, $session->id, $session->customer);
+        $this->grantEmpireSlot($userId, $gameId, $session->id, $session->customer, (int) ($session->amount_total ?? 0));
 
         return redirect()->route('lobby')->with('success', 'Extra empire slot purchased! You can now create another empire in this game.');
     }
@@ -110,7 +111,7 @@ class StripeController extends Controller
                 $gameId = $session->metadata->game_id ?? null;
 
                 if ($userId && $gameId) {
-                    $this->grantEmpireSlot($userId, $gameId, $session->id, $session->customer);
+                    $this->grantEmpireSlot($userId, $gameId, $session->id, $session->customer, (int) ($session->amount_total ?? 0));
                 }
             }
         }
@@ -121,14 +122,18 @@ class StripeController extends Controller
     /**
      * Grant an empire slot (idempotent — won't duplicate).
      */
-    private function grantEmpireSlot(int $userId, int $gameId, ?string $paymentId, ?string $customerId): void
+    private function grantEmpireSlot(int $userId, int $gameId, ?string $paymentId, ?string $customerId, int $amountCents = 0): void
     {
+        // Idempotency: skip if we already logged this payment
+        if ($paymentId && Transaction::where('stripe_payment_id', $paymentId)->exists()) {
+            return;
+        }
+
         $slot = EmpireSlot::where('user_id', $userId)
             ->where('game_id', $gameId)
             ->first();
 
         if ($slot) {
-            // Increment existing slot count
             $slot->increment('extra_slots');
             $slot->update([
                 'stripe_payment_id' => $paymentId,
@@ -142,6 +147,18 @@ class StripeController extends Controller
                 'stripe_payment_id' => $paymentId,
                 'stripe_customer_id' => $customerId,
                 'purchased_at' => now(),
+            ]);
+        }
+
+        // Log the transaction
+        if ($amountCents > 0) {
+            Transaction::create([
+                'user_id' => $userId,
+                'game_id' => $gameId,
+                'stripe_payment_id' => $paymentId,
+                'type' => 'empire_slot',
+                'amount_cents' => $amountCents,
+                'description' => 'Extra empire slot purchase',
             ]);
         }
 
