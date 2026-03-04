@@ -220,6 +220,13 @@ td.header, th {
     margin-bottom: 8px;
     border-radius: var(--radius);
 }
+.building-table {
+    width: 100%;
+}
+.building-table td {
+    font-size: var(--font-size-small);
+    padding: 4px 5px;
+}
 
 /* === 7. Layout === */
 .game-container {
@@ -1066,10 +1073,6 @@ td.header, th {
     top: 0;
     z-index: 100;
     border-radius: 0;
-    margin-left: -12px;
-    margin-right: -12px;
-    padding-left: 12px;
-    padding-right: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 }
 
