@@ -768,7 +768,8 @@
     // ─── Auto-Init on DOM Ready ───────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         Toast.init();
-        Toast.muted = Prefs.get('toastsMuted', false);
+        var mutedDefault = window.innerWidth <= 600 ? true : false;
+        Toast.muted = Prefs.get('toastsMuted', mutedDefault);
         ResourceBar.init();
         TurnPresets.init();
         QuickExplore.init();

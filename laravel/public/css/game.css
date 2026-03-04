@@ -1346,13 +1346,10 @@ button.explore-btn {
         min-height: 38px;
         min-width: 0;
     }
-    .turn-counter-btn {
-        padding: 8px 14px;
-        font-size: 14px;
-    }
-    .turn-counter-value {
-        padding: 8px 14px;
-        font-size: 14px;
+    .turn-counter,
+    .turn-counter + .turn-btn,
+    .turn-counter + .turn-btn + .turn-divider {
+        display: none;
     }
     .quick-explore-bar {
         flex-wrap: wrap;
