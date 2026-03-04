@@ -7,7 +7,6 @@ use App\Models\AttackQueue;
 use App\Models\TrainQueue;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -35,7 +34,7 @@ class ArmyController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
         $soldiers = session('soldiers');
 
@@ -314,7 +313,7 @@ class ArmyController extends Controller
      */
     public function train(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $soldiers = session('soldiers');
         $buildings = session('buildings');
 
@@ -415,7 +414,7 @@ class ArmyController extends Controller
      */
     public function cancelTraining(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $soldiers = session('soldiers');
 
         $request->validate([
@@ -492,7 +491,7 @@ class ArmyController extends Controller
      */
     public function disband(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $soldiers = session('soldiers');
 
         // Read quantities

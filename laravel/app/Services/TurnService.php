@@ -52,7 +52,7 @@ class TurnService
         $constants = $this->gameDataService->getConstants($player->civ);
         $localPrices = $this->gameDataService->getLocalPrices();
         $researchNames = $this->gameDataService->getResearchNames();
-        $wallCosts = config('game.wall');
+        $wallCosts = gameConfig('wall');
 
         // Shorthand references to specific building data
         $hunterB = $buildings[2];
@@ -1194,7 +1194,7 @@ class TurnService
         // =====================================================================
         // N. Auto-trade processing
         // =====================================================================
-        $localTradeMulti = config('game.local_trade_multiplier');
+        $localTradeMulti = gameConfig('local_trade_multiplier');
         $extra = 1;
         $s = $newP->score;
         while ($s > 100000) {

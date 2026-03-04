@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Traits\ReturnsJson;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Research Controller
@@ -22,7 +21,7 @@ class ResearchController extends Controller
      */
     public function index(GameDataService $gameData)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Research names
@@ -110,7 +109,7 @@ class ResearchController extends Controller
      */
     public function setResearch(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $newResearch = (int) $request->input('newCurrentResearch', 0);
 

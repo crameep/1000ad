@@ -149,6 +149,48 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Game Presets
+    |--------------------------------------------------------------------------
+    | Default values for game presets when creating new games.
+    */
+    'presets' => [
+        'standard' => [
+            'label' => 'Standard',
+            'description' => 'Classic gameplay with standard turn speed.',
+            'minutes_per_turn' => 5,
+            'max_turns_stored' => 500,
+            'start_turns' => 100,
+            'max_attacks' => 5,
+            'max_builds' => 50,
+            'alliance_max_members' => 10,
+            'deathmatch_mode' => false,
+        ],
+        'blitz' => [
+            'label' => 'Blitz',
+            'description' => 'Fast-paced game with rapid turns.',
+            'minutes_per_turn' => 1,
+            'max_turns_stored' => 1000,
+            'start_turns' => 200,
+            'max_attacks' => 10,
+            'max_builds' => 100,
+            'alliance_max_members' => 10,
+            'deathmatch_mode' => false,
+        ],
+        'tournament' => [
+            'label' => 'Tournament',
+            'description' => 'Competitive game with moderate turn speed.',
+            'minutes_per_turn' => 3,
+            'max_turns_stored' => 300,
+            'start_turns' => 50,
+            'max_attacks' => 5,
+            'max_builds' => 50,
+            'alliance_max_members' => 6,
+            'deathmatch_mode' => false,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Mail
     |--------------------------------------------------------------------------
     */

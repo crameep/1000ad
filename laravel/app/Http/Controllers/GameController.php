@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
 use App\Models\PlayerMessage;
+use App\Services\GameAdvisorService;
 use App\Services\TurnService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Game Controller
@@ -21,10 +21,12 @@ class GameController extends Controller
     use ReturnsJson;
 
     protected TurnService $turnService;
+    protected GameAdvisorService $advisorService;
 
-    public function __construct(TurnService $turnService)
+    public function __construct(TurnService $turnService, GameAdvisorService $advisorService)
     {
         $this->turnService = $turnService;
+        $this->advisorService = $advisorService;
     }
 
     /**
@@ -41,7 +43,7 @@ class GameController extends Controller
      */
     public function main()
     {
-        $player = Auth::user();
+        $player = player();
 
         // Clear hasMainNews flag
         $player->update(['has_main_news' => false]);
@@ -52,7 +54,10 @@ class GameController extends Controller
             ->orderBy('created_on', 'desc')
             ->get();
 
-        return view('pages.main', compact('news'));
+        // Get advisor tips
+        $advisorTips = $this->advisorService->getTips($player);
+
+        return view('pages.main', compact('news', 'advisorTips'));
     }
 
     /**
@@ -61,7 +66,7 @@ class GameController extends Controller
      */
     public function deleteNews($id)
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('id', $id)
             ->where('to_player_id', $player->id)
@@ -76,7 +81,7 @@ class GameController extends Controller
      */
     public function deleteAllNews()
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('to_player_id', $player->id)
             ->where('message_type', 1)
@@ -91,7 +96,7 @@ class GameController extends Controller
      */
     public function endTurn(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         if ($player->killed_by > 0) {
             if ($request->expectsJson()) {
@@ -107,7 +112,7 @@ class GameController extends Controller
                 session()->flash('game_message', $message);
             }
         } else {
-            $minutesPerTurn = config('game.minutes_per_turn');
+            $minutesPerTurn = gameConfig('minutes_per_turn');
             $noTurnsMessage = "You do not have any months remaining (1 free month every {$minutesPerTurn} minutes)";
             if ($request->expectsJson()) {
                 return $this->jsonError($noTurnsMessage);
@@ -128,7 +133,7 @@ class GameController extends Controller
      */
     public function endMultipleTurns(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         if ($player->killed_by > 0) {
             if ($request->expectsJson()) {

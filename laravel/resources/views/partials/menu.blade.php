@@ -25,12 +25,12 @@
             <li><a href="{{ route('game.wall') }}">Great Wall</a></li>
             <li><a href="{{ route('game.explore') }}">Explore</a></li>
             <li><a href="{{ route('game.research') }}">Research</a></li>
-            @if(!$deathmatchMode && config('game.alliance_max_members') > 0)
+            @if(!$deathmatchMode && gameConfig('alliance_max_members') > 0)
                 <li><a href="{{ route('game.aid') }}">Aid</a></li>
             @endif
             <li><a href="{{ route('game.army') }}">Army</a></li>
             <li><a href="{{ route('game.attack') }}">Attack</a></li>
-            @if(!$deathmatchMode && config('game.alliance_max_members') > 0)
+            @if(!$deathmatchMode && gameConfig('alliance_max_members') > 0)
                 <li>
                     <a href="{{ route('game.alliance') }}">
                         @if($player->has_alliance_news)

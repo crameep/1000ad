@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToGame;
 use Illuminate\Database\Eloquent\Model;
 
 class AiPlayer extends Model
 {
+    use BelongsToGame;
     protected $guarded = ['id'];
 
     public $timestamps = false;

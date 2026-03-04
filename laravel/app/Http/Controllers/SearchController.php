@@ -38,7 +38,7 @@ class SearchController extends Controller
     {
         $searchType = $request->input('searchType', '');
         $searchString = $request->input('searchString', '');
-        $empireNames = config('game.empires');
+        $empireNames = gameConfig('empires');
 
         $results = null;
 
@@ -81,7 +81,7 @@ class SearchController extends Controller
             'searchType' => $searchType,
             'searchString' => $searchString,
             'results' => $results,
-            'empireNames' => $empireNames ?? config('game.empires'),
+            'empireNames' => $empireNames ?? gameConfig('empires'),
         ]);
     }
 }

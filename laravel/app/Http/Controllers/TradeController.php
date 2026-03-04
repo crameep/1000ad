@@ -29,7 +29,7 @@ class TradeController extends Controller
      */
     public function local()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Calculate max trades
@@ -40,7 +40,7 @@ class TradeController extends Controller
         $extra = $this->calculatePriceMultiplier($player->score);
 
         // Get base prices from config
-        $localPrices = config('game.local_prices');
+        $localPrices = gameConfig('local_prices');
 
         $woodBuyPrice = round($localPrices['wood']['buy'] * $extra);
         $foodBuyPrice = round($localPrices['food']['buy'] * $extra);
@@ -96,14 +96,14 @@ class TradeController extends Controller
      */
     public function localBuy(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $maxTrades = self::calculateMaxTrades($player, $buildings);
         $tradesRemaining = $maxTrades - $player->trades_this_turn;
         $extra = $this->calculatePriceMultiplier($player->score);
 
-        $localPrices = config('game.local_prices');
+        $localPrices = gameConfig('local_prices');
         $woodPrice = round($localPrices['wood']['buy'] * $extra);
         $foodPrice = round($localPrices['food']['buy'] * $extra);
         $ironPrice = round($localPrices['iron']['buy'] * $extra);
@@ -183,14 +183,14 @@ class TradeController extends Controller
      */
     public function localSell(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $maxTrades = self::calculateMaxTrades($player, $buildings);
         $tradesRemaining = $maxTrades - $player->trades_this_turn;
         $extra = $this->calculatePriceMultiplier($player->score);
 
-        $localPrices = config('game.local_prices');
+        $localPrices = gameConfig('local_prices');
         $woodPrice = round($localPrices['wood']['sell'] * (1.0 / $extra));
         $foodPrice = round($localPrices['food']['sell'] * (1.0 / $extra));
         $ironPrice = round($localPrices['iron']['sell'] * (1.0 / $extra));
@@ -291,7 +291,7 @@ class TradeController extends Controller
      */
     public function updateAutoTrade(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $maxTrades = self::calculateMaxTrades($player, $buildings);
@@ -350,11 +350,11 @@ class TradeController extends Controller
      */
     public function global(Request $request, ?string $type = null)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Block in deathmatch mode
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -363,7 +363,7 @@ class TradeController extends Controller
         $maxTrades = self::calculateMaxTrades($player, $buildings);
         $tradesRemaining = $maxTrades - $player->trades_this_turn;
 
-        $tradePrices = config('game.trade_prices');
+        $tradePrices = gameConfig('trade_prices');
 
         if ($mType === 'sell') {
             // Show sell form + dispatched caravans
@@ -430,10 +430,10 @@ class TradeController extends Controller
      */
     public function sellOnMarket(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             if ($request->expectsJson()) {
                 return $this->jsonError('Cannot view this page in deathmatch game.');
             }
@@ -441,7 +441,7 @@ class TradeController extends Controller
             return redirect()->route('game.main');
         }
 
-        $tradePrices = config('game.trade_prices');
+        $tradePrices = gameConfig('trade_prices');
         $goodTypes = ['wood', 'food', 'iron', 'tools', 'maces', 'swords', 'bows', 'horses'];
 
         $sellQty = [];
@@ -562,9 +562,9 @@ class TradeController extends Controller
      */
     public function buyFromMarket(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             if ($request->expectsJson()) {
                 return $this->jsonError('Cannot view this page in deathmatch game.');
             }
@@ -694,9 +694,9 @@ class TradeController extends Controller
      */
     public function withdrawFromMarket(Request $request, int $id)
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             if ($request->expectsJson()) {
                 return $this->jsonError('Cannot view this page in deathmatch game.');
             }
@@ -762,7 +762,7 @@ class TradeController extends Controller
     {
         $extra = 1.0;
         $s = $score;
-        $localTradeMulti = config('game.local_trade_multiplier');
+        $localTradeMulti = gameConfig('local_trade_multiplier');
 
         while ($s > 100000) {
             $extra += $localTradeMulti;

@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Game;
+use App\Models\Player;
 use App\Services\GameDataService;
 use Carbon\Carbon;
 use Closure;
@@ -11,10 +13,12 @@ use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Game Session Middleware
+ * Game Session Middleware (GameContext)
  *
- * Loads game data, calculates free turns, and shares player data with views.
- * Ported from index.cfm (lines 1-207) session/turn calculation logic.
+ * Resolves the active game and player, binds them to the container,
+ * loads game data, calculates free turns, and shares player data with views.
+ *
+ * Replaces the original single-game middleware with multi-game support.
  */
 class GameSession
 {
@@ -28,15 +32,41 @@ class GameSession
             return redirect()->route('login');
         }
 
-        $player = Auth::user();
+        $user = Auth::user();
 
-        // Check if game has ended
-        $endDate = Carbon::parse(config('game.end_date'));
-        if ($endDate->isPast()) {
-            return redirect()->route('login')->with('error', 'Sorry but this game has ended.');
+        // --- Resolve active game ---
+        $gameId = session('active_game_id');
+
+        if (!$gameId) {
+            // No game selected — redirect to lobby
+            return redirect()->route('lobby');
         }
 
-        // Load game data based on civilization
+        $game = Game::find($gameId);
+        if (!$game || !$game->isPlayable()) {
+            session()->forget('active_game_id');
+            return redirect()->route('lobby')->with('error', 'That game is no longer available.');
+        }
+
+        // Bind game to the service container (used by BelongsToGame trait)
+        app()->instance('current_game_id', $game->id);
+        app()->instance('current_game', $game);
+
+        // --- Resolve player for this user in this game ---
+        $player = Player::withoutGlobalScope('game')
+            ->where('user_id', $user->id)
+            ->where('game_id', $game->id)
+            ->first();
+
+        if (!$player) {
+            session()->forget('active_game_id');
+            return redirect()->route('lobby')->with('error', 'You are not in this game.');
+        }
+
+        // Bind player to the service container (used by player() helper)
+        app()->instance('current_player', $player);
+
+        // --- Load game data based on civilization ---
         $buildings = $this->gameData->getBuildings($player->civ);
         $soldiers = $this->gameData->getSoldiers($player->civ);
         $constants = $this->gameData->getConstants($player->civ);
@@ -48,16 +78,16 @@ class GameSession
             'constants' => $constants,
         ]);
 
-        // Calculate free turns
-        $minutesPerTurn = config('game.minutes_per_turn');
-        $maxTurnsStored = config('game.max_turns_stored');
+        // --- Calculate free turns (using game-specific settings) ---
+        $minutesPerTurn = $game->minutes_per_turn;
+        $maxTurnsStored = $game->max_turns_stored;
         $playerTurns = $player->turns_free;
         $now = Carbon::now();
 
         // Determine the base date for turn calculation
-        $deathmatchMode = config('game.deathmatch_mode');
+        $deathmatchMode = $game->deathmatch_mode;
         if ($deathmatchMode) {
-            $deathmatchStart = Carbon::parse(config('game.deathmatch_start'));
+            $deathmatchStart = $game->deathmatch_start;
             if (!$player->last_turn) {
                 $playerDate = $deathmatchStart;
             } elseif ($player->last_turn->lt($deathmatchStart)) {
@@ -86,6 +116,9 @@ class GameSession
                 'turns_free' => $playerTurns,
             ]);
             $player->refresh();
+
+            // Re-bind the refreshed player
+            app()->instance('current_player', $player);
         }
 
         // Calculate time until next turn
@@ -100,7 +133,7 @@ class GameSession
         // Update last load timestamp
         $player->update(['last_load' => $now]);
 
-        // Calculate used/free land for resource bar
+        // --- Calculate used/free land for resource bar ---
         $usedM = ($player->iron_mine * $buildings[5]['sq'])
             + ($player->gold_mine * $buildings[6]['sq']);
         $usedF = ($player->hunter * $buildings[2]['sq'])
@@ -127,12 +160,14 @@ class GameSession
         $year = intdiv($player->turn, 12) + 1000;
         $gameDate = date('F', mktime(0, 0, 0, $month, 1)) . ' ' . $year;
 
-        // Empire name
+        // Empire name (static — doesn't change per game)
         $empireName = config('game.empires')[$player->civ] ?? 'Unknown';
 
         // Share data with all views
         View::share([
             'player' => $player,
+            'currentUser' => $user,
+            'currentGame' => $game,
             'buildings' => $buildings,
             'soldiers' => $soldiers,
             'constants' => $constants,

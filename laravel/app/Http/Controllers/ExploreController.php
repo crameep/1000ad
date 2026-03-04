@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ExploreQueue;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Traits\ReturnsJson;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +23,7 @@ class ExploreController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
         $constants = session('constants');
 
@@ -104,7 +103,7 @@ class ExploreController extends Controller
      */
     protected function doSendExplorers(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
         $constants = session('constants');
 
@@ -215,7 +214,7 @@ class ExploreController extends Controller
      */
     public function cancelExplore(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         // The cancel is submitted via the send form with a cancel eflag,
         // or via a direct link. Accept eID from either source.

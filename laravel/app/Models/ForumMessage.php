@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToGame;
 use Illuminate\Database\Eloquent\Model;
 
 class ForumMessage extends Model
 {
+    use BelongsToGame;
     protected $guarded = ['id'];
 
     public $incrementing = false;

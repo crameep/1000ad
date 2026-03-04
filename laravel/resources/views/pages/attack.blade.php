@@ -97,13 +97,55 @@
                 <option value="2">Rob (steal resources)</option>
                 <option value="3">Slaughter (kill population)</option>
             </select>
-            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with<br>
-            <input type="text" name="send_uunit" value="0" maxlength="10" size="8"> {{ $uniqueUnitName }} (You have {{ $player->uunit }})<br>
-            <input type="text" name="send_swordsman" value="0" maxlength="10" size="8"> Swordsman (You have {{ $player->swordsman }})<br>
-            <input type="text" name="send_archers" value="0" maxlength="10" size="8"> Archers (You have {{ $player->archers }})<br>
-            <input type="text" name="send_horseman" value="0" maxlength="10" size="8"> Horseman (You have {{ $player->horseman }})<br>
-            <input type="text" name="send_macemen" value="0" maxlength="10" size="8"> Macemen (You have {{ $player->macemen }})<br>
-            <input type="text" name="send_trainedPeasants" value="0" maxlength="10" size="8"> Trained Peasants (You have {{ $player->trained_peasants }})<br>
+            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with
+            <div class="unit-row">
+                <input type="text" name="send_uunit" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[9], 9, $player->civ)" :alt="$uniqueUnitName" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">{{ $uniqueUnitName }}</div>
+                    <div class="unit-count">You have {{ number_format($player->uunit) }}</div>
+                </div>
+            </div>
+            <div class="unit-row">
+                <input type="text" name="send_swordsman" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[2], 2)" :alt="'Swordsman'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Swordsman</div>
+                    <div class="unit-count">You have {{ number_format($player->swordsman) }}</div>
+                </div>
+            </div>
+            <div class="unit-row">
+                <input type="text" name="send_archers" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[1], 1)" :alt="'Archers'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Archers</div>
+                    <div class="unit-count">You have {{ number_format($player->archers) }}</div>
+                </div>
+            </div>
+            <div class="unit-row">
+                <input type="text" name="send_horseman" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[3], 3)" :alt="'Horseman'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Horseman</div>
+                    <div class="unit-count">You have {{ number_format($player->horseman) }}</div>
+                </div>
+            </div>
+            <div class="unit-row">
+                <input type="text" name="send_macemen" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[6], 6)" :alt="'Macemen'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Macemen</div>
+                    <div class="unit-count">You have {{ number_format($player->macemen) }}</div>
+                </div>
+            </div>
+            <div class="unit-row">
+                <input type="text" name="send_trainedPeasants" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[7], 7)" :alt="'Trained Peasants'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Trained Peasants</div>
+                    <div class="unit-count">You have {{ number_format($player->trained_peasants) }}</div>
+                </div>
+            </div>
             also send:<br>
             <input type="text" name="sendwine" value="0" maxlength="10" size="8"> wine (you have {{ number_format($player->wine) }})
             <br><input type="checkbox" name="sendmaxwine" value="1"> Send max wine?
@@ -127,8 +169,15 @@
                 <option value="11">Catapult Population</option>
                 <option value="12">Catapult Buildings</option>
             </select>
-            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with<br>
-            <input type="text" name="send_catapults" value="0" maxlength="10" size="8"> Catapults (You have {{ $player->catapults }})<br>
+            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with
+            <div class="unit-row">
+                <input type="text" name="send_catapults" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[5], 5)" :alt="'Catapults'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Catapults</div>
+                    <div class="unit-count">You have {{ number_format($player->catapults) }}</div>
+                </div>
+            </div>
             <div><input type="checkbox" name="sendAll" value="1"> Send All Army</div>
             <div class="form-footer"><input type="submit" value="Attack"></div>
         </form>
@@ -152,8 +201,15 @@
                 <option value="22">Poison Water</option>
                 <option value="23">Set Fire</option>
             </select>
-            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with<br>
-            <input type="text" name="send_thieves" value="0" maxlength="10" size="8"> Thieves (You have {{ $player->thieves }})<br>
+            empire # <input type="text" name="attackPlayerID" value="{{ request('menuPlayerID', 0) }}" maxlength="5" size="5"> with
+            <div class="unit-row">
+                <input type="text" name="send_thieves" value="0" maxlength="10" size="8">
+                <x-game-icon :src="soldierIcon($soldiers[8], 8)" :alt="'Thieves'" :size="40" />
+                <div class="unit-info">
+                    <div class="unit-name">Thieves</div>
+                    <div class="unit-count">You have {{ number_format($player->thieves) }}</div>
+                </div>
+            </div>
             <div><input type="checkbox" name="sendAll" value="1"> Send All Army</div>
             <div class="form-footer"><input type="submit" value="Attack"></div>
         </form>

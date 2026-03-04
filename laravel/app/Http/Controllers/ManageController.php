@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Manage Controller
@@ -24,7 +23,7 @@ class ManageController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Weapon production calculations
@@ -53,7 +52,7 @@ class ManageController extends Controller
      */
     public function changeWeaponProduction(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $bowProduction = max(0, (int) $request->input('bowProduction', 0));
         $swordProduction = max(0, (int) $request->input('swordProduction', 0));
@@ -95,7 +94,7 @@ class ManageController extends Controller
      */
     public function changeFoodRatio(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $foodRatio = (int) $request->input('foodRatio', 0);
 
@@ -117,7 +116,7 @@ class ManageController extends Controller
      */
     public function changeLand(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
         $messages = '';
 

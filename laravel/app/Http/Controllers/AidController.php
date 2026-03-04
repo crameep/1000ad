@@ -25,11 +25,11 @@ class AidController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Block in deathmatch mode
-        if (config('game.deathmatch_mode') || config('game.alliance_max_members') == 0) {
+        if (gameConfig('deathmatch_mode') || gameConfig('alliance_max_members') == 0) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -63,10 +63,10 @@ class AidController extends Controller
      */
     public function sendAid(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -217,9 +217,9 @@ class AidController extends Controller
      */
     public function cancelAid(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }

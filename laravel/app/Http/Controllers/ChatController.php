@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ForumMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
 
         // Get recent chat messages (last 100)
         $messages = ForumMessage::where('forum_id', 0) // 0 = global chat
@@ -29,7 +28,7 @@ class ChatController extends Controller
             'message' => 'required|string|max:500',
         ]);
 
-        $player = Auth::user();
+        $player = player();
 
         ForumMessage::create([
             'forum_id' => 0,

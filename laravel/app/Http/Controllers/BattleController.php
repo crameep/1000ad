@@ -26,8 +26,8 @@ class BattleController extends Controller
      */
     public function index(Request $request)
     {
-        $player = Auth::user();
-        $deathmatchMode = config('game.deathmatch_mode');
+        $player = player();
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         if ($deathmatchMode) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
@@ -56,8 +56,8 @@ class BattleController extends Controller
      */
     public function search(Request $request)
     {
-        $player = Auth::user();
-        $deathmatchMode = config('game.deathmatch_mode');
+        $player = player();
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         if ($deathmatchMode) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
@@ -139,8 +139,8 @@ class BattleController extends Controller
      */
     public function viewDetail($id)
     {
-        $player = Auth::user();
-        $deathmatchMode = config('game.deathmatch_mode');
+        $player = player();
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         if ($deathmatchMode) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
@@ -188,7 +188,7 @@ class BattleController extends Controller
      */
     public function battleScores(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $ostring = $request->input('ostring', 'total_battles');
 
         // Validate sort column
@@ -235,7 +235,7 @@ class BattleController extends Controller
      */
     public function allianceScores(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $orderString = $request->input('orderString', 'total_score');
 
         // Validate sort column

@@ -6,7 +6,6 @@ use App\Http\Traits\ReturnsJson;
 use App\Models\BuildQueue;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Building Controller
@@ -33,7 +32,7 @@ class BuildingController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         // Calculate number of builders
@@ -192,7 +191,7 @@ class BuildingController extends Controller
      */
     public function build(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $request->validate([
@@ -302,7 +301,7 @@ class BuildingController extends Controller
      */
     public function demolish(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $request->validate([
@@ -355,7 +354,7 @@ class BuildingController extends Controller
      */
     public function cancel(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $request->validate([
@@ -397,7 +396,7 @@ class BuildingController extends Controller
      */
     public function cancelAll(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $queueItems = BuildQueue::where('player_id', $player->id)->get();
@@ -434,7 +433,7 @@ class BuildingController extends Controller
      */
     public function moveToTop(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $request->validate([
             'q_id' => 'required|integer',
@@ -461,7 +460,7 @@ class BuildingController extends Controller
      */
     public function moveToBottom(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $request->validate([
             'q_id' => 'required|integer',
@@ -487,7 +486,7 @@ class BuildingController extends Controller
      */
     public function updateStatus(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $updates = [];

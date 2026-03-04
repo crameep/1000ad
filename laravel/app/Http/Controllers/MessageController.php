@@ -7,7 +7,6 @@ use App\Models\BlockMessage;
 use App\Models\Player;
 use App\Models\PlayerMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Message Controller
@@ -27,7 +26,7 @@ class MessageController extends Controller
      */
     public function index(Request $request, $folder = 'inbox')
     {
-        $player = Auth::user();
+        $player = player();
         $menuPlayerID = $request->input('menuPlayerID', 0);
 
         $data = [
@@ -114,7 +113,7 @@ class MessageController extends Controller
      */
     public function viewMessage($id)
     {
-        $player = Auth::user();
+        $player = player();
 
         $message = PlayerMessage::where(function ($q) use ($player) {
                 $q->where('from_player_id', $player->id)
@@ -137,7 +136,7 @@ class MessageController extends Controller
      */
     public function sendMessage(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $request->validate([
             'toPlayerID' => 'required|string|max:200',
@@ -207,7 +206,7 @@ class MessageController extends Controller
      */
     public function deleteMessage(Request $request, $id)
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('id', (int) $id)
             ->where('to_player_id', $player->id)
@@ -227,7 +226,7 @@ class MessageController extends Controller
      */
     public function deleteAllMessages(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('to_player_id', $player->id)
             ->where('message_type', 0)
@@ -247,7 +246,7 @@ class MessageController extends Controller
      */
     public function saveMessage(Request $request, $id)
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('id', (int) $id)
             ->where('to_player_id', $player->id)
@@ -267,7 +266,7 @@ class MessageController extends Controller
      */
     public function deleteAllSaved(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         PlayerMessage::where('to_player_id', $player->id)
             ->where('message_type', 4)
@@ -287,7 +286,7 @@ class MessageController extends Controller
      */
     public function addBlock(Request $request, $id)
     {
-        $player = Auth::user();
+        $player = player();
         $blockId = (int) $id;
 
         $targetPlayer = Player::find($blockId, ['id', 'name']);
@@ -329,7 +328,7 @@ class MessageController extends Controller
      */
     public function unblock(Request $request, $id)
     {
-        $player = Auth::user();
+        $player = player();
 
         BlockMessage::where('id', (int) $id)
             ->where('player_id', $player->id)

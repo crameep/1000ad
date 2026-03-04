@@ -23,9 +23,20 @@ function showBuild() {
     var wood = {{ $player->wood }};
 
     var sel = document.buildForm.building_no;
-    if (sel.selectedIndex == 0) return;
+    var preview = document.getElementById('buildingPreview');
+    if (sel.selectedIndex == 0) { preview.style.display = 'none'; return; }
 
     var box = sel.options[sel.selectedIndex];
+
+    // Update preview panel
+    document.getElementById('previewIcon').src = box.dataset.icon;
+    document.getElementById('previewName').textContent = box.dataset.bname;
+    document.getElementById('previewCosts').innerHTML =
+        '<span>' + box.dataset.wood + ' Wood</span>' +
+        '<span>' + box.dataset.iron + ' Iron</span>' +
+        '<span>' + box.dataset.gold + ' Gold</span>' +
+        '<span>' + box.dataset.sq + ' ' + box.dataset.land + ' land</span>';
+    preview.style.display = '';
     var s = "Your resources allow you to build ";
     var canBuild = 1000000000;
     var temp = 0;
@@ -82,13 +93,21 @@ function showBuild() {
                         data-iron="{{ $b['cost_iron'] }}"
                         data-gold="{{ $b['cost_gold'] }}"
                         data-sq="{{ $b['sq'] }}"
-                        data-land="{{ $b['land'] }}">
+                        data-land="{{ $b['land'] }}"
+                        data-icon="{{ buildingIcon($b) }}">
                         {{ $b['name'] }} ({{ $b['cost_wood'] }} W, {{ $b['cost_iron'] }} I, {{ $b['cost_gold'] }} G, {{ $b['sq'] }} {{ $b['land'] }})
                     </option>
                 @endforeach
             </select>
             <input type="submit" value="Go">
         </form>
+        <div class="building-info-card" id="buildingPreview" style="display:none;">
+            <img id="previewIcon" class="game-icon game-icon-80" width="80" height="80" src="" alt="" onerror="this.style.display='none'" onload="this.style.display=''">
+            <div class="card-details">
+                <div class="card-name" id="previewName"></div>
+                <div class="card-costs" id="previewCosts"></div>
+            </div>
+        </div>
     </td></tr>
     <tr>
         <td class="small" align="right">W - Wood, I - Iron, G - Gold, P - Plains, F - Forest, M - Mountains</td>
@@ -119,7 +138,7 @@ function showBuild() {
     @endphp
     @if($b)
     <tr>
-        <td>{{ $b['name'] }} @if($bq->mission == 1)(Demolish)@endif</td>
+        <td><x-game-icon :src="buildingIcon($b)" :alt="$b['name']" :size="32" /> {{ $b['name'] }} @if($bq->mission == 1)(Demolish)@endif</td>
         <td>{{ $bq->qty }}</td>
         <td>{{ $turnsNeeded }} turns ({{ $bq->time_needed }} builders)</td>
         <td>
@@ -167,12 +186,11 @@ function showBuild() {
 <div class="table-scroll">
 <table class="game-table building-table">
 <tr>
-    <td class="header">&nbsp;</td>
     <td class="header">Building</td>
     <td class="header">You Have</td>
-    <td class="header">Land</td>
+    <td class="header hide-mobile">Land</td>
     <td class="header">Status</td>
-    <td class="header">Working</td>
+    <td class="header hide-mobile">Working</td>
     <td class="header hide-mobile">Workers</td>
     <td class="header hide-mobile">Production</td>
     <td class="header hide-mobile">Consumption</td>
@@ -184,10 +202,14 @@ function showBuild() {
         $color = $colors[$i];
     @endphp
     <tr>
-        <td width="8" style="color:{{ $color }}"><b><a href="javascript:openHelp('buildings#{{ $b['db_column'] }}')">?</a></b></td>
-        <td height="22" style="color:{{ $color }}">{{ $b['name'] }}</td>
+        <td style="color:{{ $color }}">
+            <a href="javascript:openHelp('buildings#{{ $b['db_column'] }}')" class="icon-name-cell">
+                <x-game-icon :src="buildingIcon($b)" :alt="$b['name']" :size="48" />
+                <span class="icon-label">{{ $b['name'] }}</span>
+            </a>
+        </td>
         <td align="right" style="color:{{ $color }}">{{ number_format($stats['have']) }}</td>
-        <td align="right" style="color:{{ $color }}">{{ $stats['land'] }} {{ $b['land'] }}</td>
+        <td class="hide-mobile" align="right" style="color:{{ $color }}">{{ $stats['land'] }} {{ $b['land'] }}</td>
 
         {{-- Status dropdown or empty --}}
         @if($b['allow_off'])
@@ -203,7 +225,7 @@ function showBuild() {
             <td style="color:{{ $color }}">&nbsp;</td>
         @endif
 
-        <td style="color:{{ $color }}" align="right">{{ number_format($stats['bWorking']) }}</td>
+        <td class="hide-mobile" style="color:{{ $color }}" align="right">{{ number_format($stats['bWorking']) }}</td>
         <td class="hide-mobile" style="color:{{ $color }}" align="right">{{ number_format($stats['workers']) }}</td>
 
         {{-- Production --}}
@@ -226,11 +248,11 @@ function showBuild() {
     </tr>
 @endforeach
 <tr>
-    <td class="header" colspan="2" align="right"><b>Totals</b></td>
+    <td class="header" align="right"><b>Totals</b></td>
     <td class="header" align="right">{{ number_format($totalBuildings) }}</td>
-    <td class="header" align="right">{{ number_format($totalLand) }}</td>
-    <td class="header"><input type="submit" value="Update" style="width:60px;"></td>
-    <td class="header">&nbsp;</td>
+    <td class="header hide-mobile" align="right">{{ number_format($totalLand) }}</td>
+    <td class="header"><input type="submit" value="Update"></td>
+    <td class="header hide-mobile">&nbsp;</td>
     <td class="header hide-mobile" align="right">{{ number_format($totalWorkers) }}</td>
     <td class="header hide-mobile">&nbsp;</td>
     <td class="header hide-mobile">&nbsp;</td>

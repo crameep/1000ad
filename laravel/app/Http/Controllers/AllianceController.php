@@ -25,10 +25,10 @@ class AllianceController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
 
         // Block in deathmatch mode or if alliances disabled
-        if (config('game.deathmatch_mode') || config('game.alliance_max_members') == 0) {
+        if (gameConfig('deathmatch_mode') || gameConfig('alliance_max_members') == 0) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -138,9 +138,9 @@ class AllianceController extends Controller
      */
     public function joinAlliance(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -160,7 +160,7 @@ class AllianceController extends Controller
 
         // Check member limit
         $memberCount = Player::where('alliance_id', $joinAllianceId)->count();
-        if ($memberCount >= config('game.alliance_max_members')) {
+        if ($memberCount >= gameConfig('alliance_max_members')) {
             session()->flash('game_message', 'This alliance already has maximum allowable number of members.');
             return redirect()->route('game.alliance');
         }
@@ -200,9 +200,9 @@ class AllianceController extends Controller
      */
     public function createAlliance(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -262,9 +262,9 @@ class AllianceController extends Controller
      */
     public function leaveAlliance()
     {
-        $player = Auth::user();
+        $player = player();
 
-        if (config('game.deathmatch_mode')) {
+        if (gameConfig('deathmatch_mode')) {
             session()->flash('game_message', 'Cannot view this page in deathmatch game.');
             return redirect()->route('game.main');
         }
@@ -306,7 +306,7 @@ class AllianceController extends Controller
      */
     public function changeRelations(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -448,7 +448,7 @@ class AllianceController extends Controller
      */
     public function changeNews(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -475,7 +475,7 @@ class AllianceController extends Controller
      */
     public function changePassword(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -497,7 +497,7 @@ class AllianceController extends Controller
      */
     public function disbandAlliance()
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -530,7 +530,7 @@ class AllianceController extends Controller
      */
     public function removeMember(int $id)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -572,7 +572,7 @@ class AllianceController extends Controller
      */
     public function toggleMemberStatus(int $id)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -600,7 +600,7 @@ class AllianceController extends Controller
      */
     public function giveLeadership(int $id)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -641,7 +641,7 @@ class AllianceController extends Controller
      */
     public function viewArmy(int $memberId)
     {
-        $player = Auth::user();
+        $player = player();
         $alliance = Alliance::find($player->alliance_id);
 
         if (!$alliance || $alliance->leader_id != $player->id) {
@@ -656,7 +656,7 @@ class AllianceController extends Controller
             return redirect()->route('game.alliance');
         }
 
-        $uunitName = config('game.unique_units')[$member->civ] ?? 'Unique Unit';
+        $uunitName = gameConfig('unique_units')[$member->civ] ?? 'Unique Unit';
 
         $message = "<b>{$member->name} (#{$member->id})</b><br>"
             . number_format($member->uunit) . " {$uunitName}<br>"

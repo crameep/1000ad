@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Wall Controller
@@ -23,7 +22,7 @@ class WallController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
 
         $totalLand = $player->mland + $player->fland + $player->pland;
@@ -44,7 +43,7 @@ class WallController extends Controller
         $wallBuild = intdiv($wallBuilders, 10);
 
         // Wall costs from config
-        $wallCosts = config('game.wall');
+        $wallCosts = gameConfig('wall');
 
         return view('pages.wall', [
             'totalLand' => $totalLand,
@@ -64,7 +63,7 @@ class WallController extends Controller
      */
     public function updateWall(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $wallBuildPerTurn = round((int) $request->input('wallBuildPerTurn', 0));
 

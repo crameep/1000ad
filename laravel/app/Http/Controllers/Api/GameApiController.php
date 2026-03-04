@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ReturnsJson;
-use Illuminate\Support\Facades\Auth;
 
 class GameApiController extends Controller
 {
@@ -16,7 +15,7 @@ class GameApiController extends Controller
      */
     public function state()
     {
-        $player = Auth::user();
+        $player = player();
 
         return response()->json([
             'success' => true,

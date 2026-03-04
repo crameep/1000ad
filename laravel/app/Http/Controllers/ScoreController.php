@@ -25,9 +25,9 @@ class ScoreController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
-        $deathmatchMode = config('game.deathmatch_mode');
-        $allianceMaxMembers = config('game.alliance_max_members');
+        $player = player();
+        $deathmatchMode = gameConfig('deathmatch_mode');
+        $allianceMaxMembers = gameConfig('alliance_max_members');
 
         // Load alliance war/ally data
         $wars = [0, 0, 0, 0, 0];
@@ -79,7 +79,7 @@ class ScoreController extends Controller
         // Calculate display ranges
         $isAdmin = $player->isAdmin();
 
-        $empireNames = config('game.empires');
+        $empireNames = gameConfig('empires');
 
         return view('pages.scores', [
             'players' => $players,
@@ -100,9 +100,9 @@ class ScoreController extends Controller
      */
     public function publicRankings($type = 'top10')
     {
-        $deathmatchMode = config('game.deathmatch_mode');
-        $allianceMaxMembers = config('game.alliance_max_members');
-        $empireNames = config('game.empires');
+        $deathmatchMode = gameConfig('deathmatch_mode');
+        $allianceMaxMembers = gameConfig('alliance_max_members');
+        $empireNames = gameConfig('empires');
 
         if ($type === 'top10') {
             $players = Player::leftJoin('alliances', 'players.alliance_id', '=', 'alliances.id')
@@ -127,9 +127,9 @@ class ScoreController extends Controller
                 'empireNames' => $empireNames,
                 'deathmatchMode' => $deathmatchMode,
                 'allianceMaxMembers' => $allianceMaxMembers,
-                'startDate' => Carbon::parse(config('game.start_date')),
-                'endDate' => Carbon::parse(config('game.end_date')),
-                'gameName' => config('game.name'),
+                'startDate' => Carbon::parse(gameConfig('start_date')),
+                'endDate' => Carbon::parse(gameConfig('end_date')),
+                'gameName' => gameConfig('name'),
             ]);
         }
 
@@ -161,7 +161,7 @@ class ScoreController extends Controller
         return view('pages.rankings', [
             'type' => $type,
             'alliances' => $alliances,
-            'gameName' => config('game.name'),
+            'gameName' => gameConfig('name'),
             'deathmatchMode' => $deathmatchMode,
             'allianceMaxMembers' => $allianceMaxMembers,
         ]);

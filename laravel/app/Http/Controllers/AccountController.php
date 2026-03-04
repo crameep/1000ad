@@ -35,7 +35,7 @@ class AccountController extends Controller
      */
     public function changeLogin(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
         $newLogin = trim($request->input('newLogin', ''));
 
         if (empty($newLogin)) {
@@ -66,7 +66,7 @@ class AccountController extends Controller
      */
     public function changePassword(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $curPassword = $request->input('curPassword', '');
         $newPassword = $request->input('newPassword', '');
@@ -102,7 +102,7 @@ class AccountController extends Controller
      */
     public function deleteEmpire(Request $request)
     {
-        $player = Auth::user();
+        $player = player();
 
         $lName = $request->input('lName', '');
         $curPassword = $request->input('curPassword', '');
@@ -114,9 +114,9 @@ class AccountController extends Controller
         }
 
         // Check deathmatch
-        $deathmatchMode = config('game.deathmatch_mode');
-        $deathmatchStart = config('game.deathmatch_start')
-            ? Carbon::parse(config('game.deathmatch_start'))
+        $deathmatchMode = gameConfig('deathmatch_mode');
+        $deathmatchStart = gameConfig('deathmatch_start')
+            ? Carbon::parse(gameConfig('deathmatch_start'))
             : null;
         $deathmatchStarted = $deathmatchMode && $deathmatchStart && $deathmatchStart->isPast();
 

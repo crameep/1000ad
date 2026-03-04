@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-
 /**
  * Status Controller
  *
@@ -20,7 +18,7 @@ class StatusController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $buildings = session('buildings');
         $soldiers = session('soldiers');
         $constants = session('constants');
@@ -60,7 +58,7 @@ class StatusController extends Controller
         // --- Monthly Summary Calculations ---
 
         // Local trade multiplier
-        $localTradeMulti = config('game.local_trade_multiplier');
+        $localTradeMulti = gameConfig('local_trade_multiplier');
         $extra = 1;
         $s = $player->score;
         while ($s > 100000) {
@@ -69,7 +67,7 @@ class StatusController extends Controller
         }
 
         // Local trade buy/sell calculations
-        $localPrices = config('game.local_prices');
+        $localPrices = gameConfig('local_prices');
         $buyWood = 0; $buyIron = 0; $buyFood = 0; $buyTools = 0; $buyGold = 0;
 
         if ($player->auto_buy_wood > 0) {
@@ -115,7 +113,7 @@ class StatusController extends Controller
 
         // Wall construction
         $toolMakerB = $buildings[7];
-        $wallCosts = config('game.wall');
+        $wallCosts = gameConfig('wall');
         $wallBuilders_total = $toolMakerB['num_builders'] * $player->tool_maker + 3;
         $bPercent = $player->wall_build_per_turn / 100;
         $wallBuilders = round($wallBuilders_total * $bPercent);

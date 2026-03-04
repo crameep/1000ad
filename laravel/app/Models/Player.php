@@ -2,10 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Traits\BelongsToGame;
+use Illuminate\Database\Eloquent\Model;
 
-class Player extends Authenticatable
+/**
+ * Player Model
+ *
+ * Represents a player's game state within a specific game instance.
+ * Linked to a User account via user_id and to a Game via game_id.
+ *
+ * Ported from the original ColdFusion game by Andrew Deren.
+ */
+class Player extends Model
 {
+    use BelongsToGame;
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -16,8 +27,16 @@ class Player extends Authenticatable
         'has_new_messages' => 'boolean',
     ];
 
-    // Don't use Laravel's default timestamps - we have custom ones
     public $timestamps = true;
+
+    // Auth-related relations (linked to User)
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Game relations
 
     public function alliance()
     {
@@ -89,8 +108,11 @@ class Player extends Authenticatable
         return $this->killed_by === 0;
     }
 
+    /**
+     * Check admin status via the linked User account.
+     */
     public function isAdmin(): bool
     {
-        return $this->is_admin === 1;
+        return $this->user && $this->user->isAdmin();
     }
 }

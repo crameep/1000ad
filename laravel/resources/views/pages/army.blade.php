@@ -57,7 +57,12 @@
 </tr>
 @foreach($trainQueue as $tq)
     <tr>
-        <td>{{ $soldiers[$tq->soldier_type]['name'] ?? 'Unknown' }}</td>
+        <td>
+            @if(isset($soldiers[$tq->soldier_type]))
+                <x-game-icon :src="soldierIcon($soldiers[$tq->soldier_type], $tq->soldier_type, $player->civ)" :alt="$soldiers[$tq->soldier_type]['name']" :size="32" />
+            @endif
+            {{ $soldiers[$tq->soldier_type]['name'] ?? 'Unknown' }}
+        </td>
         <td>{{ $tq->qty }}</td>
         <td>{{ $tq->turns_remaining }}</td>
         <td>
@@ -89,48 +94,51 @@ function disbandArmy() {
 <form action="{{ route('game.army.train') }}" method="POST" name="aForm" id="armyForm">
 @csrf
 <tr>
-    <td class="header" valign="bottom">&nbsp;</td>
     <td class="header" valign="bottom">Unit Type</td>
     <td class="header" valign="bottom">You Have</td>
-    <td class="header" valign="bottom">Upkeep<br>Cost</td>
-    <td class="header" valign="bottom">Attacking</td>
-    <td class="header" valign="bottom">Training</td>
-    <td class="header" valign="bottom">Needed<br>To Train</td>
-    <td class="header" valign="bottom">Max.<br>Train</td>
+    <td class="header hide-mobile" valign="bottom">Upkeep<br>Cost</td>
+    <td class="header hide-mobile" valign="bottom">Attacking</td>
+    <td class="header hide-mobile" valign="bottom">Training</td>
+    <td class="header hide-mobile" valign="bottom">Needed<br>To Train</td>
+    <td class="header hide-mobile" valign="bottom">Max.<br>Train</td>
     <td class="header" valign="bottom">Qty.</td>
 </tr>
 @foreach($soldierDisplay as $i)
     @php $data = $armyData[$i]; @endphp
     <tr>
-        <td><a href="javascript:openHelp('army#UNIT{{ $data['helpIndex'] }}')"><b>?</b></a></td>
-        <td>{{ $data['soldier']['name'] }}</td>
+        <td>
+            <a href="javascript:openHelp('army#UNIT{{ $data['helpIndex'] }}')" class="icon-name-cell">
+                <x-game-icon :src="soldierIcon($data['soldier'], $i, $player->civ)" :alt="$data['soldier']['name']" :size="48" />
+                <span class="icon-label">{{ $data['soldier']['name'] }}</span>
+            </a>
+        </td>
         <td>{{ number_format($data['have']) }}</td>
-        <td valign="top">
+        <td class="hide-mobile" valign="top">
             {{ number_format($data['goldCost']) }} gold<br>
             {{ number_format($data['foodUsed']) }} food
         </td>
-        <td>{{ number_format($data['attacking']) }}</td>
-        <td>{{ $data['training'] }}</td>
-        <td>{!! $data['neededToTrain'] !!}</td>
-        <td>{{ number_format($data['maxTrain']) }}</td>
+        <td class="hide-mobile">{{ number_format($data['attacking']) }}</td>
+        <td class="hide-mobile">{{ $data['training'] }}</td>
+        <td class="hide-mobile">{!! $data['neededToTrain'] !!}</td>
+        <td class="hide-mobile">{{ number_format($data['maxTrain']) }}</td>
         <td align="center"><input type="text" name="qty{{ $i }}" value="" size="5"></td>
     </tr>
 @endforeach
 <tr>
-    <td class="header" colspan="2"><a href="javascript:openHelp('army')">Units Help</a></td>
+    <td class="header"><a href="javascript:openHelp('army')">Units Help</a></td>
     <td class="header">{{ number_format($totalHave) }}</td>
-    <td class="header" valign="top">
+    <td class="header hide-mobile" valign="top">
         {{ number_format($totalCost) }} gold<br>
         {{ number_format($totalFood) }} food
     </td>
-    <td class="header">{{ number_format(array_sum($attackQty)) }}</td>
-    <td class="header">{{ number_format(array_sum($trainQty)) }}</td>
-    <td class="header">&nbsp;</td>
-    <td class="header">{{ number_format($canTrain) }}</td>
+    <td class="header hide-mobile">{{ number_format(array_sum($attackQty)) }}</td>
+    <td class="header hide-mobile">{{ number_format(array_sum($trainQty)) }}</td>
+    <td class="header hide-mobile">&nbsp;</td>
+    <td class="header hide-mobile">{{ number_format($canTrain) }}</td>
     <td class="header" align="center"><input type="submit" value="Train" style="width:55px;"></td>
 </tr>
 <tr>
-    <td colspan="9"><br>
+    <td colspan="8"><br>
         @if($canHold == 0)
             Your forts and town center are full.<br>
         @elseif($canHold > 0)

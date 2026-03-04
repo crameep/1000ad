@@ -44,10 +44,10 @@ class GameDataService
     public function getConstants(int $civId): array
     {
         $constants = [
-            'people_eat_one_food' => config('game.people_eat_one_food'),
-            'soldiers_eat_one_food' => config('game.soldiers_eat_one_food'),
-            'extra_food_per_land' => config('game.extra_food_per_land'),
-            'people_burn_one_wood' => config('game.people_burn_one_wood'),
+            'people_eat_one_food' => gameConfig('people_eat_one_food'),
+            'soldiers_eat_one_food' => gameConfig('soldiers_eat_one_food'),
+            'extra_food_per_land' => gameConfig('extra_food_per_land'),
+            'people_burn_one_wood' => gameConfig('people_burn_one_wood'),
         ];
 
         // Civ-specific constant overrides
@@ -69,7 +69,7 @@ class GameDataService
      */
     public function getLocalPrices(): array
     {
-        return config('game.local_prices');
+        return gameConfig('local_prices');
     }
 
     /**

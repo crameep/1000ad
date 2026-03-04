@@ -30,6 +30,14 @@
 <div class="game-container">
     {{-- Header --}}
     <div class="game-title">1000 &nbsp; A. D.</div>
+    <div class="game-indicator">
+        <span class="game-indicator-name">{{ $currentGame->name }}</span>
+        <span class="lobby-preset-badge lobby-preset-{{ $currentGame->preset }}">{{ ucfirst($currentGame->preset) }}</span>
+        <a href="{{ route('lobby') }}" class="game-indicator-link">Switch Game</a>
+        @if($currentUser->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="game-indicator-link">Admin</a>
+        @endif
+    </div>
     <div class="empire-info">
         {{ $player->name }} #{{ $player->id }} - {{ $empireName }}
     </div>

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToGame;
 use Illuminate\Database\Eloquent\Model;
 
 class AidLog extends Model
 {
+    use BelongsToGame;
     protected $guarded = ['id'];
 
     protected $casts = [

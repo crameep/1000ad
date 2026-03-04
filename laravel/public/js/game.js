@@ -404,6 +404,8 @@
                     sound: 'endTurn',
                     toastDuration: 8000
                 });
+                // Refresh page content so queues, timers, etc. reflect new state
+                this._refreshContent();
             } catch (e) {
                 // error already toasted
             }
@@ -415,6 +417,35 @@
                 var btns = TurnPresets._container.querySelectorAll('.turn-btn');
                 for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
             }, 1000);
+        },
+
+        /**
+         * Fetch the current page and replace .panel-body content
+         * so queues, counters, and status values stay up to date.
+         */
+        async _refreshContent() {
+            try {
+                var resp = await fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'Fetch' }
+                });
+                if (!resp.ok) return;
+                var html = await resp.text();
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var newBody = doc.querySelector('.right-panel > .panel > .panel-body');
+                var curBody = document.querySelector('.right-panel > .panel > .panel-body');
+                if (newBody && curBody) {
+                    curBody.innerHTML = newBody.innerHTML;
+                    // Re-run any inline scripts in the new content
+                    curBody.querySelectorAll('script').forEach(function (old) {
+                        var s = document.createElement('script');
+                        s.textContent = old.textContent;
+                        old.parentNode.replaceChild(s, old);
+                    });
+                }
+            } catch (e) {
+                // Silent fail — resource bar already updated via AJAX
+            }
         }
     };
 

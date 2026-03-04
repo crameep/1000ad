@@ -12,6 +12,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\LobbyController;
 use App\Http\Controllers\ManageController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ResearchController;
@@ -41,6 +42,33 @@ Route::get('/rankings/{type?}', [ScoreController::class, 'publicRankings'])->nam
 
 // Game documentation (accessible without login)
 Route::get('/game/docs/{page?}', [DocsController::class, 'show'])->name('docs');
+
+/*
+|--------------------------------------------------------------------------
+| Lobby Routes (auth required, no game context)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/lobby', [LobbyController::class, 'index'])->name('lobby');
+    Route::post('/lobby/join/{game}', [LobbyController::class, 'join'])->name('lobby.join');
+    Route::post('/lobby/switch/{game}', [LobbyController::class, 'switchGame'])->name('lobby.switch');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (auth + admin middleware)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('games', \App\Http\Controllers\Admin\GameManagementController::class);
+    Route::post('games/{game}/duplicate', [\App\Http\Controllers\Admin\GameManagementController::class, 'duplicate'])->name('games.duplicate');
+    Route::get('players', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'index'])->name('players.index');
+    Route::get('players/{user}', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'show'])->name('players.show');
+    Route::get('players/{player}/edit', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'editPlayer'])->name('players.edit');
+    Route::put('players/{player}', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'updatePlayer'])->name('players.update');
+    Route::post('players/{player}/grant-turns', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'grantTurns'])->name('players.grant-turns');
+});
 
 /*
 |--------------------------------------------------------------------------

@@ -28,9 +28,9 @@ class AttackController extends Controller
      */
     public function index()
     {
-        $player = Auth::user();
+        $player = player();
         $soldiers = session('soldiers');
-        $deathmatchMode = config('game.deathmatch_mode');
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         // Protection check
         if ($player->turn <= 72 && !$deathmatchMode) {
@@ -165,13 +165,13 @@ class AttackController extends Controller
      */
     public function launch(Request $request)
     {
-        $player = Auth::user();
-        $deathmatchMode = config('game.deathmatch_mode');
+        $player = player();
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         // Check deathmatch restriction
         if ($deathmatchMode) {
-            $deathmatchStart = config('game.deathmatch_start')
-                ? Carbon::parse(config('game.deathmatch_start'))
+            $deathmatchStart = gameConfig('deathmatch_start')
+                ? Carbon::parse(gameConfig('deathmatch_start'))
                 : null;
             $deathmatchStarted = $deathmatchStart && $deathmatchStart->isPast();
             if (!$deathmatchStarted) {
@@ -205,7 +205,7 @@ class AttackController extends Controller
     {
         $soldiers = session('soldiers');
         $constants = session('constants');
-        $deathmatchMode = config('game.deathmatch_mode');
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         $sendAll = $request->input('sendAll', 0);
         $sendWine = max(0, (int) $request->input('sendwine', 0));
@@ -391,7 +391,7 @@ class AttackController extends Controller
      */
     protected function catapultAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $deathmatchMode = config('game.deathmatch_mode');
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         $sendAll = $request->input('sendAll', 0);
         if ($sendAll) {
@@ -489,7 +489,7 @@ class AttackController extends Controller
     protected function thiefAttack(Request $request, Player $player): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $soldiers = session('soldiers');
-        $deathmatchMode = config('game.deathmatch_mode');
+        $deathmatchMode = gameConfig('deathmatch_mode');
 
         $sendAll = $request->input('sendAll', 0);
         if ($sendAll) {
@@ -589,7 +589,7 @@ class AttackController extends Controller
      */
     public function cancel(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        return $this->cancelAttack($request, Auth::user());
+        return $this->cancelAttack($request, player());
     }
 
     /**
