@@ -35,6 +35,45 @@ return [
         6 => 'Shaman',
     ],
 
+    'civ_summaries' => [
+        1 => [
+            'color' => '#4a9eff',
+            'icon' => '&#9876;',
+            'strengths' => ['Strong wood & iron production', 'Cheap lumber mills (2 land)', 'Powerful hunters'],
+            'weaknesses' => ['Small houses (75 pop)', 'Weak farms'],
+        ],
+        2 => [
+            'color' => '#ffd700',
+            'icon' => '&#9971;',
+            'strengths' => ['Cheap farms (2 land)', 'Strong towers & archers', 'Fast builders & explorers'],
+            'weaknesses' => ['Expensive town centers (35 land)', 'Smaller forts'],
+        ],
+        3 => [
+            'color' => '#ff4444',
+            'icon' => '&#127884;',
+            'strengths' => ['Best farms (10 food)', 'Large houses (120 pop)', 'Fast mage towers'],
+            'weaknesses' => ['Weak hunters', 'Expensive stables (8 land)'],
+        ],
+        4 => [
+            'color' => '#b366ff',
+            'icon' => '&#127963;',
+            'strengths' => ['Rich gold mines (200 gold)', 'Huge warehouses (5000)', 'Strong catapults'],
+            'weaknesses' => ['Expensive iron mines (3 land)', 'Fewer builders'],
+        ],
+        5 => [
+            'color' => '#44cc44',
+            'icon' => '&#127942;',
+            'strengths' => ['Cheap fast Horse Archers', 'Double weapon & tool production', 'Large forts (20 units)'],
+            'weaknesses' => ['Fewer explorers', 'Expensive mage towers'],
+        ],
+        6 => [
+            'color' => '#ff8844',
+            'icon' => '&#127755;',
+            'strengths' => ['Massive land grabs (5x Shaman)', 'Strong thieves & swordsmen', 'Cheap mage towers'],
+            'weaknesses' => ['Useless horsemen', 'Expensive unique unit'],
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Timing

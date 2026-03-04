@@ -76,6 +76,35 @@
         .copy-btn:hover { background: linear-gradient(180deg, #4d4230, #3d3226); }
         .copy-btn.copied { background: #2a4a2a; border-color: #4a8a4a; color: #8aca8a; }
 
+        .icon-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .icon-status-badge {
+            font-size: 13px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .icon-found { background: #1a3a1a; color: #6cc94c; border: 1px solid #3a6a2a; }
+        .icon-missing { background: #3a1a1a; color: #cc4c4c; border: 1px solid #6a2a2a; }
+        .icon-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            border: 1px solid #3a3028;
+            background: #1a1510;
+            object-fit: contain;
+        }
+        .icon-preview-small {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+            object-fit: contain;
+        }
+
         .batch-section {
             background: #2a2218;
             border: 1px solid #c9a84c;
@@ -96,11 +125,11 @@
 <div class="style-guide">
     <h3>Style Guide (applies to ALL icons)</h3>
     <p><strong>Art style:</strong> Flat heraldic emblem / shield icon. Bold, graphic, simplified. Like a coat of arms symbol — NOT a detailed painting or illustration.</p>
-    <p><strong>Colors:</strong> Each icon gets ONE bright dominant color against a very dark background (#1a1510). Warm golds, bright reds, vivid blues, strong greens — saturated and punchy, not muted.</p>
+    <p><strong>Colors:</strong> Each icon gets ONE bright dominant color. Warm golds, bright reds, vivid blues, strong greens — saturated and punchy, not muted.</p>
     <p><strong>Lighting:</strong> Flat with a subtle golden edge glow. No complex shadows or atmospheric lighting.</p>
     <p><strong>Perspective:</strong> Flat front-facing. No perspective, no 3D, no depth.</p>
     <p><strong>Size:</strong> Generate at 1024x1024, will be displayed at 48x48 (desktop) and <strong>32x32 (mobile)</strong></p>
-    <p><strong>Background:</strong> Solid dark #1a1510 or transparent. Completely clean — no ground, no sky, no scenery.</p>
+    <p><strong>Background:</strong> TRANSPARENT (PNG with alpha channel). No background color at all — just the object. No ground, no sky, no scenery, no dark fill.</p>
     <p><strong>CRITICAL — 32px readability:</strong> These icons MUST be instantly recognizable at 32x32 pixels. Rules:</p>
     <ul style="margin:6px 0 6px 20px; font-size:14px;">
         <li><strong>ONE object only.</strong> A single bold symbol — not a scene, not a building, not multiple items.</li>
@@ -120,6 +149,16 @@
     <p style="margin-top:8px;">Save each icon as a PNG to: <code style="color:#c9a84c;">public/images/icons/buildings/[name].png</code> or <code style="color:#c9a84c;">public/images/icons/soldiers/[name].png</code></p>
 </div>
 
+<h2>Resource Icons (9) — Resource Bar</h2>
+<p class="note">These display at 16-20px in the resource bar. Must be crystal clear at tiny sizes. Save to: public/images/icons/resources/[name].png</p>
+
+<div id="resources"></div>
+
+<h2>Land Type Icons (3) — Resource Bar</h2>
+<p class="note">Used for Total/Free land display. Save to: public/images/icons/land/[name].png</p>
+
+<div id="land-types"></div>
+
 <h2>Building Icons (16)</h2>
 
 <div id="buildings"></div>
@@ -133,7 +172,7 @@
 <div id="unique-units"></div>
 
 <script>
-var stylePrefix = "Flat bold heraldic emblem icon on dark background (#1a1510). ONE single object, simplified like a coat-of-arms symbol or mobile app icon. Fills 85-90% of the frame. Thick outlines, 2-3 flat saturated colors, NO textures, NO fine details, NO background scenery. Must be instantly recognizable when shrunk to 32x32 pixels. Subtle golden edge glow. 1024x1024 pixel icon. Subject: ";
+var stylePrefix = "Flat bold heraldic emblem icon on a TRANSPARENT background (PNG with alpha). NO background color, NO dark background, NO scenery — ONLY the object floating on nothing. ONE single object, simplified like a coat-of-arms symbol or mobile app icon. Fills 85-90% of the frame. Thick outlines, 2-3 flat saturated colors, NO textures, NO fine details, NO background scenery. Must be instantly recognizable when shrunk to 32x32 pixels. Subtle golden edge glow. 1024x1024 pixel icon with transparent background. Subject: ";
 
 var buildings = [
     { name: "Wood Cutter", file: "buildings/wood_cutter.png", desc: "A single large DOUBLE-HEADED AXE, vertical, head at top. Bright green handle, silver blade. Fills 90% of frame. Flat colors, thick outline, no background objects." },
@@ -157,7 +196,7 @@ var buildings = [
 var soldiers = [
     { name: "Archer", file: "soldiers/archer.png", desc: "A single large DRAWN BOW with arrow — the bow is pulled back in a D-shape with arrow pointing right. Green and brown. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapon." },
     { name: "Swordsman", file: "soldiers/swordsman.png", desc: "A single large LONGSWORD crossed over a SHIELD — sword diagonal, round shield behind. Silver blade, blue shield. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapons." },
-    { name: "Horseman", file: "soldiers/horseman.png", desc: "A bold simplified HORSE AND RIDER silhouette in profile, lance pointing forward. Silver-white on dark. Fills 90% of frame. Flat colors, thick outline, simplified like a chess knight piece." },
+    { name: "Horseman", file: "soldiers/horseman.png", desc: "A bold simplified HORSE AND RIDER silhouette in profile, lance pointing forward. Silver-white. Fills 90% of frame. Flat colors, thick outline, no background objects, simplified like a chess knight piece." },
     { name: "Tower (Defense)", file: "soldiers/tower_defense.png", desc: "A short wide SHIELD shape with CRENELLATIONS on top — like a castle battlement merged with a shield. Grey with a red cross. Fills 90% of frame. Flat colors, thick outline. Wider and squatter than the building tower icon." },
     { name: "Catapult", file: "soldiers/catapult.png", desc: "A simplified CATAPULT/TREBUCHET side view — triangular frame with a long throwing arm raised diagonally, boulder at end. Brown wood color. Fills 90% of frame. Flat colors, thick outline, simplified to basic geometric shapes." },
     { name: "Macemen", file: "soldiers/macemen.png", desc: "A single large SPIKED MACE weapon, vertical, head at top with prominent spikes radiating out. Dark iron grey. Fills 90% of frame. Flat colors, thick outline, no person visible, just the weapon." },
@@ -179,17 +218,39 @@ function renderCards(containerId, items) {
     var html = '';
     items.forEach(function(item) {
         var prompt = stylePrefix + item.desc;
-        var escaped = prompt.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        html += '<div class="prompt-card">'
+        var safeId = item.file.replace(/[\/\.]/g, '-');
+        var imgPath = '/images/icons/' + item.file;
+        html += '<div class="prompt-card" id="card-' + safeId + '">'
             + '<div class="prompt-card-header">'
             + '<span class="prompt-card-name">' + item.name + '</span>'
             + '<span class="prompt-card-file">' + item.file + '</span>'
             + '</div>'
-            + '<div class="prompt-text" id="prompt-' + item.file.replace(/[\/\.]/g, '-') + '">' + prompt + '</div>'
-            + '<button class="copy-btn" onclick="copyPrompt(this, \'' + item.file.replace(/[\/\.]/g, '-') + '\')">Copy Prompt</button>'
+            + '<div class="icon-status" id="status-' + safeId + '">'
+            + '<span class="icon-status-badge icon-missing">&#10007; Missing</span>'
+            + '</div>'
+            + '<div class="prompt-text" id="prompt-' + safeId + '">' + prompt + '</div>'
+            + '<button class="copy-btn" onclick="copyPrompt(this, \'' + safeId + '\')">Copy Prompt</button>'
             + '</div>';
     });
     container.innerHTML = html;
+
+    // Check which icons exist by loading them as images
+    items.forEach(function(item) {
+        var safeId = item.file.replace(/[\/\.]/g, '-');
+        var imgPath = '/images/icons/' + item.file;
+        var ts = Date.now();
+        var img = new Image();
+        img.onload = function() {
+            var statusEl = document.getElementById('status-' + safeId);
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="icon-status-badge icon-found">&#10003; Found</span>'
+                    + '<img src="' + imgPath + '?v=' + ts + '" class="icon-preview" alt="' + item.name + '">'
+                    + '<img src="' + imgPath + '?v=' + ts + '" class="icon-preview-small" alt="' + item.name + ' (20px)">';
+                document.getElementById('card-' + safeId).style.borderColor = '#3a6a2a';
+            }
+        };
+        img.src = imgPath + '?v=' + ts;
+    });
 }
 
 function copyPrompt(btn, id) {
@@ -204,6 +265,26 @@ function copyPrompt(btn, id) {
     });
 }
 
+var resources = [
+    { name: "Wood", file: "resources/wood.png", desc: "A single LOG of wood, horizontal, cut end visible showing rings. Rich warm brown. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Iron", file: "resources/iron.png", desc: "A single IRON ORE CHUNK — a rough angular rock shape with metallic blue-grey sheen. Cool steel blue-grey. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Food", file: "resources/food.png", desc: "A single MEAT LEG/DRUMSTICK — the classic cartoon leg of meat shape with bone handle. Warm brown cooked meat, white bone end. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Tools", file: "resources/tools.png", desc: "A single HAMMER, vertical, head at top. Simple medieval blacksmith hammer shape. Warm brown handle, grey iron head. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Horses", file: "resources/horses.png", desc: "A single HORSE HEAD silhouette in profile facing right, with a short mane. Rich brown. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Wine", file: "resources/wine.png", desc: "A single WINE BOTTLE or WINE JUG — a simple amphora/bottle shape. Deep burgundy red with a gold stopper. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Swords", file: "resources/swords.png", desc: "TWO CROSSED SWORDS forming an X shape. Silver blades, gold crossguards. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Bows", file: "resources/bows.png", desc: "A single LONGBOW, vertical, slightly curved with a bowstring. Warm brown wood, thin string line. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Maces", file: "resources/maces.png", desc: "A single SPIKED MACE/MORNING STAR — ball with spikes on a handle, vertical, head at top. Dark grey iron with visible spikes. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." }
+];
+
+var landTypes = [
+    { name: "Mountain Land", file: "land/mountain.png", desc: "A single bold MOUNTAIN PEAK — a sharp triangular mountain shape with a snow-capped top. Grey rock with white snow cap. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Forest Land", file: "land/forest.png", desc: "A single bold EVERGREEN TREE — classic triangular pine/fir tree shape. Rich dark green. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." },
+    { name: "Plains Land", file: "land/plains.png", desc: "A single bold WHEAT STALK — a few stalks of golden wheat with seed heads at top, slightly fanned. Bright golden yellow. Fills 90% of frame. Flat colors, thick outline, no background objects. Must read clearly at 16px." }
+];
+
+renderCards('resources', resources);
+renderCards('land-types', landTypes);
 renderCards('buildings', buildings);
 renderCards('soldiers', soldiers);
 renderCards('unique-units', uniqueUnits);

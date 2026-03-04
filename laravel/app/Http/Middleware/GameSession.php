@@ -53,15 +53,44 @@ class GameSession
         app()->instance('current_game', $game);
 
         // --- Resolve player for this user in this game ---
-        $player = Player::withoutGlobalScope('game')
-            ->where('user_id', $user->id)
-            ->where('game_id', $game->id)
-            ->first();
+        // Multi-empire: try session's active_player_id first
+        $activePlayerId = session('active_player_id');
+        $player = null;
+
+        if ($activePlayerId) {
+            $player = Player::withoutGlobalScope('game')
+                ->where('id', $activePlayerId)
+                ->where('user_id', $user->id)
+                ->where('game_id', $game->id)
+                ->where('killed_by', 0)
+                ->first();
+        }
+
+        // Fallback: first alive player for this user in this game
+        if (!$player) {
+            $player = Player::withoutGlobalScope('game')
+                ->where('user_id', $user->id)
+                ->where('game_id', $game->id)
+                ->where('killed_by', 0)
+                ->first();
+
+            if ($player) {
+                session(['active_player_id' => $player->id]);
+            }
+        }
 
         if (!$player) {
-            session()->forget('active_game_id');
+            session()->forget(['active_game_id', 'active_player_id']);
             return redirect()->route('lobby')->with('error', 'You are not in this game.');
         }
+
+        // Get other empires this user has in this game (for empire switcher)
+        $otherEmpires = Player::withoutGlobalScope('game')
+            ->where('user_id', $user->id)
+            ->where('game_id', $game->id)
+            ->where('killed_by', 0)
+            ->where('id', '!=', $player->id)
+            ->get();
 
         // Bind player to the service container (used by player() helper)
         app()->instance('current_player', $player);
@@ -190,6 +219,7 @@ class GameSession
             'maxTurnsStored' => $maxTurnsStored,
             'exploreCount' => $exploreCount,
             'exploreTurns' => $exploreTurns,
+            'otherEmpires' => $otherEmpires,
         ]);
 
         return $next($request);

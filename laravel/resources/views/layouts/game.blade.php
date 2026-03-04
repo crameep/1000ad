@@ -41,6 +41,19 @@
     <div class="empire-info">
         {{ $player->name }} #{{ $player->id }} - {{ $empireName }}
     </div>
+    @if(isset($otherEmpires) && $otherEmpires->isNotEmpty())
+        <div class="empire-switcher">
+            <span class="empire-switcher-label">Switch:</span>
+            @foreach($otherEmpires as $otherEmpire)
+                <form action="{{ route('lobby.switch-empire', $otherEmpire) }}" method="POST" class="inline-form">
+                    @csrf
+                    <button type="submit" class="empire-switch-btn">
+                        {{ $otherEmpire->name }} #{{ $otherEmpire->id }}
+                    </button>
+                </form>
+            @endforeach
+        </div>
+    @endif
     <div class="game-date">{{ $gameDate }}</div>
 
     {{-- Flash messages (converted to toast by JS, kept as fallback for no-JS) --}}
@@ -100,11 +113,17 @@
         <span class="explore-label">&#129517;</span>
         <button type="button" class="turn-btn explore-btn" id="explore-max">Explore Max</button>
         <button type="button" class="turn-btn explore-btn" id="explore-50">Explore 50</button>
-        <select class="explore-horse-select" id="explore-horses" title="Horses per explorer">
-            <option value="0">No Horses</option>
-            <option value="1">1 Horse ea.</option>
-            <option value="2">2 Horses ea.</option>
-            <option value="3">3 Horses ea.</option>
+        <select class="explore-select" id="explore-land" title="Land type to seek">
+            <option value="0">All Land</option>
+            <option value="1">&#9968; Mountains</option>
+            <option value="2">&#127794; Forest</option>
+            <option value="3">&#127806; Plains</option>
+        </select>
+        <select class="explore-select" id="explore-horses" title="Horses per explorer">
+            <option value="0">&#128052; 0x</option>
+            <option value="1">&#128052; 1x</option>
+            <option value="2">&#128052; 2x</option>
+            <option value="3">&#128052; 3x</option>
         </select>
         @if($exploreCount > 0)
             <span class="explore-status" id="explore-status">

@@ -165,6 +165,19 @@ class AllianceController extends Controller
             return redirect()->route('game.alliance');
         }
 
+        // Block if another of this user's empires is already in this alliance
+        $otherEmpireInAlliance = Player::withoutGlobalScope('game')
+            ->where('user_id', Auth::id())
+            ->where('game_id', app('current_game_id'))
+            ->where('id', '!=', $player->id)
+            ->where('alliance_id', $joinAllianceId)
+            ->exists();
+
+        if ($otherEmpireInAlliance) {
+            session()->flash('game_message', 'Another of your empires is already in this alliance.');
+            return redirect()->route('game.alliance');
+        }
+
         // Validate password
         if ($alliance->passwd !== trim($request->password)) {
             session()->flash('game_message', 'Invalid Password.');

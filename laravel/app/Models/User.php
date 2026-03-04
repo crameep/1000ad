@@ -26,6 +26,11 @@ class User extends Authenticatable
         return $this->hasMany(Player::class, 'user_id');
     }
 
+    public function empireSlots()
+    {
+        return $this->hasMany(EmpireSlot::class, 'user_id');
+    }
+
     /**
      * Get the player record for a specific game.
      */
@@ -35,6 +40,18 @@ class User extends Authenticatable
             ->withoutGlobalScope('game')
             ->where('game_id', $gameId)
             ->first();
+    }
+
+    /**
+     * Get all alive player records for a specific game.
+     */
+    public function playersInGame(int $gameId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->players()
+            ->withoutGlobalScope('game')
+            ->where('game_id', $gameId)
+            ->where('killed_by', 0)
+            ->get();
     }
 
     /**

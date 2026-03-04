@@ -19,6 +19,7 @@ use App\Http\Controllers\ResearchController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\StripeController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\WallController;
 use App\Http\Controllers\Api\GameApiController;
@@ -52,7 +53,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/lobby', [LobbyController::class, 'index'])->name('lobby');
     Route::post('/lobby/join/{game}', [LobbyController::class, 'join'])->name('lobby.join');
     Route::post('/lobby/switch/{game}', [LobbyController::class, 'switchGame'])->name('lobby.switch');
+    Route::post('/lobby/switch-empire/{player}', [LobbyController::class, 'switchEmpire'])->name('lobby.switch-empire');
+
+    // Stripe purchase routes
+    Route::get('/purchase/empire-slot/{game}', [StripeController::class, 'checkout'])->name('stripe.checkout');
+    Route::get('/purchase/success', [StripeController::class, 'success'])->name('stripe.success');
 });
+
+// Stripe webhook (no auth, no CSRF)
+Route::post('/stripe/webhook', [StripeController::class, 'webhook'])->name('stripe.webhook');
 
 /*
 |--------------------------------------------------------------------------

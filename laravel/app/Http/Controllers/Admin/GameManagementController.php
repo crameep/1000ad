@@ -49,6 +49,7 @@ class GameManagementController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:500',
+            'max_empires_per_user' => 'required|integer|min:1|max:10',
         ]);
 
         $slug = Str::slug($request->name);
@@ -84,6 +85,7 @@ class GameManagementController extends Controller
                 'soldiers_eat_one_food' => config('game.soldiers_eat_one_food'),
                 'extra_food_per_land' => config('game.extra_food_per_land'),
                 'people_burn_one_wood' => config('game.people_burn_one_wood'),
+                'max_empires_per_user' => (int) $request->max_empires_per_user,
             ],
             'created_by' => auth()->id(),
         ]);
@@ -127,7 +129,11 @@ class GameManagementController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'description' => 'nullable|string|max:500',
+            'max_empires_per_user' => 'required|integer|min:1|max:10',
         ]);
+
+        // Update the max_empires_per_user in game settings JSON
+        $game->setSetting('max_empires_per_user', (int) $request->max_empires_per_user);
 
         $game->update([
             'name' => $request->name,

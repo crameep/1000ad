@@ -497,6 +497,7 @@
             var maxBtn = document.getElementById('explore-max');
             var fiftyBtn = document.getElementById('explore-50');
             var horseSelect = document.getElementById('explore-horses');
+            var landSelect = document.getElementById('explore-land');
 
             // Restore horse preference
             if (horseSelect) {
@@ -504,6 +505,15 @@
                 horseSelect.value = saved;
                 horseSelect.addEventListener('change', function () {
                     Prefs.set('exploreHorses', parseInt(horseSelect.value, 10));
+                });
+            }
+
+            // Restore land preference
+            if (landSelect) {
+                var savedLand = Prefs.get('exploreLand', 0);
+                landSelect.value = savedLand;
+                landSelect.addEventListener('change', function () {
+                    Prefs.set('exploreLand', parseInt(landSelect.value, 10));
                 });
             }
 
@@ -524,14 +534,16 @@
             this._busy = true;
 
             var horseSelect = document.getElementById('explore-horses');
+            var landSelect = document.getElementById('explore-land');
             var withHorses = horseSelect ? parseInt(horseSelect.value, 10) : 0;
+            var seekLand = landSelect ? parseInt(landSelect.value, 10) : 0;
 
             try {
                 await Ajax.post('/game/explore/send', {
                     eflag: 'send_explorers',
                     qty: qty,
                     withHorses: withHorses,
-                    seekLand: 0
+                    seekLand: seekLand
                 }, { toastDuration: 6000 });
                 // Refresh page content to update explore status
                 TurnPresets._refreshContent();

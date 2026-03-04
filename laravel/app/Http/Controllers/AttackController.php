@@ -294,6 +294,8 @@ class AttackController extends Controller
         $error = null;
         if ($attackPlayerId === $player->id) {
             $error = "Are you nuts? You can't attack yourself!!!";
+        } elseif ($attackPlayer && $attackPlayer->user_id === $player->user_id) {
+            $error = "You cannot attack your own empires.";
         } elseif ($player->food < $eatSoldiersFood) {
             $error = "You do not have enough food to send your soldiers. You need " . number_format($eatSoldiersFood) . " to send that much army.";
         } elseif ($attackAlly) {
@@ -441,6 +443,8 @@ class AttackController extends Controller
         $error = null;
         if ($attackPlayerId === $player->id) {
             $error = "Are you nuts? You can't attack yourself!!!";
+        } elseif ($attackPlayer && $attackPlayer->user_id === $player->user_id) {
+            $error = "You cannot attack your own empires.";
         } elseif ($attackAlly) {
             $error = 'You cannot attack your allies.';
         } elseif ($player->turn <= 72 && !$deathmatchMode) {
@@ -539,6 +543,8 @@ class AttackController extends Controller
         $error = null;
         if ($attackPlayerId === $player->id) {
             $error = "Are you nuts? You can't attack yourself!!!";
+        } elseif ($attackPlayer && $attackPlayer->user_id === $player->user_id) {
+            $error = "You cannot attack your own empires.";
         } elseif ($attackAlly) {
             $error = 'You cannot attack your allies.';
         } elseif ($player->turn <= 72 && !$deathmatchMode) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmpireSlot;
 use App\Models\Game;
 use App\Models\Player;
 use App\Services\GameDataService;
@@ -26,46 +27,66 @@ class LobbyController extends Controller
     {
         $user = Auth::user();
 
-        // Games the user is already playing (query without game scope)
-        $myGameIds = Player::withoutGlobalScope('game')
+        // Get ALL alive players for this user across all games
+        $myPlayers = Player::withoutGlobalScope('game')
             ->where('user_id', $user->id)
             ->where('killed_by', 0)
-            ->pluck('game_id')
-            ->toArray();
+            ->get();
+
+        $myGameIds = $myPlayers->pluck('game_id')->unique()->toArray();
 
         $myGames = [];
         if (!empty($myGameIds)) {
             $games = Game::whereIn('id', $myGameIds)->get();
             foreach ($games as $game) {
-                $playerInGame = Player::withoutGlobalScope('game')
-                    ->where('user_id', $user->id)
-                    ->where('game_id', $game->id)
-                    ->first();
+                $playersInGame = $myPlayers->where('game_id', $game->id);
 
                 $playerCount = Player::withoutGlobalScope('game')
                     ->where('game_id', $game->id)
                     ->where('killed_by', 0)
                     ->count();
 
-                $empireName = config('game.empires')[$playerInGame->civ] ?? 'Unknown';
+                $maxAllowed = $game->setting('max_empires_per_user') ?? 1;
+                $canCreateMore = EmpireSlot::canCreateEmpire($user->id, $game->id);
+
+                $empires = [];
+                foreach ($playersInGame as $p) {
+                    $empires[] = [
+                        'player' => $p,
+                        'empireName' => config('game.empires')[$p->civ] ?? 'Unknown',
+                    ];
+                }
+
+                $extraSlots = EmpireSlot::slotsFor($user->id, $game->id);
 
                 $myGames[] = [
                     'game' => $game,
-                    'player' => $playerInGame,
-                    'empireName' => $empireName,
+                    'player' => $playersInGame->first(), // backward compat
+                    'empireName' => config('game.empires')[$playersInGame->first()->civ] ?? 'Unknown',
                     'playerCount' => $playerCount,
+                    'empires' => $empires,
+                    'canCreateMore' => $canCreateMore,
+                    'slotsUsed' => $playersInGame->count(),
+                    'slotsTotal' => min(1 + $extraSlots, $maxAllowed),
+                    'maxAllowed' => $maxAllowed,
                 ];
             }
         }
 
-        // Available games to join
+        // Available games to join: active games where user can still create empires
         $availableGames = Game::where('status', 'active')
             ->where(function ($q) {
                 $q->whereNull('end_date')
                   ->orWhere('end_date', '>', now());
             })
-            ->whereNotIn('id', $myGameIds)
             ->get()
+            ->filter(function ($game) use ($myGameIds, $user) {
+                // Show if user is not in the game at all, OR can create more empires
+                if (!in_array($game->id, $myGameIds)) {
+                    return true;
+                }
+                return EmpireSlot::canCreateEmpire($user->id, $game->id);
+            })
             ->map(function ($game) {
                 $game->player_count = Player::withoutGlobalScope('game')
                     ->where('game_id', $game->id)
@@ -80,6 +101,7 @@ class LobbyController extends Controller
             'availableGames' => $availableGames,
             'empires' => config('game.empires'),
             'uniqueUnits' => config('game.unique_units'),
+            'civSummaries' => config('game.civ_summaries'),
         ]);
     }
 
@@ -90,15 +112,25 @@ class LobbyController extends Controller
     {
         $user = Auth::user();
 
-        // Check if already in this game
-        $existing = Player::withoutGlobalScope('game')
-            ->where('user_id', $user->id)
-            ->where('game_id', $game->id)
-            ->first();
+        // Check if user can create another empire in this game
+        if (!EmpireSlot::canCreateEmpire($user->id, $game->id)) {
+            // Has empires but no more slots — switch to first existing empire
+            $existing = Player::withoutGlobalScope('game')
+                ->where('user_id', $user->id)
+                ->where('game_id', $game->id)
+                ->where('killed_by', 0)
+                ->first();
 
-        if ($existing) {
-            session(['active_game_id' => $game->id]);
-            return redirect()->route('game.main');
+            if ($existing) {
+                session([
+                    'active_game_id' => $game->id,
+                    'active_player_id' => $existing->id,
+                ]);
+                return redirect()->route('game.main');
+            }
+
+            return redirect()->route('lobby')
+                ->with('error', 'You cannot create more empires in this game.');
         }
 
         // Validate
@@ -197,8 +229,11 @@ class LobbyController extends Controller
         // Calculate initial score
         app(ScoreService::class)->calculateScore($player);
 
-        // Set this as the active game
-        session(['active_game_id' => $game->id]);
+        // Set this as the active game and player
+        session([
+            'active_game_id' => $game->id,
+            'active_player_id' => $player->id,
+        ]);
 
         return redirect()->route('game.main')
             ->with('success', "Welcome to {$game->name}! Your empire '{$request->empire_name}' has been created.");
@@ -215,6 +250,7 @@ class LobbyController extends Controller
         $player = Player::withoutGlobalScope('game')
             ->where('user_id', $user->id)
             ->where('game_id', $game->id)
+            ->where('killed_by', 0)
             ->first();
 
         if (!$player) {
@@ -224,7 +260,32 @@ class LobbyController extends Controller
 
         // Clear old game session data and switch
         session()->forget(['buildings', 'soldiers', 'constants']);
-        session(['active_game_id' => $game->id]);
+        session([
+            'active_game_id' => $game->id,
+            'active_player_id' => $player->id,
+        ]);
+
+        return redirect()->route('game.main');
+    }
+
+    /**
+     * Switch to a different empire within the same game.
+     */
+    public function switchEmpire(Player $player)
+    {
+        $user = Auth::user();
+
+        // Verify this player belongs to the current user and is alive
+        if ($player->user_id !== $user->id || $player->killed_by !== 0) {
+            return redirect()->route('lobby')
+                ->with('error', 'Invalid empire.');
+        }
+
+        session()->forget(['buildings', 'soldiers', 'constants']);
+        session([
+            'active_game_id' => $player->game_id,
+            'active_player_id' => $player->id,
+        ]);
 
         return redirect()->route('game.main');
     }

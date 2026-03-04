@@ -105,6 +105,12 @@ class AidController extends Controller
             return redirect()->route('game.aid');
         }
 
+        // Block sending aid to own empires (multi-empire guard)
+        if ($toPlayer->user_id === $player->user_id) {
+            session()->flash('game_message', 'You cannot send aid to your own empires.');
+            return redirect()->route('game.aid');
+        }
+
         // Validate resource amounts
         $validations = [
             'wood' => [$sendWood, $player->wood],

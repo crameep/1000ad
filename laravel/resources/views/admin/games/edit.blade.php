@@ -95,6 +95,11 @@
                         <label>Alliance Max Members *</label>
                         <input type="number" name="alliance_max_members" value="{{ old('alliance_max_members', $game->alliance_max_members) }}" required min="0" max="50">
                     </div>
+                    <div class="form-group">
+                        <label>Max Empires Per User *</label>
+                        <input type="number" name="max_empires_per_user" value="{{ old('max_empires_per_user', $game->setting('max_empires_per_user') ?? 1) }}" required min="1" max="10">
+                        <small style="color:#8a8a6d;">Players can purchase extra empire slots up to this limit</small>
+                    </div>
                 </div>
             </div>
 

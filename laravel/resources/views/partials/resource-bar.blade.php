@@ -18,31 +18,28 @@
     <div class="land-panel">
         <div class="land-row" style="margin-bottom:2px;">
             <span class="land-total-cell land-label"><b>Total:</b></span>
-            <span class="land-total-cell"><img src="/images/mland.gif" alt="Mountain"><span data-resource="mland">{{ number_format($player->mland) }}</span></span>
-            <span class="land-total-cell"><img src="/images/fland.gif" alt="Forest"><span data-resource="fland">{{ number_format($player->fland) }}</span></span>
-            <span class="land-total-cell"><img src="/images/pland.gif" alt="Plains"><span data-resource="pland">{{ number_format($player->pland) }}</span></span>
+            <span class="land-total-cell"><span class="land-icon land-mountain">&#9968;</span><span data-resource="mland">{{ number_format($player->mland) }}</span></span>
+            <span class="land-total-cell"><span class="land-icon land-forest">&#127794;</span><span data-resource="fland">{{ number_format($player->fland) }}</span></span>
+            <span class="land-total-cell"><span class="land-icon land-plains">&#127806;</span><span data-resource="pland">{{ number_format($player->pland) }}</span></span>
         </div>
         <div class="land-row">
             <span class="land-free-cell land-label"><b>Free:</b></span>
-            <span class="land-free-cell"><img src="/images/mland_free.gif" alt="Free Mountain">{{ number_format($freeM) }}</span>
-            <span class="land-free-cell"><img src="/images/fland_free.gif" alt="Free Forest">{{ number_format($freeF) }}</span>
-            <span class="land-free-cell"><img src="/images/pland_free.gif" alt="Free Plains">{{ number_format($freeP) }}</span>
+            <span class="land-free-cell"><span class="land-icon land-mountain">&#9968;</span><span data-resource="free_mland">{{ number_format($freeM) }}</span></span>
+            <span class="land-free-cell"><span class="land-icon land-forest">&#127794;</span><span data-resource="free_fland">{{ number_format($freeF) }}</span></span>
+            <span class="land-free-cell"><span class="land-icon land-plains">&#127806;</span><span data-resource="free_pland">{{ number_format($freeP) }}</span></span>
         </div>
     </div>
     <div class="goods-panel">
         <div class="goods-grid">
-            <span class="resource-item" data-tooltip="Wood: {{ number_format($player->wood) }}">
-                <img src="/images/wood.gif" alt="Wood"> <span data-resource="wood">{{ number_format($player->wood) }}</span>
-            </span>
-            <span class="resource-item" data-tooltip="Iron: {{ number_format($player->iron) }}">
-                <img src="/images/iron.gif" alt="Iron"> <span data-resource="iron">{{ number_format($player->iron) }}</span>
-            </span>
-            <span class="resource-item" data-tooltip="Food: {{ number_format($player->food) }}">
-                <img src="/images/food.gif" alt="Food"> <span data-resource="food">{{ number_format($player->food) }}</span>
-            </span>
-            <span class="resource-item" data-tooltip="Tools: {{ number_format($player->tools) }}">
-                <img src="/images/tools.gif" alt="Tools"> <span data-resource="tools">{{ number_format($player->tools) }}</span>
-            </span>
+            <span class="resource-item"><span class="res-icon">&#127795;</span> <span data-resource="wood">{{ number_format($player->wood) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#9935;</span> <span data-resource="iron">{{ number_format($player->iron) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#127830;</span> <span data-resource="food">{{ number_format($player->food) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#128296;</span> <span data-resource="tools">{{ number_format($player->tools) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#128052;</span> <span data-resource="horses">{{ number_format($player->horses) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#127863;</span> <span data-resource="wine">{{ number_format($player->wine) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#9876;</span> <span data-resource="swords">{{ number_format($player->swords) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#127993;</span> <span data-resource="bows">{{ number_format($player->bows) }}</span></span>
+            <span class="resource-item"><span class="res-icon">&#127951;</span> <span data-resource="maces">{{ number_format($player->maces) }}</span></span>
         </div>
     </div>
 </div>

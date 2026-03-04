@@ -403,8 +403,13 @@ class TradeController extends Controller
         $goodTypes = ['wood', 'food', 'iron', 'tools', 'maces', 'swords', 'bows', 'horses'];
         $marketOffers = [];
 
+        // Get all player IDs belonging to this user in this game (multi-empire guard)
+        $userPlayerIds = Player::where('user_id', Auth::id())
+            ->pluck('id')
+            ->toArray();
+
         foreach ($goodTypes as $good) {
-            $offers = TransferQueue::where('from_player_id', '<>', $player->id)
+            $offers = TransferQueue::whereNotIn('from_player_id', $userPlayerIds)
                 ->where('transfer_type', 0)
                 ->where('turns_remaining', 0)
                 ->where("{$good}_price", '>', 0)
@@ -600,8 +605,12 @@ class TradeController extends Controller
             return redirect()->route('game.market', ['type' => 'buy']);
         }
 
-        // Get available offers for this good type
-        $offers = TransferQueue::where('from_player_id', '<>', $player->id)
+        // Get available offers for this good type (exclude all user's empires)
+        $userPlayerIds = Player::where('user_id', Auth::id())
+            ->pluck('id')
+            ->toArray();
+
+        $offers = TransferQueue::whereNotIn('from_player_id', $userPlayerIds)
             ->where('transfer_type', 0)
             ->where('turns_remaining', 0)
             ->where("{$good}_price", '>', 0)

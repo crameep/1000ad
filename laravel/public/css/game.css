@@ -251,6 +251,46 @@ td.header, th {
     font-weight: bold;
     color: var(--text-primary);
     font-family: var(--font-title);
+}
+
+.empire-switcher {
+    text-align: center;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.empire-switcher-label {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.empire-switch-btn {
+    background: var(--bg-button);
+    border: 1px solid var(--border-color);
+    color: var(--text-link);
+    font-size: 12px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    border-radius: 3px;
+}
+.empire-switch-btn:hover {
+    background: var(--bg-button-hover);
+    color: var(--text-link-hover);
+    border-color: var(--border-accent);
+}
+
+.lobby-empire-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.lobby-empire-row:last-child {
+    border-bottom: none;
     letter-spacing: 1px;
 }
 
@@ -369,17 +409,31 @@ td.header, th {
     font-weight: bold;
     min-width: 42px;
 }
+.land-icon {
+    display: inline-block;
+    margin-right: 3px;
+    font-size: 14px;
+    vertical-align: middle;
+    line-height: 1;
+}
+.land-free-cell .land-icon {
+    opacity: 0.7;
+    font-size: 12px;
+}
 .resource-item {
     white-space: nowrap;
     font-size: var(--font-size-small);
 }
-.resource-item img {
+.res-icon {
+    display: inline-block;
+    font-size: 14px;
     vertical-align: middle;
+    line-height: 1;
     margin-right: 2px;
 }
 .goods-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 2px;
 }
 
@@ -1226,7 +1280,7 @@ button.explore-btn {
     font-size: 11px;
     padding: 3px 8px;
 }
-.explore-horse-select {
+.explore-select {
     background: var(--bg-header);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
@@ -1364,7 +1418,7 @@ button.explore-btn {
         font-size: 13px;
         min-height: 34px;
     }
-    .explore-horse-select {
+    .explore-select {
         padding: 6px 8px;
         font-size: 13px;
         min-height: 34px;
@@ -1452,6 +1506,80 @@ button.explore-btn {
     border-top: 1px solid var(--border-subtle);
 }
 
+/* Civilization selection grid */
+.civ-empire-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 6px 10px;
+    font-size: 14px;
+    background: var(--bg-body);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-family: var(--font-body);
+}
+.civ-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+}
+.civ-card {
+    background: var(--bg-body);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.civ-card:hover {
+    box-shadow: 0 0 8px rgba(201, 168, 92, 0.25);
+}
+.civ-card-selected {
+    box-shadow: 0 0 12px rgba(201, 168, 92, 0.4);
+}
+.civ-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.civ-card-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+.civ-card-name {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 700;
+}
+.civ-card-unit {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+.civ-card-body {
+    font-size: 11px;
+    line-height: 1.5;
+}
+.civ-pros {
+    color: #7cc94c;
+    margin-bottom: 4px;
+}
+.civ-cons {
+    color: #e84c4c;
+}
+.civ-form-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+@media (max-width: 600px) {
+    .civ-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Buttons for lobby */
 .btn {
     display: inline-block;
@@ -1469,6 +1597,11 @@ button.explore-btn {
 .btn:hover {
     background: var(--bg-button-hover);
     border-color: var(--border-accent);
+}
+
+.btn-sm {
+    padding: 3px 10px;
+    font-size: 11px;
 }
 
 .btn-primary {
