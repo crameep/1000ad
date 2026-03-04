@@ -60,12 +60,13 @@
 
     {{-- Turn info --}}
     <div class="turn-info" id="turn-info">
-        (<span id="turn-count">{{ $playerTurns }}</span> months remaining,
+        <span class="turn-count-highlight" id="turn-count">{{ $playerTurns }}</span> months remaining
+        <span class="turn-info-sep">&middot;</span>
         <span id="turn-timer">
         @if($playerTurns >= $maxTurnsStored)
-            maximum turns stored)
+            Max stored
         @else
-            next free month in {{ intdiv((int)$nextTurnSeconds, 60) }} minutes and {{ ((int)$nextTurnSeconds) % 60 }} seconds)
+            Next in {{ intdiv((int)$nextTurnSeconds, 60) }}:{{ str_pad(((int)$nextTurnSeconds) % 60, 2, '0', STR_PAD_LEFT) }}
         @endif
         </span>
     </div>

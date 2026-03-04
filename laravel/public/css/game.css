@@ -255,10 +255,18 @@ td.header, th {
 }
 
 .turn-info {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-small);
     text-align: center;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     margin: 4px 0 10px;
+}
+.turn-count-highlight {
+    color: var(--border-accent);
+    font-weight: 700;
+}
+.turn-info-sep {
+    margin: 0 4px;
+    color: var(--text-muted);
 }
 
 .main-layout {

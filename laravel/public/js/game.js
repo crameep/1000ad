@@ -289,15 +289,14 @@
             if (!this._timerEl) return;
 
             if (this._turns >= this._maxTurns) {
-                this._timerEl.textContent = 'maximum turns stored)';
+                this._timerEl.textContent = 'Max stored';
                 return;
             }
 
             var m = Math.floor(this._seconds / 60);
             var s = this._seconds % 60;
-            this._timerEl.textContent =
-                'next free month in ' + m + ' minute' + (m !== 1 ? 's' : '') +
-                ' and ' + s + ' second' + (s !== 1 ? 's' : '') + ')';
+            var pad = s < 10 ? '0' : '';
+            this._timerEl.textContent = 'Next in ' + m + ':' + pad + s;
         }
     };
 
