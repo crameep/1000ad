@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('empire_slots')) {
+            return;
+        }
+
         Schema::create('empire_slots', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -23,9 +27,11 @@ return new class extends Migration
             $table->foreign('game_id')->references('id')->on('games');
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('stripe_customer_id', 255)->nullable()->after('is_admin');
-        });
+        if (!Schema::hasColumn('users', 'stripe_customer_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('stripe_customer_id', 255)->nullable()->after('is_admin');
+            });
+        }
     }
 
     public function down(): void
