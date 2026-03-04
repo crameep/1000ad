@@ -10,8 +10,11 @@ use App\Models\Player;
  * Analyzes player state and returns contextual tips for the "Royal Advisor" panel.
  * Provides page-specific advice for every game page.
  *
- * Pure logic — no database queries beyond what's on the player model
- * (except the existing explore count on the main page).
+ * Tip categories:
+ * - Reactive alerts: respond to recent attacks, raids, spy events
+ * - Early game guidance: step-by-step help for new players (turn-gated)
+ * - Threshold alerts: warehouse full, low food, etc. (original tips)
+ * - Strategic analysis: economy balance, army composition, civ-specific advice
  */
 class GameAdvisorService
 {
@@ -42,6 +45,46 @@ class GameAdvisorService
         $houseB = $buildings[4];
         $fortB = $buildings[9];
         $toolMakerB = $buildings[7];
+
+        // ===== REACTIVE ALERTS (highest priority) =====
+        $events = $this->getRecentEvents($player);
+
+        if ($events['attacked']) {
+            $tips[] = ['type' => 'danger', 'message' => "Your empire was recently attacked! Prioritize rebuilding your army and strengthening <a href=\"/game/wall\">wall defenses</a>."];
+        }
+        if ($events['raided']) {
+            $tips[] = ['type' => 'warning', 'message' => "Thieves have raided your empire. Build more <a href=\"/game/build\">warehouses</a> and <a href=\"/game/wall\">walls</a> to reduce future losses."];
+        }
+        if ($events['spied']) {
+            $tips[] = ['type' => 'warning', 'message' => "Enemy spies have infiltrated your lands. Train <a href=\"/game/army\">thieves</a> and build <a href=\"/game/build\">towers</a> to improve counter-espionage."];
+        }
+        if ($player->has_new_messages) {
+            $tips[] = ['type' => 'info', 'message' => "You have unread <a href=\"/game/messages\">messages</a>. They may contain intelligence or diplomacy from other rulers."];
+        }
+
+        // ===== EARLY GAME GUIDANCE (turn-gated) =====
+        $deathmatchMode = gameConfig('deathmatch_mode');
+
+        if ($turn <= 5) {
+            $tips[] = ['type' => 'info', 'message' => "Welcome, my liege! Focus on building <a href=\"/game/build\">houses</a> and <a href=\"/game/build\">hunters</a> first to grow your population and food supply."];
+        } elseif ($turn > 5 && $turn <= 15 && $player->tool_maker <= 10) {
+            $tips[] = ['type' => 'info', 'message' => "Your builders need tools to work. Build more <a href=\"/game/build\">tool makers</a> to speed up all construction."];
+        }
+
+        if ($turn > 10 && $turn <= 30 && $player->mage_tower == 0) {
+            $tips[] = ['type' => 'info', 'message' => "Build <a href=\"/game/build\">mage towers</a> soon. Research bonuses compound over time — the earlier you start, the greater your advantage."];
+        }
+
+        if ($turn >= 60 && $turn <= 72 && !$deathmatchMode) {
+            $remaining = 72 - $turn;
+            $tips[] = ['type' => 'warning', 'message' => "Your protection ends in {$remaining} months! Ensure you have soldiers, a wall building, and food stockpiled before enemies can strike."];
+        }
+
+        if ($turn > 72 && $turn <= 85 && $player->thieves == 0 && !$deathmatchMode) {
+            $tips[] = ['type' => 'info', 'message' => "You are no longer protected. Train <a href=\"/game/army\">thieves</a> to spy on neighbors before launching attacks — knowledge is power."];
+        }
+
+        // ===== THRESHOLD ALERTS (original tips) =====
 
         // --- Warehouse capacity ---
         $canHold = $player->town_center * $townCenterB['supplies'] + $player->warehouse * $warehouseB['supplies'];
@@ -175,8 +218,58 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "Your food rations are {$labels[$player->food_ratio]}. This causes population decline. Increase rations on the <a href=\"/game/manage\">Manage</a> page when food allows."];
         }
 
-        // Limit to most important 5 tips
-        return array_slice($tips, 0, 5);
+        // ===== STRATEGIC RECOMMENDATIONS =====
+
+        // --- Economy imbalance ---
+        if ($player->wood_cutter > $player->iron_mine * 3 && $player->iron < 500 && $turn > 20) {
+            $tips[] = ['type' => 'info', 'message' => "Your economy is wood-heavy but iron-starved. Build more iron mines to balance resource production."];
+        } elseif ($player->iron_mine > $player->wood_cutter * 3 && $player->wood < 500 && $turn > 20) {
+            $tips[] = ['type' => 'info', 'message' => "You have many iron mines but few wood cutters. Wood is needed for buildings, tools, and heating — build more lumber mills."];
+        }
+
+        // --- Building status neglect ---
+        if ($turn > 20) {
+            $statusChecks = [
+                ['field' => 'hunter_status', 'count' => 'hunter', 'name' => 'Hunters'],
+                ['field' => 'farmer_status', 'count' => 'farmer', 'name' => 'Farms'],
+                ['field' => 'iron_mine_status', 'count' => 'iron_mine', 'name' => 'Iron mines'],
+                ['field' => 'gold_mine_status', 'count' => 'gold_mine', 'name' => 'Gold mines'],
+                ['field' => 'tool_maker_status', 'count' => 'tool_maker', 'name' => 'Tool makers'],
+                ['field' => 'weapon_smith_status', 'count' => 'weapon_smith', 'name' => 'Weaponsmiths'],
+                ['field' => 'wood_cutter_status', 'count' => 'wood_cutter', 'name' => 'Wood cutters'],
+            ];
+            foreach ($statusChecks as $check) {
+                if ($player->{$check['count']} > 0 && $player->{$check['field']} < 50) {
+                    $tips[] = ['type' => 'warning', 'message' => "{$check['name']} are at {$player->{$check['field']}}% efficiency. Increase their status on the <a href=\"/game/build\">Build</a> page to get full production."];
+                    break; // only show one status warning
+                }
+            }
+        }
+
+        // --- Civilization-specific strategic advice ---
+        if ($turn > 20) {
+            $civTip = $this->getCivSpecificTip($player);
+            if ($civTip) {
+                $tips[] = $civTip;
+            }
+        }
+
+        // --- Score composition: weak military ---
+        if ($player->military_score < 20 && $turn > 50) {
+            $tips[] = ['type' => 'warning', 'message' => "Only {$player->military_score}% of your score comes from military. A stronger army deters attacks and earns more score."];
+        }
+
+        // --- Gold income vs army upkeep ---
+        if ($payGold > 0 && $player->gold_mine > 0) {
+            $goldMineB = $buildings[6];
+            $goldIncome = round($player->gold_mine * $goldMineB['production'] * ($player->gold_mine_status / 100));
+            if ($payGold > $goldIncome * 2 && $goldIncome > 0) {
+                $tips[] = ['type' => 'warning', 'message' => "Your army costs {$payGold} gold/turn but your mines produce only ~{$goldIncome}. Build more gold mines or reduce your forces."];
+            }
+        }
+
+        // Limit to most important 6 tips
+        return array_slice($tips, 0, 6);
     }
 
     /**
@@ -189,6 +282,24 @@ class GameAdvisorService
         $tips = [];
         $buildings = $this->gameData->getBuildings($player->civ);
         $month = ($player->turn % 12) + 1;
+
+        // ===== REACTIVE ALERTS =====
+        if ($player->people < 500 && $player->turn > 30) {
+            $tips[] = ['type' => 'danger', 'message' => "Your population has fallen critically low. Increase food rations on the <a href=\"/game/manage\">Manage</a> page and build more houses to recover."];
+        }
+
+        // ===== EARLY GAME GUIDANCE =====
+        if ($player->turn <= 10) {
+            $tips[] = ['type' => 'info', 'message' => "Early priorities: Build houses for population, hunters for food, then wood cutters and iron mines for construction materials."];
+        }
+        if ($player->turn > 10 && $player->turn <= 40 && $player->fort == 0) {
+            $tips[] = ['type' => 'info', 'message' => "Build forts to train soldiers. Without forts, your empire is defenseless once protection ends."];
+        }
+        if ($player->turn > 20 && $player->turn <= 50 && $player->town_center <= 10) {
+            $tips[] = ['type' => 'info', 'message' => "Town centers provide housing, storage, explorer capacity, and army space. Building more is always worthwhile."];
+        }
+
+        // ===== THRESHOLD ALERTS (original tips) =====
 
         // Worker shortage
         if ($free < 0) {
@@ -248,7 +359,19 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "Housing is full. Build more houses to allow population growth."];
         }
 
-        return array_slice($tips, 0, 3);
+        // ===== STRATEGIC RECOMMENDATIONS =====
+
+        // Iron bottleneck: more weaponsmiths than iron mines
+        if ($player->weapon_smith > 0 && $player->iron_mine > 0 && $player->iron < 100 && $player->iron_mine < $player->weapon_smith) {
+            $tips[] = ['type' => 'warning', 'message' => "You have more weaponsmiths than iron mines. Build more mines to keep weapon production flowing."];
+        }
+
+        // Winery suggestion for mid-game
+        if ($player->winery == 0 && $player->turn > 40 && $player->fort > 3) {
+            $tips[] = ['type' => 'info', 'message' => "Wine doubles your army's attack strength. Build a winery to give your soldiers a decisive advantage."];
+        }
+
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -261,8 +384,40 @@ class GameAdvisorService
         $tips = [];
         $soldiers = $this->gameData->getSoldiers($player->civ);
 
-        // No army at all
-        if ($totalHave == 0 && $player->turn > 5) {
+        // ===== REACTIVE ALERTS =====
+
+        // Army wiped out post-protection
+        if ($totalHave == 0 && $player->turn > 72) {
+            $tips[] = ['type' => 'danger', 'message' => "Your army has been destroyed! Train peasants first for quick numbers, then proper soldiers as weapons become available."];
+        }
+
+        // Massive army loss: few soldiers but many forts
+        if ($totalHave > 0 && $totalHave < 10 && $player->turn > 50 && $player->fort > 5) {
+            $tips[] = ['type' => 'danger', 'message' => "Your army is nearly wiped out — only {$totalHave} soldiers remain with {$player->fort} forts. Fill your training queue immediately!"];
+        }
+
+        // ===== EARLY GAME GUIDANCE =====
+
+        // Under protection, small army
+        if ($player->turn <= 72 && $totalHave < 20 && $totalHave > 0) {
+            $tips[] = ['type' => 'info', 'message' => "You're still under protection. Use this time to stockpile weapons and train a strong army before the real fighting begins."];
+        }
+
+        // Only one unit type — suggest diversity
+        if ($player->turn < 50) {
+            $types = 0;
+            if ($player->swordsman > 0) $types++;
+            if ($player->archers > 0) $types++;
+            if ($player->horseman > 0) $types++;
+            if ($types == 1 && $totalHave > 10) {
+                $tips[] = ['type' => 'info', 'message' => "A diverse army is stronger. Archers excel at defense, swordsmen at attack, and horsemen take the most land."];
+            }
+        }
+
+        // ===== THRESHOLD ALERTS (original tips) =====
+
+        // No army at all (early/mid game)
+        if ($totalHave == 0 && $player->turn > 5 && $player->turn <= 72) {
             $tips[] = ['type' => 'danger', 'message' => "You have no army! You're defenseless against attacks. Train soldiers immediately."];
         }
 
@@ -324,7 +479,25 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "Your defense power is very low ({$defensePower}). Build up your army to deter attacks."];
         }
 
-        return array_slice($tips, 0, 3);
+        // ===== STRATEGIC RECOMMENDATIONS =====
+
+        // Attack/defense ratio imbalance
+        if ($attackPower > 0 && $defensePower > 0 && $defensePower < $attackPower * 0.3 && $player->turn > 40) {
+            $tips[] = ['type' => 'warning', 'message' => "Your defense ({$defensePower}) is weak compared to your attack ({$attackPower}). If your army is sent out, your empire is vulnerable. Train archers or build towers."];
+        }
+
+        // Towers as free passive defense
+        if ($player->tower < 5 && $player->turn > 25 && $totalHave > 0) {
+            $towerDef = $soldiers[4]['defense_pt'];
+            $tips[] = ['type' => 'info', 'message' => "Towers provide {$towerDef} defense each with zero upkeep cost. Build more for powerful passive defense."];
+        }
+
+        // Incas horseman warning
+        if ($player->civ == 6 && $player->horseman > 0) {
+            $tips[] = ['type' => 'warning', 'message' => "Inca horsemen are nearly useless (1 attack, 1 defense, 80 turns to train). Focus on swordsmen, macemen, and Shamans instead."];
+        }
+
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -352,9 +525,13 @@ class GameAdvisorService
             $tips[] = ['type' => 'info', 'message' => "Your army is idle. Scout enemies with <a href=\"javascript:openHelp('thief')\">thieves</a> first, then attack to gain land and resources."];
         }
 
-        // Wine reminder
+        // Wine reminder — with ratio info
         if ($player->wine > 0 && $totalArmy > 0) {
-            $tips[] = ['type' => 'info', 'message' => "You have " . number_format($player->wine) . " wine. Send wine with your army (1 per soldier = 100% bonus attack strength)."];
+            if ($player->wine < $totalArmy) {
+                $tips[] = ['type' => 'info', 'message' => "You have " . number_format($player->wine) . " wine for " . number_format($totalArmy) . " soldiers. You need 1 wine per soldier for the full attack bonus — build more wineries or send smaller forces."];
+            } else {
+                $tips[] = ['type' => 'info', 'message' => "You have " . number_format($player->wine) . " wine — enough for your full army. Send wine with attacks for double attack strength."];
+            }
         } elseif ($player->wine == 0 && $player->winery == 0 && $player->turn > 30) {
             $tips[] = ['type' => 'info', 'message' => "Wine boosts army attack power. Build a <a href=\"/game/build\">winery</a> to produce wine for your soldiers."];
         }
@@ -381,7 +558,12 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "You have no soldiers, catapults, or thieves. Train units on the <a href=\"/game/army\">Army</a> page before attacking."];
         }
 
-        return array_slice($tips, 0, 3);
+        // ===== STRATEGIC: No catapults for siege =====
+        if ($player->catapults == 0 && $player->turn > 50 && $totalArmy > 50) {
+            $tips[] = ['type' => 'info', 'message' => "Catapults can devastate enemy empires by destroying buildings and population. Consider training some for siege attacks."];
+        }
+
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -404,6 +586,15 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "You have mage towers but no research selected! Choose a research topic to start advancing."];
         }
 
+        // ===== EARLY GAME: First research recommendation =====
+        $totalLevels = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $totalLevels += $player->{"research{$i}"};
+        }
+        if ($totalLevels == 0 && $player->current_research == 0) {
+            $tips[] = ['type' => 'info', 'message' => "Start with <b>Food Production</b> or <b>Attack Points</b> research — they provide the best early-game advantage."];
+        }
+
         // Suggest specific research based on player state
         if ($player->research1 == 0 && $player->current_research != 1) {
             $tips[] = ['type' => 'info', 'message' => "Consider researching <b>Attack</b> — it increases your army's attack power in battles."];
@@ -416,10 +607,6 @@ class GameAdvisorService
         }
 
         // Well-researched player
-        $totalLevels = 0;
-        for ($i = 1; $i <= 12; $i++) {
-            $totalLevels += $player->{"research{$i}"};
-        }
         if ($totalLevels > 36) {
             $tips[] = ['type' => 'success', 'message' => "Your research is well-advanced at {$totalLevels} total levels! Keep investing in mage towers for faster progress."];
         }
@@ -429,7 +616,7 @@ class GameAdvisorService
             $tips[] = ['type' => 'warning', 'message' => "Your mage towers are at {$player->mage_tower_status}% capacity. Increase their status on the <a href=\"/game/build\">Build</a> page for faster research."];
         }
 
-        return array_slice($tips, 0, 3);
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -440,6 +627,11 @@ class GameAdvisorService
     public function getExploreTips(Player $player, $explorations, int $canSend, int $totalLand): array
     {
         $tips = [];
+
+        // ===== EARLY GAME =====
+        if ($player->turn < 30) {
+            $tips[] = ['type' => 'info', 'message' => "Land is the foundation of your empire. Send as many explorers as possible now — every acre counts in the early game."];
+        }
 
         // Can send explorers and none active
         $activeCount = $explorations->where('turn', '>', 0)->count();
@@ -471,7 +663,7 @@ class GameAdvisorService
             $tips[] = ['type' => 'danger', 'message' => "You need at least one town center to send explorers. Build one on the <a href=\"/game/build\">Build</a> page."];
         }
 
-        return array_slice($tips, 0, 3);
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -506,12 +698,26 @@ class GameAdvisorService
             $tips[] = ['type' => 'info', 'message' => "You have lots of mountain land but need plains. Convert mountain to forest, then forest to plains for building space."];
         }
 
+        // ===== STRATEGIC: One-type weapon production =====
+        if ($player->weapon_smith >= 3 && $freeWeaponsmiths == 0) {
+            $sword = $player->sword_weapon_smith;
+            $bow = $player->bow_weapon_smith;
+            $mace = $player->mace_weaponsmith;
+            if ($sword > 0 && $bow == 0 && $mace == 0) {
+                $tips[] = ['type' => 'info', 'message' => "All weaponsmiths produce only swords. Diversify — archers need bows and macemen need maces for a balanced army."];
+            } elseif ($bow > 0 && $sword == 0 && $mace == 0) {
+                $tips[] = ['type' => 'info', 'message' => "All weaponsmiths produce only bows. Consider producing swords too — swordsmen are strong attackers."];
+            } elseif ($mace > 0 && $sword == 0 && $bow == 0) {
+                $tips[] = ['type' => 'info', 'message' => "All weaponsmiths produce only maces. Diversify production to equip different unit types."];
+            }
+        }
+
         // All weaponsmiths assigned — positive
         if ($player->weapon_smith > 0 && $freeWeaponsmiths == 0) {
             $tips[] = ['type' => 'success', 'message' => "All weaponsmiths are fully assigned and producing weapons. Well managed!"];
         }
 
-        return array_slice($tips, 0, 3);
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -548,7 +754,12 @@ class GameAdvisorService
             $tips[] = ['type' => 'success', 'message' => "Your wall is complete! It will grow automatically as your empire expands."];
         }
 
-        return array_slice($tips, 0, 3);
+        // ===== STRATEGIC: Wall resource awareness =====
+        if ($player->wall_build_per_turn > 0 && $player->iron < 50) {
+            $tips[] = ['type' => 'warning', 'message' => "Wall construction requires iron, wood, and gold. Your iron is running low — build more mines to keep construction going."];
+        }
+
+        return array_slice($tips, 0, 4);
     }
 
     /**
@@ -563,6 +774,18 @@ class GameAdvisorService
 
         $townCenterB = $buildings[11];
         $warehouseB = $buildings[13];
+
+        // ===== REACTIVE: All resources critically low =====
+        if ($player->wood < 100 && $player->food < 100 && $player->iron < 100 && $player->turn > 10) {
+            $tips[] = ['type' => 'danger', 'message' => "All your resources are critically low! Buy food and wood immediately — your people will starve and freeze without them."];
+        }
+
+        // ===== EARLY GAME: Spend starting gold =====
+        if ($player->turn < 15 && $player->gold > 50000) {
+            $tips[] = ['type' => 'info', 'message' => "You start with generous gold reserves. Spend it on tools and iron at the market to jumpstart construction."];
+        }
+
+        // ===== THRESHOLD ALERTS (original tips) =====
 
         // Warehouse capacity check
         $canHold = $player->town_center * $townCenterB['supplies'] + $player->warehouse * $warehouseB['supplies'];
@@ -600,6 +823,120 @@ class GameAdvisorService
             $tips[] = ['type' => 'info', 'message' => "Build <a href=\"/game/build\">markets</a> to increase your maximum trades per turn."];
         }
 
-        return array_slice($tips, 0, 3);
+        // ===== STRATEGIC: Auto-sell bleeding =====
+        if ($player->auto_sell_wood > 0 && $player->wood < 1000) {
+            $tips[] = ['type' => 'warning', 'message' => "You're auto-selling wood but only have " . number_format($player->wood) . " left. Disable wood auto-sell before you run out."];
+        } elseif ($player->auto_sell_food > 0 && $player->food < 1000) {
+            $tips[] = ['type' => 'warning', 'message' => "You're auto-selling food but only have " . number_format($player->food) . " left. Disable food auto-sell before your people starve."];
+        } elseif ($player->auto_sell_iron > 0 && $player->iron < 500) {
+            $tips[] = ['type' => 'warning', 'message' => "You're auto-selling iron but only have " . number_format($player->iron) . " left. Disable iron auto-sell before production halts."];
+        }
+
+        // Buy what you lack most
+        if ($player->gold > 5000 && $player->tools < 50 && $player->tool_maker > 0) {
+            $tips[] = ['type' => 'info', 'message' => "You have gold but few tools. Buy tools at the market to keep your builders working."];
+        }
+
+        return array_slice($tips, 0, 4);
+    }
+
+    // ===================================================================
+    // Private helpers
+    // ===================================================================
+
+    /**
+     * Detect recent events from attack/system news for reactive tips.
+     * Lightweight query — max 5 rows, indexed columns.
+     */
+    private function getRecentEvents(Player $player): array
+    {
+        $recentNews = \App\Models\PlayerMessage::where('to_player_id', $player->id)
+            ->where('message_type', 1)
+            ->where('created_on', '>=', now()->subHours(24))
+            ->orderBy('created_on', 'desc')
+            ->limit(5)
+            ->pluck('message')
+            ->toArray();
+
+        $events = ['attacked' => false, 'raided' => false, 'spied' => false];
+
+        foreach ($recentNews as $msg) {
+            $msg = strtolower($msg);
+            if (str_contains($msg, 'attacked') || str_contains($msg, 'invasion') || str_contains($msg, 'lost land')) {
+                $events['attacked'] = true;
+            }
+            if (str_contains($msg, 'stole') || str_contains($msg, 'raided') || str_contains($msg, 'stolen')) {
+                $events['raided'] = true;
+            }
+            if (str_contains($msg, 'thief') || str_contains($msg, 'thieves') || str_contains($msg, 'spy') || str_contains($msg, 'poisoned') || str_contains($msg, 'fire')) {
+                $events['spied'] = true;
+            }
+        }
+
+        return $events;
+    }
+
+    /**
+     * Get a civilization-specific strategic tip.
+     */
+    private function getCivSpecificTip(Player $player): ?array
+    {
+        switch ($player->civ) {
+            case 1: // Vikings
+                if ($player->hunter < $player->farmer && $player->farmer > 5) {
+                    return ['type' => 'info', 'message' => "As Vikings, your hunters produce 5 food year-round and lumber mills are cheap. Lean into hunters over farms for reliable food."];
+                }
+                if ($player->wood_cutter < 15 && $player->turn > 25) {
+                    return ['type' => 'info', 'message' => "Viking lumber mills produce 6 wood on just 2 forest land each. Build more to exploit your civilization's strongest economic advantage."];
+                }
+                break;
+
+            case 2: // Franks
+                if ($player->tower < 10 && $player->turn > 30) {
+                    return ['type' => 'info', 'message' => "Franks have the strongest towers (65 defense each) and they're cheap to build. A tower wall makes your empire nearly impregnable."];
+                }
+                if ($player->farmer < 10 && $player->turn > 15) {
+                    return ['type' => 'info', 'message' => "Frankish farms use only 2 land each — the cheapest in the world. Build many farms for efficient food production."];
+                }
+                break;
+
+            case 3: // Japanese
+                if ($player->farmer < $player->hunter && $player->turn > 20) {
+                    return ['type' => 'info', 'message' => "Japanese farms produce 10 food each — the best of any civilization. Build more farms to leverage your bonus."];
+                }
+                if ($player->mage_tower < 5 && $player->turn > 30) {
+                    return ['type' => 'info', 'message' => "Japanese mage towers produce 50% more research points. Invest heavily in research to outpace your rivals."];
+                }
+                break;
+
+            case 4: // Byzantines
+                if ($player->gold_mine < 15 && $player->turn > 25) {
+                    return ['type' => 'info', 'message' => "Byzantine gold mines produce 200 gold each — double the standard. Build more to fund your powerful catapults and army."];
+                }
+                if ($player->warehouse < 10 && $player->turn > 20) {
+                    return ['type' => 'info', 'message' => "Byzantine warehouses hold 5000 supplies each — double normal capacity. You need fewer warehouses than other civilizations."];
+                }
+                break;
+
+            case 5: // Mongols
+                if ($player->uunit < 10 && $player->turn > 40) {
+                    return ['type' => 'info', 'message' => "Mongol Horse Archers are cheap (100 gold) and fast to train. Mass-produce them to overwhelm your enemies with numbers."];
+                }
+                if ($player->weapon_smith < 5 && $player->turn > 20) {
+                    return ['type' => 'info', 'message' => "Mongol weaponsmiths produce double weapons. Build more to arm your horde faster than any rival."];
+                }
+                break;
+
+            case 6: // Incas
+                if ($player->horseman > 0) {
+                    return ['type' => 'warning', 'message' => "Inca horsemen take 80 turns to train and have only 1 attack/defense — they're useless. Focus on swordsmen, macemen, and Shamans."];
+                }
+                if ($player->uunit < 3 && $player->turn > 40) {
+                    return ['type' => 'info', 'message' => "Inca Shamans grab 5 land per unit — massive territory gains. They're expensive but worth the investment for expansion."];
+                }
+                break;
+        }
+
+        return null;
     }
 }

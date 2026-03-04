@@ -15,7 +15,8 @@ if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
 fi
 
 # Create SQLite database if it doesn't exist
-DB_PATH="${DB_DATABASE:-database/database.sqlite}"
+mkdir -p storage/database
+DB_PATH="${DB_DATABASE:-storage/database/database.sqlite}"
 if [ ! -f "$DB_PATH" ]; then
     echo "Creating SQLite database at $DB_PATH..."
     touch "$DB_PATH"
