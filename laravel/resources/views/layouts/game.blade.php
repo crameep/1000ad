@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="1000 AD">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/images/icons/icon-192.png">
-    <link rel="stylesheet" href="{{ asset('css/game.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/game.css') }}?v={{ filemtime(public_path('css/game.css')) }}">
     <title>1000 A.D.</title>
     <script>
         function openHelp(h) {
@@ -177,7 +177,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/game.js') }}"></script>
+<script src="{{ asset('js/game.js') }}?v={{ filemtime(public_path('js/game.js')) }}"></script>
 <script>
 // Initialize turn timer with server data
 Game.TurnTimer.init({{ $nextTurnSeconds }}, {{ $playerTurns }}, {{ $maxTurnsStored }}, {{ $minutesPerTurn }});

@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>1000 A.D. - Game Help: {{ $title }}</title>
-    <link rel="stylesheet" href="{{ asset('css/game.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/game.css') }}?v={{ filemtime(public_path('css/game.css')) }}">
 </head>
 <body bgcolor="#2b2b2b" text="white" link="#00ccff" vlink="#00ccff">
 
