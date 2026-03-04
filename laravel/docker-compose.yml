@@ -22,6 +22,16 @@ services:
       - LOG_CHANNEL=stderr
     restart: unless-stopped
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: 1000ad-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - app
+
 volumes:
   game-data:
   game-sessions:
