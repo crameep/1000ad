@@ -99,14 +99,16 @@
     <p><strong>Colors:</strong> Warm golds, ambers, deep browns. Matches the game's dark fantasy palette.</p>
     <p><strong>Lighting:</strong> Soft top-left light source, subtle golden rim glow</p>
     <p><strong>Perspective:</strong> Front-facing, flat/isometric. Not 3D rendered.</p>
-    <p><strong>Size:</strong> Generate at 256x256 or larger, then resize to 48x48 and 32x32</p>
+    <p><strong>Size:</strong> Generate at 1024x1024, will be displayed at 48x48 (desktop) and 32x32 (mobile)</p>
     <p><strong>Background:</strong> Transparent (or solid dark #1a1510 if your tool doesn't support transparency)</p>
-    <p><strong>Detail:</strong> Clean enough to read at 32x32 pixels. Avoid tiny details that disappear when scaled down.</p>
+    <p><strong>CRITICAL — Small-size readability:</strong> Icons MUST be identifiable at 32x32 pixels. Use ONE bold central object that fills 70-80% of the frame. Strong silhouette with thick outlines. High contrast between subject and background. NO fine details, NO tiny text, NO busy backgrounds. Each icon should be distinguishable from all others by shape alone. Think "bold logo" not "detailed illustration".</p>
+    <p><strong>Color coding:</strong> Each icon should have a dominant color that differs from similar icons (e.g. gold mine = gold tones, iron mine = blue-grey tones).</p>
 </div>
 
 <div class="batch-section">
     <h3>Batch Generation Tip</h3>
     <p>For best consistency, generate all icons in a single session. If your tool supports style references, generate the first icon, then use it as a style reference for the rest.</p>
+    <p style="margin-top:8px;"><strong>Test at target size:</strong> After generating, shrink each icon to 32x32 in your image editor. If you can't tell what it is at a glance, regenerate with a simpler composition.</p>
     <p style="margin-top:8px;">Save each icon as a PNG to: <code style="color:#c9a84c;">public/images/icons/buildings/[name].png</code> or <code style="color:#c9a84c;">public/images/icons/soldiers/[name].png</code></p>
 </div>
 
@@ -123,45 +125,45 @@
 <div id="unique-units"></div>
 
 <script>
-var stylePrefix = "Medieval fantasy game icon, hand-painted style, warm gold and amber tones, dark background (#1a1510), top-left lighting with subtle golden rim glow, front-facing flat perspective, clean detail readable at small sizes, reminiscent of Age of Empires II icon art. 256x256 pixel icon. Subject: ";
+var stylePrefix = "Medieval fantasy game icon, hand-painted style, warm gold and amber tones, dark background (#1a1510), top-left lighting with golden rim glow, front-facing flat perspective. CRITICAL: Design for 32px display — ONE bold central object filling 70-80% of the frame, strong thick-outlined silhouette, high contrast, NO fine details or busy backgrounds. Reminiscent of Age of Empires II icon art. 1024x1024 pixel icon. Subject: ";
 
 var buildings = [
-    { name: "Wood Cutter", file: "buildings/wood_cutter.png", desc: "A rustic log cabin workshop with a large woodcutting axe embedded in a tree stump, wood shavings and split logs scattered around." },
-    { name: "Hunter", file: "buildings/hunter.png", desc: "A forest hunting lodge made of rough timber, with a bow and arrows crossed over deer antlers mounted on the wall." },
-    { name: "Farm", file: "buildings/farmer.png", desc: "A small medieval farm with a thatched-roof barn, a wheat field with golden stalks, and a wooden fence." },
-    { name: "House", file: "buildings/house.png", desc: "A cozy medieval stone and timber cottage with a thatched roof, small chimney with smoke, and a wooden door." },
-    { name: "Iron Mine", file: "buildings/iron_mine.png", desc: "A dark mine entrance carved into rocky hillside with wooden support beams, a cart of iron ore, and a pickaxe." },
-    { name: "Gold Mine", file: "buildings/gold_mine.png", desc: "A mine entrance in a mountainside with golden glinting ore visible inside, wooden supports, and a treasure chest of gold nuggets." },
-    { name: "Tool Maker", file: "buildings/tool_maker.png", desc: "A medieval craftsman's workshop with a workbench, various tools hanging on the wall (hammers, saws, chisels), and wood shavings on the floor." },
-    { name: "Weaponsmith", file: "buildings/weapon_smith.png", desc: "A medieval blacksmith forge with an anvil, glowing hot metal, crossed swords on the wall, and embers floating from the furnace." },
-    { name: "Fort", file: "buildings/fort.png", desc: "A fortified stone military keep with battlements, crenellations, a raised portcullis gate, and a military banner flying." },
-    { name: "Tower", file: "buildings/tower.png", desc: "A tall stone watchtower with a pointed roof, arrow slits, and a lookout platform at the top with a torch burning." },
-    { name: "Town Center", file: "buildings/town_center.png", desc: "A grand medieval town hall building with stone walls, a bell tower, an arched entrance, and a coat of arms banner." },
-    { name: "Market", file: "buildings/market.png", desc: "A bustling medieval market stall with a colorful cloth canopy, stacked crates and barrels, and hanging scales for weighing goods." },
-    { name: "Warehouse", file: "buildings/warehouse.png", desc: "A large medieval stone warehouse with heavy wooden doors, stacked crates and barrels visible inside, and a loading crane." },
-    { name: "Stable", file: "buildings/stable.png", desc: "A medieval horse stable with a hay-filled wooden structure, a horse head peering out, horseshoes on the wall, and a saddle rack." },
-    { name: "Mage Tower", file: "buildings/mage_tower.png", desc: "A tall mystical stone tower with a glowing arcane crystal at the peak, magical runes carved into the walls, and faint purple energy swirling around it." },
-    { name: "Winery", file: "buildings/winery.png", desc: "A medieval winery building with large wooden wine barrels, grape vines draped over a stone cellar entrance, and a goblet of red wine." }
+    { name: "Wood Cutter", file: "buildings/wood_cutter.png", desc: "A large woodcutting AXE embedded in a thick tree STUMP, centered and filling the frame. Green-brown tones. Bold silhouette — the axe shape is the key identifier. Minimal background." },
+    { name: "Hunter", file: "buildings/hunter.png", desc: "A large CROSSED BOW AND ARROWS over DEER ANTLERS, centered and filling the frame. Forest green-brown tones. The crossed bow shape is the key identifier. Minimal background." },
+    { name: "Farm", file: "buildings/farmer.png", desc: "A bold golden WHEAT SHEAF (bundle of wheat stalks tied together), centered and filling the frame. Warm golden-yellow tones. The wheat sheaf silhouette is the key identifier. Minimal background." },
+    { name: "House", file: "buildings/house.png", desc: "A simple medieval COTTAGE with a steep thatched roof and chimney with smoke, centered and filling the frame. Warm brown-orange tones. The house silhouette with peaked roof is the key identifier. Minimal background." },
+    { name: "Iron Mine", file: "buildings/iron_mine.png", desc: "A large PICKAXE crossed over a chunk of dark IRON ORE, centered and filling the frame. Cool blue-grey steel tones. The pickaxe-X shape is the key identifier. Minimal background." },
+    { name: "Gold Mine", file: "buildings/gold_mine.png", desc: "A large PICKAXE crossed over glowing GOLD NUGGETS, centered and filling the frame. Bright gold-yellow tones. Same shape as iron mine but golden color distinguishes it. Minimal background." },
+    { name: "Tool Maker", file: "buildings/tool_maker.png", desc: "A large HAMMER AND GEAR (cogwheel) overlapping, centered and filling the frame. Warm copper-brown tones. The hammer-and-gear shape is the key identifier. Minimal background." },
+    { name: "Weaponsmith", file: "buildings/weapon_smith.png", desc: "A glowing ANVIL with a SWORD being forged on it, orange-red sparks and heat glow, centered and filling the frame. Fiery orange-red tones. The anvil silhouette with glowing sword is the key identifier. Minimal background." },
+    { name: "Fort", file: "buildings/fort.png", desc: "A bold stone CASTLE KEEP with thick battlements and a gate, centered and filling the frame. Grey stone tones with a colored banner. The blocky castle silhouette is the key identifier. Minimal background." },
+    { name: "Tower", file: "buildings/tower.png", desc: "A single tall narrow WATCHTOWER with pointed roof and a glowing torch at top, centered and filling the frame. Grey stone with warm torch glow. The tall narrow tower silhouette is the key identifier. Minimal background." },
+    { name: "Town Center", file: "buildings/town_center.png", desc: "A grand BELL TOWER building with a large bell visible at top, arched entrance below, centered and filling the frame. Warm stone-gold tones. The bell tower silhouette is the key identifier. Minimal background." },
+    { name: "Market", file: "buildings/market.png", desc: "A large HANGING BALANCE SCALE (weighing scale) with a colorful cloth canopy behind it, centered and filling the frame. Colorful warm tones. The scale silhouette is the key identifier. Minimal background." },
+    { name: "Warehouse", file: "buildings/warehouse.png", desc: "A large wooden CRATE and BARREL stacked together, centered and filling the frame. Dark brown wood tones. The crate-and-barrel silhouette is the key identifier. Minimal background." },
+    { name: "Stable", file: "buildings/stable.png", desc: "A bold HORSE HEAD in profile looking left, with a horseshoe shape behind it, centered and filling the frame. Warm brown tones. The horse head silhouette is the key identifier. Minimal background." },
+    { name: "Mage Tower", file: "buildings/mage_tower.png", desc: "A tall stone TOWER topped with a large GLOWING PURPLE CRYSTAL, magical energy radiating from the crystal, centered and filling the frame. Purple-blue magical tones. The glowing crystal top distinguishes it from the regular tower. Minimal background." },
+    { name: "Winery", file: "buildings/winery.png", desc: "A large WINE BARREL with a GOBLET of red wine in front, centered and filling the frame. Deep red-burgundy and warm brown tones. The barrel-and-goblet silhouette is the key identifier. Minimal background." }
 ];
 
 var soldiers = [
-    { name: "Archer", file: "soldiers/archer.png", desc: "A medieval archer in leather armor drawing a longbow with a quiver of arrows on their back." },
-    { name: "Swordsman", file: "soldiers/swordsman.png", desc: "A medieval swordsman in chainmail armor holding a steel longsword and a kite shield with a heraldic design." },
-    { name: "Horseman", file: "soldiers/horseman.png", desc: "A mounted medieval knight on an armored warhorse, wielding a lance, with a flowing cape." },
-    { name: "Tower (Defense)", file: "soldiers/tower_defense.png", desc: "A defensive stone tower turret with mounted crossbows, arrow slits, and a flag. Shown as a military fortification icon." },
-    { name: "Catapult", file: "soldiers/catapult.png", desc: "A wooden medieval siege catapult (trebuchet) loaded with a stone projectile, with wooden frame and counterweight visible." },
-    { name: "Macemen", file: "soldiers/macemen.png", desc: "A fierce medieval warrior in heavy armor wielding a spiked iron mace, with a small round shield." },
-    { name: "Trained Peasant", file: "soldiers/trained_peasant.png", desc: "A medieval peasant militia fighter in simple cloth and leather, armed with a pitchfork or simple spear, looking determined." },
-    { name: "Thieves", file: "soldiers/thieves.png", desc: "A hooded medieval rogue or thief in dark leather armor, holding a dagger, with a pouch of stolen coins and shadows around them." }
+    { name: "Archer", file: "soldiers/archer.png", desc: "A single medieval ARCHER drawing a large LONGBOW, arrow nocked and pulled back. Upper body portrait filling the frame. Green-brown leather tones. The drawn bow shape is the key identifier. Minimal background." },
+    { name: "Swordsman", file: "soldiers/swordsman.png", desc: "A single medieval SWORDSMAN holding up a large STEEL SWORD, with a shield visible at his side. Upper body portrait filling the frame. Silver chainmail and blue tones. The raised sword silhouette is the key identifier. Minimal background." },
+    { name: "Horseman", file: "soldiers/horseman.png", desc: "A MOUNTED KNIGHT on a warhorse, lance raised, in profile facing right. The full horse-and-rider fills the frame. Silver armor and red cape. The mounted rider silhouette is the key identifier. Minimal background." },
+    { name: "Tower (Defense)", file: "soldiers/tower_defense.png", desc: "A short, wide defensive STONE TURRET with crenellations and a crossbow mounted on top, a flag flying. Centered and filling the frame. Grey stone with red flag. The squat fortified turret silhouette (shorter and wider than the building tower) is the key identifier. Minimal background." },
+    { name: "Catapult", file: "soldiers/catapult.png", desc: "A large wooden TREBUCHET/CATAPULT with its throwing arm raised, loaded with a stone boulder. Centered and filling the frame. Warm brown wood tones. The catapult arm silhouette is the key identifier. Minimal background." },
+    { name: "Macemen", file: "soldiers/macemen.png", desc: "A single armored WARRIOR raising a large spiked MACE overhead, heavy plate armor. Upper body portrait filling the frame. Dark iron-grey tones. The raised mace weapon shape is the key identifier. Minimal background." },
+    { name: "Trained Peasant", file: "soldiers/trained_peasant.png", desc: "A single PEASANT MILITIA holding a PITCHFORK upright like a spear, simple cloth clothing. Upper body portrait filling the frame. Earth-brown and tan tones. The pitchfork and simple clothing distinguish from other soldiers. Minimal background." },
+    { name: "Thieves", file: "soldiers/thieves.png", desc: "A single HOODED ROGUE in a dark hood and cloak, holding a DAGGER low, face partially shadowed. Upper body portrait filling the frame. Dark purple-black tones. The hooded silhouette and dagger are the key identifiers. Minimal background." }
 ];
 
 var uniqueUnits = [
-    { name: "Berserker (Vikings)", file: "soldiers/unique/berserker.png", desc: "A fierce Viking berserker warrior with a horned helmet, dual battle axes, wild eyes, bear pelt cloak, and Norse rune markings." },
-    { name: "Paladin (Franks)", file: "soldiers/unique/paladin.png", desc: "A noble Frankish paladin in gleaming full plate armor with a golden fleur-de-lis on their shield, a holy longsword, and a flowing blue cape." },
-    { name: "Samurai (Japanese)", file: "soldiers/unique/samurai.png", desc: "A Japanese samurai warrior in ornate red and black lacquered armor (yoroi), wielding a katana, with a kabuto helmet and face mask." },
-    { name: "Cataphract (Byzantines)", file: "soldiers/unique/cataphract.png", desc: "A Byzantine cataphract heavy cavalry warrior in gilded scale armor on a fully armored horse, wielding a kontarion lance, with a purple Byzantine banner." },
-    { name: "Horse Archer (Mongols)", file: "soldiers/unique/horse_archer.png", desc: "A Mongol horse archer in leather and fur armor riding a steppe horse at full gallop, drawing a composite recurve bow, with a quiver on their back." },
-    { name: "Shaman (Incas)", file: "soldiers/unique/shaman.png", desc: "An Incan shaman priest in elaborate gold and feathered ceremonial robes, holding a golden staff with a glowing sun disk, with mystical energy radiating." }
+    { name: "Berserker (Vikings)", file: "soldiers/unique/berserker.png", desc: "A fierce VIKING BERSERKER with a horned helmet, raising DUAL BATTLE AXES overhead, bear pelt on shoulders. Upper body portrait filling the frame. Icy blue and fur-brown tones. The horned helmet and twin axes are the key identifiers. Minimal background." },
+    { name: "Paladin (Franks)", file: "soldiers/unique/paladin.png", desc: "A noble PALADIN in gleaming golden plate armor, holding a GLOWING HOLY SWORD upright, blue cape behind. Upper body portrait filling the frame. Bright gold and royal blue tones. The golden armor and glowing sword are the key identifiers. Minimal background." },
+    { name: "Samurai (Japanese)", file: "soldiers/unique/samurai.png", desc: "A SAMURAI in distinctive red-laced armor (yoroi) and ornate KABUTO HELMET with face mask, KATANA held at ready. Upper body portrait filling the frame. Red and black lacquer tones. The kabuto helmet shape and katana are the key identifiers. Minimal background." },
+    { name: "Cataphract (Byzantines)", file: "soldiers/unique/cataphract.png", desc: "A MOUNTED HEAVY CAVALRY warrior on a fully armored horse, both rider and horse in gilded scale armor, lance raised. Full mount fills the frame in profile. Purple and gold Byzantine tones. The fully armored horse distinguishes from regular horseman. Minimal background." },
+    { name: "Horse Archer (Mongols)", file: "soldiers/unique/horse_archer.png", desc: "A MOUNTED ARCHER on a galloping horse, drawing a composite BOW while riding, fur-trimmed leather armor. Full mount fills the frame in profile. Earth-brown and tan tones. The bow-on-horseback silhouette distinguishes from regular horseman (lance) and regular archer (on foot). Minimal background." },
+    { name: "Shaman (Incas)", file: "soldiers/unique/shaman.png", desc: "An INCAN SHAMAN holding a tall GOLDEN STAFF topped with a glowing SUN DISK, elaborate feathered headdress, ceremonial robes. Upper body portrait filling the frame. Gold and bright feather tones (green, red). The sun-disk staff and feathered headdress are the key identifiers. Minimal background." }
 ];
 
 function renderCards(containerId, items) {
