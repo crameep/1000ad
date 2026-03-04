@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Create .env from .env.example if it doesn't exist
+# (.env is excluded from Docker image via .dockerignore — this creates it on first run)
+if [ ! -f .env ]; then
+    echo "Creating .env from .env.example..."
+    cp .env.example .env
+fi
+
 # Generate APP_KEY if not set
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
     echo "Generating application key..."
