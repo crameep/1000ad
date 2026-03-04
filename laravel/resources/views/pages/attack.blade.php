@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('attack')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 @if($underProtection)
     <br>
     <span>

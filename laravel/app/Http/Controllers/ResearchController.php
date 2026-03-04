@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
+use App\Services\GameAdvisorService;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class ResearchController extends Controller
      * Show research page.
      * Ported from research.cfm
      */
-    public function index(GameDataService $gameData)
+    public function index(GameDataService $gameData, GameAdvisorService $advisorService)
     {
         $player = player();
         $buildings = session('buildings');
@@ -88,6 +89,9 @@ class ResearchController extends Controller
             12 => "Your wood production is increased by {$player->research12}%",
         ];
 
+        // Advisor tips
+        $advisorTips = $advisorService->getResearchTips($player);
+
         return view('pages.research', [
             'researchNames' => $researchNames,
             'researchGroups' => $researchGroups,
@@ -100,6 +104,7 @@ class ResearchController extends Controller
             'goldCost' => $goldCost,
             'turnsToNextLevel' => $turnsToNextLevel,
             'percent' => $percent,
+            'advisorTips' => $advisorTips,
         ]);
     }
 

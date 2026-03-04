@@ -163,6 +163,10 @@ class GameSession
         // Empire name (static — doesn't change per game)
         $empireName = config('game.empires')[$player->civ] ?? 'Unknown';
 
+        // --- Exploration summary (for quick explore bar) ---
+        $exploreCount = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->count();
+        $exploreTurns = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->max('turn') ?? 0;
+
         // Share data with all views
         View::share([
             'player' => $player,
@@ -184,6 +188,8 @@ class GameSession
             'deathmatchMode' => $deathmatchMode,
             'minutesPerTurn' => $minutesPerTurn,
             'maxTurnsStored' => $maxTurnsStored,
+            'exploreCount' => $exploreCount,
+            'exploreTurns' => $exploreTurns,
         ]);
 
         return $next($request);

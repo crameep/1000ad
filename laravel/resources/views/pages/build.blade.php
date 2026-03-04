@@ -6,6 +6,9 @@
     <h2>Buildings</h2>
     <a href="javascript:openHelp('buildings')" class="help-link">Help</a>
 </div>
+
+<x-advisor-panel :tips="$advisorTips" />
+
 <br>
 
 {{-- Build / Demolish Form --}}

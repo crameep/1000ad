@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('wall')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 <br>
 Wall provides extra protection for your empire. <br>
 You currently have {{ number_format($player->wall) }} units of wall which provide you with

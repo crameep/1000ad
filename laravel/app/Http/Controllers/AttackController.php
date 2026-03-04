@@ -7,6 +7,7 @@ use App\Models\Alliance;
 use App\Models\AttackNews;
 use App\Models\AttackQueue;
 use App\Models\Player;
+use App\Services\GameAdvisorService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,13 @@ class AttackController extends Controller
 {
     use ReturnsJson;
 
+    protected GameAdvisorService $advisorService;
+
+    public function __construct(GameAdvisorService $advisorService)
+    {
+        $this->advisorService = $advisorService;
+    }
+
     /**
      * Show attack page.
      * Ported from attack.cfm
@@ -34,9 +42,11 @@ class AttackController extends Controller
 
         // Protection check
         if ($player->turn <= 72 && !$deathmatchMode) {
+            $advisorTips = $this->advisorService->getAttackTips($player, collect());
             return view('pages.attack', [
                 'underProtection' => true,
                 'attacks' => collect(),
+                'advisorTips' => $advisorTips,
             ]);
         }
 
@@ -149,6 +159,9 @@ class AttackController extends Controller
         // Unique unit name for this civ
         $uniqueUnitName = $soldiers[9]['name'] ?? 'Unique Unit';
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getAttackTips($player, $attacks);
+
         return view('pages.attack', [
             'underProtection' => false,
             'attacks' => $attacks,
@@ -156,6 +169,7 @@ class AttackController extends Controller
             'attackTypeLabels' => $attackTypeLabels,
             'uniqueUnitName' => $uniqueUnitName,
             'deathmatchMode' => $deathmatchMode,
+            'advisorTips' => $advisorTips,
         ]);
     }
 

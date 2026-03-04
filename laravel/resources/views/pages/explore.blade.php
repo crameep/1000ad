@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('explore')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 <br>
 <br>
 

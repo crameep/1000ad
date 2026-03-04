@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
+use App\Services\GameAdvisorService;
 use Illuminate\Http\Request;
 
 /**
@@ -16,6 +17,14 @@ use Illuminate\Http\Request;
 class WallController extends Controller
 {
     use ReturnsJson;
+
+    protected GameAdvisorService $advisorService;
+
+    public function __construct(GameAdvisorService $advisorService)
+    {
+        $this->advisorService = $advisorService;
+    }
+
     /**
      * Show the wall management page.
      * Ported from wall.cfm
@@ -45,6 +54,9 @@ class WallController extends Controller
         // Wall costs from config
         $wallCosts = gameConfig('wall');
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getWallTips($player, $protection, $totalWall);
+
         return view('pages.wall', [
             'totalLand' => $totalLand,
             'totalWall' => $totalWall,
@@ -54,6 +66,7 @@ class WallController extends Controller
             'wallBuilders' => $wallBuilders,
             'wallBuild' => $wallBuild,
             'wallCosts' => $wallCosts,
+            'advisorTips' => $advisorTips,
         ]);
     }
 

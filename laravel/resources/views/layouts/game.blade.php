@@ -74,9 +74,16 @@
     <div class="turn-presets-bar" id="turn-presets">
         <span class="turn-presets-label">End Turns:</span>
         <button type="button" class="turn-btn" data-turns="1">1</button>
-        <button type="button" class="turn-btn" data-turns="5">5</button>
-        <button type="button" class="turn-btn" data-turns="10">10</button>
-        <button type="button" class="turn-btn" data-turns="12">Max</button>
+        <button type="button" class="turn-btn" data-turns="6">6</button>
+        <button type="button" class="turn-btn" data-turns="12">12</button>
+        <span class="turn-divider">|</span>
+        <div class="turn-counter">
+            <button type="button" class="turn-counter-btn" id="turn-minus">&minus;</button>
+            <span class="turn-counter-value" id="turn-value">1</span>
+            <button type="button" class="turn-counter-btn" id="turn-plus">+</button>
+        </div>
+        <button type="button" class="turn-btn" id="turn-go">Go</button>
+        <span class="turn-divider">|</span>
         <button type="button" class="toast-toggle-btn" id="toast-toggle" title="Toggle notifications">&#x1F514;</button>
         <noscript>
             <form action="{{ route('game.end-turns') }}" method="POST" class="inline-form">
@@ -85,6 +92,26 @@
                 <input type="submit" value="Go">
             </form>
         </noscript>
+    </div>
+
+    {{-- Quick explore bar --}}
+    <div class="quick-explore-bar" id="quick-explore">
+        <span class="explore-label">&#129517;</span>
+        <button type="button" class="turn-btn explore-btn" id="explore-max">Explore Max</button>
+        <button type="button" class="turn-btn explore-btn" id="explore-50">Explore 50</button>
+        <select class="explore-horse-select" id="explore-horses" title="Horses per explorer">
+            <option value="0">No Horses</option>
+            <option value="1">1 Horse ea.</option>
+            <option value="2">2 Horses ea.</option>
+            <option value="3">3 Horses ea.</option>
+        </select>
+        @if($exploreCount > 0)
+            <span class="explore-status" id="explore-status">
+                &#9203; {{ $exploreCount }} group{{ $exploreCount > 1 ? 's' : '' }} &middot; {{ $exploreTurns }} turns left
+            </span>
+        @else
+            <span class="explore-status explore-idle" id="explore-status">No explorers sent</span>
+        @endif
     </div>
 
     {{-- Collapsible turn report (used when toasts are muted) --}}

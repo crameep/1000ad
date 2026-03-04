@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Traits\ReturnsJson;
 use App\Models\AttackQueue;
 use App\Models\TrainQueue;
+use App\Services\GameAdvisorService;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +23,12 @@ class ArmyController extends Controller
     use ReturnsJson;
 
     protected GameDataService $gameData;
+    protected GameAdvisorService $advisorService;
 
-    public function __construct(GameDataService $gameData)
+    public function __construct(GameDataService $gameData, GameAdvisorService $advisorService)
     {
         $this->gameData = $gameData;
+        $this->advisorService = $advisorService;
     }
 
     /**
@@ -282,6 +285,11 @@ class ArmyController extends Controller
             ];
         }
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getArmyTips(
+            $player, $armyData, $trainQueue, $maxSoldiers, $totalHave, $canTrain, $attackPower, $defensePower
+        );
+
         return view('pages.army', compact(
             'armyData',
             'soldierDisplay',
@@ -303,7 +311,8 @@ class ArmyController extends Controller
             'totalCost',
             'totalFood',
             'attackQty',
-            'trainQty'
+            'trainQty',
+            'advisorTips'
         ));
     }
 

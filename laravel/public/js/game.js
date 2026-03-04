@@ -368,16 +368,49 @@
         }
     };
 
-    // ─── Turn Presets ─────────────────────────────────────────────
+    // ─── Turn Presets (Custom Counter) ─────────────────────────────
     const TurnPresets = {
         _container: null,
         _busy: false,
+        _value: 1,
+        _min: 1,
+        _max: 12,
+        _valueEl: null,
+        _goBtn: null,
 
         init() {
             this._container = document.getElementById('turn-presets');
             if (!this._container) return;
 
-            var btns = this._container.querySelectorAll('.turn-btn');
+            this._valueEl = document.getElementById('turn-value');
+            this._goBtn = document.getElementById('turn-go');
+            var minusBtn = document.getElementById('turn-minus');
+            var plusBtn = document.getElementById('turn-plus');
+
+            // Restore saved value
+            this._value = Prefs.get('customTurns', 1);
+            if (this._value < this._min) this._value = this._min;
+            if (this._value > this._max) this._value = this._max;
+            if (this._valueEl) this._valueEl.textContent = this._value;
+
+            if (minusBtn) {
+                minusBtn.addEventListener('click', function () {
+                    TurnPresets._adjust(-1);
+                });
+            }
+            if (plusBtn) {
+                plusBtn.addEventListener('click', function () {
+                    TurnPresets._adjust(1);
+                });
+            }
+            if (this._goBtn) {
+                this._goBtn.addEventListener('click', function () {
+                    TurnPresets._endTurns(TurnPresets._value);
+                });
+            }
+
+            // Also support legacy preset buttons if they exist
+            var btns = this._container.querySelectorAll('.turn-btn[data-turns]');
             for (var i = 0; i < btns.length; i++) {
                 btns[i].addEventListener('click', function (e) {
                     var turns = parseInt(e.target.getAttribute('data-turns'), 10);
@@ -386,18 +419,20 @@
             }
         },
 
+        _adjust(delta) {
+            this._value += delta;
+            if (this._value < this._min) this._value = this._min;
+            if (this._value > this._max) this._value = this._max;
+            if (this._valueEl) this._valueEl.textContent = this._value;
+            Prefs.set('customTurns', this._value);
+        },
+
         async _endTurns(qty) {
             if (this._busy) return;
             this._busy = true;
 
-            // Highlight the clicked button
-            var btns = this._container.querySelectorAll('.turn-btn');
-            for (var i = 0; i < btns.length; i++) {
-                btns[i].classList.remove('active');
-                if (parseInt(btns[i].getAttribute('data-turns'), 10) === qty) {
-                    btns[i].classList.add('active');
-                }
-            }
+            // Highlight the Go button
+            if (this._goBtn) this._goBtn.classList.add('active');
 
             try {
                 await Ajax.post('/game/end-turns', { turns: qty }, {
@@ -414,8 +449,7 @@
 
             // Remove active state after brief delay
             setTimeout(function () {
-                var btns = TurnPresets._container.querySelectorAll('.turn-btn');
-                for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+                if (TurnPresets._goBtn) TurnPresets._goBtn.classList.remove('active');
             }, 1000);
         },
 
@@ -443,8 +477,82 @@
                         old.parentNode.replaceChild(s, old);
                     });
                 }
+                // Also refresh explore status
+                var newExplore = doc.getElementById('explore-status');
+                var curExplore = document.getElementById('explore-status');
+                if (newExplore && curExplore) {
+                    curExplore.innerHTML = newExplore.innerHTML;
+                    curExplore.className = newExplore.className;
+                }
             } catch (e) {
                 // Silent fail — resource bar already updated via AJAX
+            }
+        }
+    };
+
+    // ─── Quick Explore ─────────────────────────────────────────────
+    const QuickExplore = {
+        _busy: false,
+
+        init() {
+            var maxBtn = document.getElementById('explore-max');
+            var fiftyBtn = document.getElementById('explore-50');
+            var horseSelect = document.getElementById('explore-horses');
+
+            // Restore horse preference
+            if (horseSelect) {
+                var saved = Prefs.get('exploreHorses', 0);
+                horseSelect.value = saved;
+                horseSelect.addEventListener('change', function () {
+                    Prefs.set('exploreHorses', parseInt(horseSelect.value, 10));
+                });
+            }
+
+            if (maxBtn) {
+                maxBtn.addEventListener('click', function () {
+                    QuickExplore.send(9999);
+                });
+            }
+            if (fiftyBtn) {
+                fiftyBtn.addEventListener('click', function () {
+                    QuickExplore.send(50);
+                });
+            }
+        },
+
+        async send(qty) {
+            if (this._busy) return;
+            this._busy = true;
+
+            var horseSelect = document.getElementById('explore-horses');
+            var withHorses = horseSelect ? parseInt(horseSelect.value, 10) : 0;
+
+            try {
+                await Ajax.post('/game/explore/send', {
+                    eflag: 'send_explorers',
+                    qty: qty,
+                    withHorses: withHorses,
+                    seekLand: 0
+                }, { toastDuration: 6000 });
+                // Refresh page content to update explore status
+                TurnPresets._refreshContent();
+            } catch (e) {
+                // error already toasted
+            }
+
+            this._busy = false;
+        }
+    };
+
+    // ─── Royal Adviser Toggle ──────────────────────────────────────
+    const Advisor = {
+        init() {
+            // Restore collapsed state from preferences
+            if (Prefs.get('advisorOpen', true) === false) {
+                var body = document.getElementById('advisor-body');
+                var toggle = document.getElementById('advisor-toggle');
+                if (body) body.style.display = 'none';
+                if (toggle) toggle.innerHTML = '&#9654;';
             }
         }
     };
@@ -637,7 +745,25 @@
         TurnPresets: TurnPresets,
         TurnReport: TurnReport,
         StickyBar: StickyBar,
-        FaviconBadge: FaviconBadge
+        FaviconBadge: FaviconBadge,
+        QuickExplore: QuickExplore,
+        Advisor: Advisor
+    };
+
+    // Global toggleAdvisor function (called from Blade component onclick)
+    window.toggleAdvisor = function () {
+        var body = document.getElementById('advisor-body');
+        var toggle = document.getElementById('advisor-toggle');
+        if (!body) return;
+        if (body.style.display === 'none') {
+            body.style.display = '';
+            if (toggle) toggle.innerHTML = '&#9660;';
+            Prefs.set('advisorOpen', true);
+        } else {
+            body.style.display = 'none';
+            if (toggle) toggle.innerHTML = '&#9654;';
+            Prefs.set('advisorOpen', false);
+        }
     };
 
     // ─── Auto-Init on DOM Ready ───────────────────────────────────
@@ -646,6 +772,8 @@
         Toast.muted = Prefs.get('toastsMuted', false);
         ResourceBar.init();
         TurnPresets.init();
+        QuickExplore.init();
+        Advisor.init();
         StickyBar.init();
         FaviconBadge.init();
         TurnReport.init();

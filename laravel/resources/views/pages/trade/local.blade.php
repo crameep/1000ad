@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('trade')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 <div class="text-center">
 Local trade lets you trade small amount of necessary goods between your people.<br>
 Number of goods traded depends on how many markets you have.<br>

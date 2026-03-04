@@ -1145,6 +1145,87 @@ button.toast-toggle-btn:hover {
     box-shadow: none;
 }
 
+/* === Custom Turn Counter === */
+.turn-counter {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.turn-counter-btn {
+    background: var(--bg-button);
+    color: var(--text-primary);
+    border: none;
+    border-right: 1px solid var(--border-color);
+    padding: 4px 10px;
+    font-family: var(--font-body);
+    font-size: var(--font-size-small);
+    cursor: pointer;
+    min-height: auto;
+    line-height: 1.2;
+    transition: background 0.15s;
+}
+.turn-counter-btn:last-child {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+.turn-counter-btn:hover {
+    background: var(--bg-button-hover);
+    color: var(--border-accent);
+}
+.turn-counter-value {
+    padding: 4px 12px;
+    font-family: var(--font-body);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    color: var(--border-accent);
+    min-width: 32px;
+    text-align: center;
+    user-select: none;
+}
+.turn-divider {
+    color: var(--border-subtle);
+    margin: 0 2px;
+    font-size: 12px;
+}
+
+/* === Quick Explore Bar === */
+.quick-explore-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 0 6px;
+    font-size: var(--font-size-small);
+}
+.explore-label {
+    font-size: 14px;
+}
+.explore-status {
+    color: var(--text-secondary);
+    font-size: 11px;
+    white-space: nowrap;
+}
+.explore-idle {
+    color: var(--text-muted, var(--text-secondary));
+    opacity: 0.6;
+}
+button.explore-btn {
+    font-size: 11px;
+    padding: 3px 8px;
+}
+.explore-horse-select {
+    background: var(--bg-header);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 11px;
+    padding: 3px 4px;
+    cursor: pointer;
+}
+
 /* === Collapsible Turn Report Box === */
 .turn-report-box {
     max-width: 600px;
@@ -1256,6 +1337,29 @@ button.toast-toggle-btn:hover {
         font-size: 14px;
         min-height: 38px;
         min-width: 0;
+    }
+    .turn-counter-btn {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+    .turn-counter-value {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+    .quick-explore-bar {
+        flex-wrap: wrap;
+        padding: 4px 0 8px;
+        gap: 8px;
+    }
+    button.explore-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+        min-height: 34px;
+    }
+    .explore-horse-select {
+        padding: 6px 8px;
+        font-size: 13px;
+        min-height: 34px;
     }
 }
 
@@ -1788,6 +1892,26 @@ button.toast-toggle-btn:hover {
 .advisor-tip-info .advisor-icon {
     background: #6498b0;
     color: #fff;
+}
+
+.advisor-tip-success {
+    background: rgba(76, 175, 80, 0.1);
+    border-left-color: #4caf50;
+    color: #a5d6a7;
+}
+
+.advisor-tip-success .advisor-icon {
+    background: #4caf50;
+    color: #fff;
+}
+
+.advisor-tip a {
+    color: var(--border-accent);
+    text-decoration: underline;
+}
+
+.advisor-tip a:hover {
+    color: var(--text-primary);
 }
 
 /* === Game Icons === */

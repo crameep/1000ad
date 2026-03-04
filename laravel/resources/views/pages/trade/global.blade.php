@@ -12,6 +12,8 @@
         <a href="javascript:openHelp('trade')" class="help-link">Help</a>
     </div>
 
+    <x-advisor-panel :tips="$advisorTips" />
+
     You can send goods to the public market.<br>
     You need market places to send goods.<br>
     There is 5% fee after you sell the goods.
@@ -120,6 +122,8 @@
         <h2>Global Market: Buy</h2>
         <a href="javascript:openHelp('trade')" class="help-link">Help</a>
     </div>
+
+    <x-advisor-panel :tips="$advisorTips" />
 
     [<a href="{{ route('game.market', ['type' => 'sell']) }}">Switch to Sell Mode</a>]
     <br><br>

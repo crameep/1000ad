@@ -6,6 +6,7 @@ use App\Http\Traits\ReturnsJson;
 use App\Models\Player;
 use App\Models\PlayerMessage;
 use App\Models\TransferQueue;
+use App\Services\GameAdvisorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,14 @@ use Illuminate\Support\Facades\DB;
 class TradeController extends Controller
 {
     use ReturnsJson;
+
+    protected GameAdvisorService $advisorService;
+
+    public function __construct(GameAdvisorService $advisorService)
+    {
+        $this->advisorService = $advisorService;
+    }
+
     /**
      * Show the local trade page.
      * Ported from localtrade.cfm
@@ -70,6 +79,9 @@ class TradeController extends Controller
 
         $remAutoTrade = $maxTrades - $totalAutoTrade;
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getTradeTips($player);
+
         return view('pages.trade.local', [
             'maxTrades' => $maxTrades,
             'tradesRemaining' => $tradesRemaining,
@@ -85,6 +97,7 @@ class TradeController extends Controller
             'remAutoTrade' => $remAutoTrade,
             'autoTradeGoldUsed' => $autoTradeGoldUsed,
             'autoTradeGoldEarned' => $autoTradeGoldEarned,
+            'advisorTips' => $advisorTips,
         ]);
     }
 
@@ -365,6 +378,9 @@ class TradeController extends Controller
 
         $tradePrices = gameConfig('trade_prices');
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getTradeTips($player);
+
         if ($mType === 'sell') {
             // Show sell form + dispatched caravans
             $caravans = TransferQueue::where('from_player_id', $player->id)
@@ -379,6 +395,7 @@ class TradeController extends Controller
                 'tradesRemaining' => $tradesRemaining,
                 'tradePrices' => $tradePrices,
                 'caravans' => $caravans,
+                'advisorTips' => $advisorTips,
             ]);
         }
 
@@ -419,6 +436,7 @@ class TradeController extends Controller
             'marketOffers' => $marketOffers,
             'goodTypes' => $goodTypes,
             'incomingCaravans' => $incomingCaravans,
+            'advisorTips' => $advisorTips,
         ]);
     }
 

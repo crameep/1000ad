@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExploreQueue;
+use App\Services\GameAdvisorService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Traits\ReturnsJson;
@@ -17,6 +18,14 @@ use Illuminate\Support\Facades\DB;
 class ExploreController extends Controller
 {
     use ReturnsJson;
+
+    protected GameAdvisorService $advisorService;
+
+    public function __construct(GameAdvisorService $advisorService)
+    {
+        $this->advisorService = $advisorService;
+    }
+
     /**
      * Show explore page.
      * Ported from explore.cfm
@@ -69,6 +78,9 @@ class ExploreController extends Controller
         // Last horse setting from session
         $lastHorseSetting = session('lastHorseSetting', 0);
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getExploreTips($player, $explorations, $canSend, $totalLand);
+
         return view('pages.explore', [
             'explorations' => $explorations,
             'totalExplorers' => $totalExplorers,
@@ -79,6 +91,7 @@ class ExploreController extends Controller
             'landTypes' => $landTypes,
             'cancelTime' => $cancelTime,
             'lastHorseSetting' => $lastHorseSetting,
+            'advisorTips' => $advisorTips,
         ]);
     }
 
@@ -119,6 +132,30 @@ class ExploreController extends Controller
         $totalLand = $player->mland + $player->fland + $player->pland;
         $extraFood = (int) ceil($totalLand / $constants['extra_food_per_land']);
         $foodPerExplorer = $buildings[11]['food_per_explorer'] + $extraFood;
+
+        // Quick explore: auto-calculate max sendable when qty is very large
+        if ($qty >= 9999) {
+            $currentExplorers = ExploreQueue::where('player_id', $player->id)
+                ->where('turn', '>', 0)
+                ->sum('people');
+            $canSend = $maxExplorers - $currentExplorers;
+            $sendByFood = (int) floor($player->food / max(1, $foodPerExplorer));
+            $qty = min($canSend, $sendByFood, $player->people - 1);
+
+            // Account for horses
+            if ($withHorses >= 1 && $withHorses <= 3) {
+                $horseLimit = (int) floor($player->horses / $withHorses);
+                $qty = min($qty, $horseLimit);
+            }
+
+            if ($qty < 4) {
+                if ($request->expectsJson()) {
+                    return $this->jsonError('Not enough resources to send explorers (need at least 4).');
+                }
+                return back()->with('game_message', 'Not enough resources to send explorers.');
+            }
+        }
+
         $exploreFood = $foodPerExplorer * $qty;
 
         // Validation

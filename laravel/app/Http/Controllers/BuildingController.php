@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
 use App\Models\BuildQueue;
+use App\Services\GameAdvisorService;
 use App\Services\GameDataService;
 use Illuminate\Http\Request;
 
@@ -20,10 +21,12 @@ class BuildingController extends Controller
     use ReturnsJson;
 
     protected GameDataService $gameData;
+    protected GameAdvisorService $advisorService;
 
-    public function __construct(GameDataService $gameData)
+    public function __construct(GameDataService $gameData, GameAdvisorService $advisorService)
     {
         $this->gameData = $gameData;
+        $this->advisorService = $advisorService;
     }
 
     /**
@@ -168,6 +171,11 @@ class BuildingController extends Controller
         $houseSpace = round($houseSpace + $houseSpace * ($player->research8 / 100));
         $freeSpace = $houseSpace - $player->people;
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getBuildTips(
+            $player, $buildingStats, $buildQueue, $free, $freeMountain, $freeForest, $freePlains
+        );
+
         return view('pages.build', compact(
             'buildQueue',
             'numBuilders',
@@ -181,7 +189,8 @@ class BuildingController extends Controller
             'freeSpace',
             'freeMountain',
             'freeForest',
-            'freePlains'
+            'freePlains',
+            'advisorTips'
         ));
     }
 

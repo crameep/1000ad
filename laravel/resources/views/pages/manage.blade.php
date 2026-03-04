@@ -6,6 +6,9 @@
     <h2>Empire Management</h2>
     <a href="javascript:openHelp('manage')" class="help-link">Help</a>
 </div>
+
+<x-advisor-panel :tips="$advisorTips" />
+
 <br>
 
 {{-- Weapon Production --}}

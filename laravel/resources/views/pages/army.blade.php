@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('army')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 {{-- Capacity Info --}}
 <div style="margin: 8px 0;">
     Your Forts and Town Centers can hold up to

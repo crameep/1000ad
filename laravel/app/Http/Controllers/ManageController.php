@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
+use App\Services\GameAdvisorService;
 use Illuminate\Http\Request;
 
 /**
@@ -16,6 +17,14 @@ use Illuminate\Http\Request;
 class ManageController extends Controller
 {
     use ReturnsJson;
+
+    protected GameAdvisorService $advisorService;
+
+    public function __construct(GameAdvisorService $advisorService)
+    {
+        $this->advisorService = $advisorService;
+    }
+
     /**
      * Show the empire management page.
      * Route: GET /game/manage
@@ -38,10 +47,14 @@ class ManageController extends Controller
         $ironUsed = $player->sword_weapon_smith * $weaponSmithB['iron_need']
             + $player->mace_weapon_smith * $weaponSmithB['mace_iron'];
 
+        // Advisor tips
+        $advisorTips = $this->advisorService->getManageTips($player, $freeWeaponsmiths);
+
         return view('pages.manage', [
             'freeWeaponsmiths' => $freeWeaponsmiths,
             'woodUsed' => $woodUsed,
             'ironUsed' => $ironUsed,
+            'advisorTips' => $advisorTips,
         ]);
     }
 

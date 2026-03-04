@@ -7,6 +7,8 @@
     <a href="javascript:openHelp('research')" class="help-link">Help</a>
 </div>
 
+<x-advisor-panel :tips="$advisorTips" />
+
 <br>
 
 @if(!$hasMageTowers)
