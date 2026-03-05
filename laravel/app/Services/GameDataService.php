@@ -93,6 +93,7 @@ class GameDataService
             'allow_off' => true,
             'production' => 4,
             'production_name' => 'wood',
+            'description' => 'Produces wood. 6 workers, 4 wood/turn.',
         ];
 
         // 2: Hunter
@@ -109,6 +110,7 @@ class GameDataService
             'allow_off' => true,
             'production' => 3,
             'production_name' => 'food',
+            'description' => 'Produces food year-round. 6 workers, 3 food/turn.',
         ];
 
         // 3: Farm
@@ -125,6 +127,7 @@ class GameDataService
             'allow_off' => true,
             'production' => 8,
             'production_name' => 'food',
+            'description' => 'Produces food in spring/summer only (Apr-Sep). 12 workers, 8 food/turn.',
         ];
 
         // 4: House
@@ -141,6 +144,7 @@ class GameDataService
             'allow_off' => false,
             'people' => 100,
             'production_name' => '',
+            'description' => 'Provides housing for 100 people. No workers needed.',
         ];
 
         // 5: Iron Mine
@@ -156,6 +160,7 @@ class GameDataService
             'allow_off' => true,
             'production' => 1,
             'production_name' => 'iron',
+            'description' => 'Produces iron. 8 workers, 1 iron/turn.',
         ];
 
         // 6: Gold Mine
@@ -171,6 +176,7 @@ class GameDataService
             'allow_off' => true,
             'production' => 100,
             'production_name' => 'gold',
+            'description' => 'Produces gold. 12 workers, 100 gold/turn.',
         ];
 
         // 7: Tool Maker
@@ -190,6 +196,7 @@ class GameDataService
             'iron_need' => 2,
             'production_name' => 'tools',
             'num_builders' => 6,
+            'description' => 'Produces tools and speeds construction. Consumes 2 wood + 2 iron/turn.',
         ];
 
         // 8: Weaponsmith
@@ -210,6 +217,7 @@ class GameDataService
             'mace_wood' => 6,
             'mace_iron' => 6,
             'production_name' => 'weapons',
+            'description' => 'Produces swords, bows, and maces. Consumes wood + iron.',
         ];
 
         // 9: Fort
@@ -228,6 +236,7 @@ class GameDataService
             'max_units' => 15,
             'need_gold' => 25,
             'production_name' => '',
+            'description' => 'Trains and garrisons up to 15 military units.',
         ];
 
         // 10: Tower
@@ -243,6 +252,7 @@ class GameDataService
             'cost_gold' => 400,
             'allow_off' => false,
             'production_name' => '',
+            'description' => 'Defensive structure. Increases land defense strength.',
         ];
 
         // 11: Town Center
@@ -264,6 +274,7 @@ class GameDataService
             'food_per_explorer' => 5,
             'production_name' => '',
             'max_local_trades' => 100,
+            'description' => 'Houses 100 people, stores 1000 supplies, enables 6 explorers per center.',
         ];
 
         // 12: Market
@@ -280,6 +291,7 @@ class GameDataService
             'allow_off' => false,
             'max_trades' => 50,
             'production_name' => '',
+            'description' => 'Enables 50 public market trades per market.',
         ];
 
         // 13: Warehouse
@@ -296,6 +308,7 @@ class GameDataService
             'allow_off' => false,
             'supplies' => 2500,
             'production_name' => '',
+            'description' => 'Stores 2500 supplies, protecting them from raids.',
         ];
 
         // 14: Stable
@@ -313,6 +326,7 @@ class GameDataService
             'production' => 1,
             'food_need' => 100,
             'production_name' => 'horses',
+            'description' => 'Produces horses. Consumes 100 food/turn. 12 workers.',
         ];
 
         // 15: Mage Tower
@@ -330,6 +344,7 @@ class GameDataService
             'production' => 1,
             'gold_need' => 100,
             'production_name' => 'research points',
+            'description' => 'Produces research points. Consumes 100 gold/turn. 20 workers.',
         ];
 
         // 16: Winery
@@ -347,6 +362,7 @@ class GameDataService
             'production' => 1,
             'gold_need' => 10,
             'production_name' => 'wine',
+            'description' => 'Produces wine and 10 gold. Consumes 10 gold/turn. 12 workers.',
         ];
 
         return $buildings;

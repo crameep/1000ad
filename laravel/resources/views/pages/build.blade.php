@@ -9,6 +9,143 @@
 
 <x-advisor-panel :tips="$advisorTips" />
 
+{{-- Build Queue (collapsible) --}}
+@if($buildQueue->count() > 0)
+<div class="bq-section" id="buildQueueSection">
+    <div class="bq-header" onclick="toggleBuildQueue(event)">
+        <span class="bq-toggle" id="bqToggleArrow">&#9660;</span>
+        <span class="bq-title">Building Queue ({{ $buildQueue->count() }})</span>
+        @if($buildQueue->count() > 1)
+            <button type="button" class="bq-cancel-all" id="bqCancelAll" title="Cancel all" onclick="event.stopPropagation()">Cancel All</button>
+        @endif
+    </div>
+    <div class="bq-list" id="buildQueueList">
+        @foreach($buildQueue as $idx => $bq)
+            @php
+                $b_q = $buildings[$bq->building_no] ?? null;
+                $turnsNeeded = $numBuilders > 0 ? ceil($bq->time_needed / $numBuilders) : $bq->time_needed;
+            @endphp
+            @if($b_q)
+            <div class="bq-item" data-qid="{{ $bq->id }}">
+                <div class="bq-item-rank">{{ $idx + 1 }}</div>
+                <img src="{{ buildingIcon($b_q) }}" alt="{{ $b_q['name'] }}" class="bq-item-icon" onerror="this.style.display='none'">
+                <div class="bq-item-info">
+                    <div class="bq-item-name">{{ $b_q['name'] }} @if($bq->mission == 1)<span class="bq-demolish-tag">Demolish</span>@endif</div>
+                    <div class="bq-item-detail">x{{ $bq->qty }} &middot; {{ $turnsNeeded }} turn{{ $turnsNeeded != 1 ? 's' : '' }}</div>
+                </div>
+                <div class="bq-item-actions">
+                    @if($buildQueue->count() > 1)
+                    <button type="button" class="bq-btn bq-btn-move" data-action="top" title="Move to top">&#9650;</button>
+                    <button type="button" class="bq-btn bq-btn-move" data-action="bottom" title="Move to bottom">&#9660;</button>
+                    @endif
+                    <button type="button" class="bq-btn bq-btn-cancel" data-action="cancel" title="Cancel">&times;</button>
+                </div>
+            </div>
+            @endif
+        @endforeach
+    </div>
+</div>
+<script>
+function toggleBuildQueue(e) {
+    var list = document.getElementById('buildQueueList');
+    var arrow = document.getElementById('bqToggleArrow');
+    var isOpen = list.style.display !== 'none';
+    list.style.display = isOpen ? 'none' : '';
+    arrow.innerHTML = isOpen ? '&#9654;' : '&#9660;';
+    Prefs.set('queueOpen', !isOpen);
+}
+// Restore collapsed state
+(function() {
+    var open = Prefs.get('queueOpen', true);
+    if (!open) {
+        var list = document.getElementById('buildQueueList');
+        var arrow = document.getElementById('bqToggleArrow');
+        if (list) { list.style.display = 'none'; }
+        if (arrow) { arrow.innerHTML = '&#9654;'; }
+    }
+})();
+
+(function() {
+    var queueSection = document.getElementById('buildQueueSection');
+    if (!queueSection) return;
+
+    queueSection.addEventListener('click', function(e) {
+        var btn = e.target.closest('.bq-btn');
+        if (!btn) return;
+
+        var item = btn.closest('.bq-item');
+        var qid = item ? item.dataset.qid : null;
+        var action = btn.dataset.action;
+        if (!qid || !action) return;
+
+        var urls = { cancel: '/game/build/cancel', top: '/game/build/move-top', bottom: '/game/build/move-bottom' };
+        var url = urls[action];
+        if (!url) return;
+
+        if (action === 'cancel') {
+            item.style.opacity = '0.4';
+        } else {
+            btn.style.color = 'var(--border-accent)';
+        }
+
+        Game.Ajax.post(url, { q_id: qid }, { silent: action !== 'cancel' })
+            .then(function(data) {
+                if (data.success) {
+                    if (action === 'cancel') {
+                        item.style.transition = 'opacity 0.2s, max-height 0.3s';
+                        item.style.maxHeight = item.offsetHeight + 'px';
+                        requestAnimationFrame(function() {
+                            item.style.opacity = '0';
+                            item.style.maxHeight = '0';
+                            item.style.overflow = 'hidden';
+                            item.style.padding = '0';
+                            item.style.margin = '0';
+                        });
+                        setTimeout(function() {
+                            item.remove();
+                            renumberQueue();
+                            if (!document.querySelectorAll('.bq-item').length) {
+                                queueSection.style.display = 'none';
+                            }
+                        }, 350);
+                    } else {
+                        window.location.reload();
+                    }
+                }
+            })
+            .catch(function() {
+                item.style.opacity = '1';
+                btn.style.color = '';
+            });
+    });
+
+    var cancelAllBtn = document.getElementById('bqCancelAll');
+    if (cancelAllBtn) {
+        cancelAllBtn.addEventListener('click', function() {
+            var items = document.querySelectorAll('.bq-item');
+            items.forEach(function(item) { item.style.opacity = '0.4'; });
+
+            Game.Ajax.post('/game/build/cancel-all', {})
+                .then(function(data) {
+                    if (data.success) {
+                        queueSection.style.display = 'none';
+                    }
+                })
+                .catch(function() {
+                    items.forEach(function(item) { item.style.opacity = '1'; });
+                });
+        });
+    }
+
+    function renumberQueue() {
+        document.querySelectorAll('.bq-item .bq-item-rank').forEach(function(el, i) {
+            el.textContent = i + 1;
+        });
+    }
+})();
+</script>
+@endif
+
 {{-- Build Section — integrated cards with status, production, workers --}}
 <div class="build-section">
     <div class="build-card-grid">
@@ -30,7 +167,8 @@
                  data-workers-per="{{ $b['workers'] }}"
                  data-prod="{{ $b['production'] ?? 0 }}"
                  data-prod-name="{{ $b['production_name'] ?? '' }}"
-                 data-allow-off="{{ $b['allow_off'] ? 1 : 0 }}">
+                 data-allow-off="{{ $b['allow_off'] ? 1 : 0 }}"
+                 data-desc="{{ $b['description'] ?? '' }}">
                 <img src="{{ buildingIcon($b) }}" alt="{{ $b['name'] }}" class="build-card-icon"
                      onerror="this.style.display='none'" onload="this.style.display=''">
                 <div class="build-card-info">
@@ -71,8 +209,13 @@
 
         {{-- Action panel — lives inside grid, moves below selected card via JS --}}
         <div class="build-action-panel" id="buildActionPanel" style="display:none;">
-            <div class="build-action-info" id="buildInfo"></div>
-            <div class="build-action-suggest" id="buildSuggest" style="display:none;"></div>
+            <div class="build-action-head">
+                <div class="build-action-left">
+                    <span class="build-action-info" id="buildInfo"></span>
+                    <span class="build-action-desc" id="buildDesc"></span>
+                </div>
+                <div class="build-action-suggest" id="buildSuggest" style="display:none;"></div>
+            </div>
             <div class="build-action-row">
                 <form action="{{ route('game.build.submit') }}" method="POST" id="buildForm" class="build-action-form">
                     @csrf
@@ -124,6 +267,7 @@
 
     var panel = document.getElementById('buildActionPanel');
     var infoEl = document.getElementById('buildInfo');
+    var descEl = document.getElementById('buildDesc');
     var suggestEl = document.getElementById('buildSuggest');
     var buildQty = document.getElementById('buildQty');
     var demolishQty = document.getElementById('demolishQty');
@@ -337,6 +481,11 @@
         // Info row: "Can build 100 · Have 8"
         infoEl.textContent = 'Can build ' + max.toLocaleString() + ' \u00b7 Have ' + have.toLocaleString();
 
+        // Description
+        var desc = card.dataset.desc || '';
+        descEl.textContent = desc;
+        descEl.style.display = desc ? '' : 'none';
+
         // Suggestion chip — always show based on economy analysis
         var s = calcSuggestion(card);
         if (s.qty > 0) {
@@ -481,127 +630,6 @@ setTimeout(function() {
     });
 }, 0);
 </script>
-
-{{-- Build Queue --}}
-@if($buildQueue->count() > 0)
-<div class="bq-section" id="buildQueueSection">
-    <div class="bq-header">
-        <span class="bq-title">Building Queue</span>
-        @if($buildQueue->count() > 1)
-            <button type="button" class="bq-cancel-all" id="bqCancelAll" title="Cancel all">Cancel All</button>
-        @endif
-    </div>
-    <div class="bq-list" id="buildQueueList">
-        @foreach($buildQueue as $idx => $bq)
-            @php
-                $b = $buildings[$bq->building_no] ?? null;
-                $turnsNeeded = $numBuilders > 0 ? ceil($bq->time_needed / $numBuilders) : $bq->time_needed;
-            @endphp
-            @if($b)
-            <div class="bq-item" data-qid="{{ $bq->id }}">
-                <div class="bq-item-rank">{{ $idx + 1 }}</div>
-                <img src="{{ buildingIcon($b) }}" alt="{{ $b['name'] }}" class="bq-item-icon" onerror="this.style.display='none'">
-                <div class="bq-item-info">
-                    <div class="bq-item-name">{{ $b['name'] }} @if($bq->mission == 1)<span class="bq-demolish-tag">Demolish</span>@endif</div>
-                    <div class="bq-item-detail">x{{ $bq->qty }} &middot; {{ $turnsNeeded }} turn{{ $turnsNeeded != 1 ? 's' : '' }}</div>
-                </div>
-                <div class="bq-item-actions">
-                    @if($buildQueue->count() > 1)
-                    <button type="button" class="bq-btn bq-btn-move" data-action="top" title="Move to top">&#9650;</button>
-                    <button type="button" class="bq-btn bq-btn-move" data-action="bottom" title="Move to bottom">&#9660;</button>
-                    @endif
-                    <button type="button" class="bq-btn bq-btn-cancel" data-action="cancel" title="Cancel">&times;</button>
-                </div>
-            </div>
-            @endif
-        @endforeach
-    </div>
-</div>
-<script>
-(function() {
-    var queueSection = document.getElementById('buildQueueSection');
-    if (!queueSection) return;
-
-    queueSection.addEventListener('click', function(e) {
-        var btn = e.target.closest('.bq-btn');
-        if (!btn) return;
-
-        var item = btn.closest('.bq-item');
-        var qid = item ? item.dataset.qid : null;
-        var action = btn.dataset.action;
-        if (!qid || !action) return;
-
-        var urls = { cancel: '/game/build/cancel', top: '/game/build/move-top', bottom: '/game/build/move-bottom' };
-        var url = urls[action];
-        if (!url) return;
-
-        // Visual feedback
-        if (action === 'cancel') {
-            item.style.opacity = '0.4';
-        } else {
-            btn.style.color = 'var(--border-accent)';
-        }
-
-        Game.Ajax.post(url, { q_id: qid }, { silent: action !== 'cancel' })
-            .then(function(data) {
-                if (data.success) {
-                    if (action === 'cancel') {
-                        item.style.transition = 'opacity 0.2s, max-height 0.3s';
-                        item.style.maxHeight = item.offsetHeight + 'px';
-                        requestAnimationFrame(function() {
-                            item.style.opacity = '0';
-                            item.style.maxHeight = '0';
-                            item.style.overflow = 'hidden';
-                            item.style.padding = '0';
-                            item.style.margin = '0';
-                        });
-                        setTimeout(function() {
-                            item.remove();
-                            renumberQueue();
-                            // Hide section if empty
-                            if (!document.querySelectorAll('.bq-item').length) {
-                                queueSection.style.display = 'none';
-                            }
-                        }, 350);
-                    } else {
-                        // Reorder: reload the page to reflect new order
-                        window.location.reload();
-                    }
-                }
-            })
-            .catch(function() {
-                item.style.opacity = '1';
-                btn.style.color = '';
-            });
-    });
-
-    // Cancel All
-    var cancelAllBtn = document.getElementById('bqCancelAll');
-    if (cancelAllBtn) {
-        cancelAllBtn.addEventListener('click', function() {
-            var items = document.querySelectorAll('.bq-item');
-            items.forEach(function(item) { item.style.opacity = '0.4'; });
-
-            Game.Ajax.post('/game/build/cancel-all', {})
-                .then(function(data) {
-                    if (data.success) {
-                        queueSection.style.display = 'none';
-                    }
-                })
-                .catch(function() {
-                    items.forEach(function(item) { item.style.opacity = '1'; });
-                });
-        });
-    }
-
-    function renumberQueue() {
-        document.querySelectorAll('.bq-item .bq-item-rank').forEach(function(el, i) {
-            el.textContent = i + 1;
-        });
-    }
-})();
-</script>
-@endif
 
 {{-- Population Summary --}}
 <div class="bq-pop-summary">
