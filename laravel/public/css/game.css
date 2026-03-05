@@ -362,88 +362,60 @@ td.header, th {
     padding: 10px 12px;
 }
 
-/* === 9. Resource Bar === */
+/* === 9. Resource Bar (unified strip) === */
 .resource-bar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 3px 8px;
     background: linear-gradient(180deg, var(--bg-header) 0%, var(--bg-panel) 100%);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 8px 14px;
+    padding: 5px 8px;
+    font-size: 12px;
     font-weight: bold;
-    font-size: var(--font-size-small);
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-    gap: 8px;
+    margin-bottom: 8px;
+    white-space: nowrap;
 }
 .resource-bar a {
     color: var(--text-link);
 }
 
-.resource-panels {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-.land-panel,
-.goods-panel {
-    flex: 1;
+.res-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    cursor: default;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
-.land-row {
-    display: flex;
-    gap: 2px;
-}
-.land-total-cell {
-    background-color: var(--land-total-bg);
-    padding: 3px 6px;
-    white-space: nowrap;
-    border-radius: var(--radius);
-    font-size: var(--font-size-small);
-}
-.land-free-cell {
-    background-color: var(--land-free-bg);
-    padding: 3px 6px;
-    white-space: nowrap;
-    border-radius: var(--radius);
-    font-size: var(--font-size-small);
-}
-.land-label {
-    font-weight: bold;
-    min-width: 42px;
-}
-.land-icon {
+.res-symbol {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 3px;
-    vertical-align: middle;
-    image-rendering: auto;
-    image-rendering: -webkit-optimize-contrast;
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    flex-shrink: 0;
 }
-.land-free-cell .land-icon {
-    opacity: 0.7;
-    width: 14px;
-    height: 14px;
-}
-.resource-item {
-    white-space: nowrap;
-    font-size: var(--font-size-small);
-}
+
 .res-icon {
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     vertical-align: middle;
-    margin-right: 2px;
+    flex-shrink: 0;
     image-rendering: auto;
     image-rendering: -webkit-optimize-contrast;
 }
-.goods-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 2px;
+
+.res-divider {
+    width: 1px;
+    height: 18px;
+    background-color: var(--border-subtle);
+    flex-shrink: 0;
+    margin: 0 2px;
 }
 
 /* === 10. Menu === */
@@ -879,19 +851,25 @@ td.header, th {
         font-size: 15px;
     }
 
-    /* Resource bar stacks */
+    /* Resource bar compact on mobile */
     .resource-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
+        gap: 4px 8px;
+        padding: 6px 8px;
         font-size: var(--font-size-small);
-        padding: 8px;
+        justify-content: center;
     }
-    .resource-panels {
-        flex-direction: column;
+    .res-icon {
+        width: 18px;
+        height: 18px;
     }
-    .goods-grid {
-        grid-template-columns: 1fr 1fr;
+    .res-symbol {
+        width: 18px;
+        height: 18px;
+        font-size: 14px;
+        line-height: 18px;
+    }
+    .res-divider {
+        display: none;
     }
 
     /* Form inputs touch-friendly */
