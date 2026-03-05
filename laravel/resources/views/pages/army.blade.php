@@ -1,4 +1,4 @@
-{{-- Army page - ported from army.cfm --}}
+{{-- Army page - modernized card-based UI --}}
 @extends('layouts.game')
 
 @section('content')
@@ -9,154 +9,331 @@
 
 <x-advisor-panel :tips="$advisorTips" />
 
-{{-- Capacity Info --}}
-<div style="margin: 8px 0;">
-    Your Forts and Town Centers can hold up to
-    {{ number_format($maxSoldiers) }} units<br>
-    and you can train {{ number_format($maxTrain) }} units at a time.
-    <br>
-    You are using {{ number_format($capacityPercent, 2) }}% of your maximum capacity.<br>
-    You also have {{ number_format($player->swords) }} swords, {{ number_format($player->bows) }} bows,
-    {{ number_format($player->horses) }} horses and {{ number_format($player->maces) }} maces.
+{{-- Training Queue (collapsible) --}}
+@if($trainQueue->count() > 0)
+<div class="bq-section" id="trainQueueSection">
+    <div class="bq-header" onclick="toggleTrainQueue(event)">
+        <span class="bq-toggle" id="tqToggleArrow">&#9660;</span>
+        <span class="bq-title">Training Queue ({{ $trainQueue->count() }})</span>
+        @if($trainQueue->count() > 1)
+            <button type="button" class="bq-cancel-all" id="tqCancelAll" title="Cancel all" onclick="event.stopPropagation()">Cancel All</button>
+        @endif
+    </div>
+    <div class="bq-list" id="trainQueueList">
+        @foreach($trainQueue as $idx => $tq)
+            @php $tqSoldier = $soldiers[$tq->soldier_type] ?? null; @endphp
+            @if($tqSoldier)
+            <div class="bq-item" data-qid="{{ $tq->id }}">
+                <div class="bq-item-rank">{{ $idx + 1 }}</div>
+                <img src="{{ soldierIcon($tqSoldier, $tq->soldier_type, $player->civ) }}" alt="{{ $tqSoldier['name'] }}" class="bq-item-icon" onerror="this.style.display='none'">
+                <div class="bq-item-info">
+                    <div class="bq-item-name">{{ $tqSoldier['name'] }}</div>
+                    <div class="bq-item-detail">x{{ number_format($tq->qty) }} &middot; {{ $tq->turns_remaining }} turn{{ $tq->turns_remaining != 1 ? 's' : '' }}</div>
+                </div>
+                <div class="bq-item-actions">
+                    <button type="button" class="bq-btn bq-btn-cancel" data-action="cancel" title="Cancel">&times;</button>
+                </div>
+            </div>
+            @endif
+        @endforeach
+    </div>
+</div>
+<script>
+function toggleTrainQueue(e) {
+    var list = document.getElementById('trainQueueList');
+    var arrow = document.getElementById('tqToggleArrow');
+    var isOpen = list.style.display !== 'none';
+    list.style.display = isOpen ? 'none' : '';
+    arrow.innerHTML = isOpen ? '&#9654;' : '&#9660;';
+    Prefs.set('armyQueueOpen', !isOpen);
+}
+(function() {
+    var open = Prefs.get('armyQueueOpen', true);
+    if (!open) {
+        var list = document.getElementById('trainQueueList');
+        var arrow = document.getElementById('tqToggleArrow');
+        if (list) { list.style.display = 'none'; }
+        if (arrow) { arrow.innerHTML = '&#9654;'; }
+    }
+})();
+
+(function() {
+    var queueSection = document.getElementById('trainQueueSection');
+    if (!queueSection) return;
+
+    queueSection.addEventListener('click', function(e) {
+        var btn = e.target.closest('.bq-btn');
+        if (!btn) return;
+
+        var item = btn.closest('.bq-item');
+        var qid = item ? item.dataset.qid : null;
+        if (!qid) return;
+
+        item.style.opacity = '0.4';
+
+        Game.Ajax.post('/game/army/cancel', { q_id: qid }, { silent: false })
+            .then(function(data) {
+                if (data.success) {
+                    item.style.transition = 'opacity 0.2s, max-height 0.3s';
+                    item.style.maxHeight = item.offsetHeight + 'px';
+                    requestAnimationFrame(function() {
+                        item.style.opacity = '0';
+                        item.style.maxHeight = '0';
+                        item.style.overflow = 'hidden';
+                        item.style.padding = '0';
+                        item.style.margin = '0';
+                    });
+                    setTimeout(function() {
+                        item.remove();
+                        // Renumber remaining items
+                        document.querySelectorAll('#trainQueueList .bq-item .bq-item-rank').forEach(function(el, i) {
+                            el.textContent = i + 1;
+                        });
+                        if (!document.querySelectorAll('#trainQueueList .bq-item').length) {
+                            queueSection.style.display = 'none';
+                        }
+                    }, 350);
+                }
+            })
+            .catch(function() {
+                item.style.opacity = '1';
+            });
+    });
+
+    var cancelAllBtn = document.getElementById('tqCancelAll');
+    if (cancelAllBtn) {
+        cancelAllBtn.addEventListener('click', function() {
+            var items = document.querySelectorAll('#trainQueueList .bq-item');
+            items.forEach(function(item) { item.style.opacity = '0.4'; });
+
+            Game.Ajax.post('/game/army/cancel-all', {})
+                .then(function(data) {
+                    if (data.success) {
+                        queueSection.style.display = 'none';
+                    }
+                })
+                .catch(function() {
+                    items.forEach(function(item) { item.style.opacity = '1'; });
+                });
+        });
+    }
+})();
+</script>
+@endif
+
+{{-- Soldier Card Grid --}}
+<div class="army-section">
+    <div class="army-card-grid">
+        @foreach($soldierDisplay as $i)
+            @php $data = $armyData[$i]; @endphp
+            <div class="army-card"
+                 data-soldier="{{ $i }}"
+                 data-sname="{{ $data['soldier']['name'] }}"
+                 data-have="{{ $data['have'] }}"
+                 data-attacking="{{ $data['attacking'] }}"
+                 data-training="{{ $data['training'] }}"
+                 data-max-train="{{ $data['maxTrain'] }}"
+                 data-needed="{{ strip_tags($data['neededToTrain']) }}"
+                 data-turns="{{ $data['soldier']['turns'] }}"
+                 data-attack-pt="{{ $data['soldier']['attack_pt'] }}"
+                 data-defense-pt="{{ $data['soldier']['defense_pt'] }}"
+                 data-gold-cost="{{ $data['goldCost'] }}"
+                 data-food-cost="{{ $data['foodUsed'] }}"
+                 data-help-index="{{ $data['helpIndex'] }}"
+                 data-own="{{ $player->{$data['soldier']['db_name']} ?? 0 }}">
+                <img src="{{ soldierIcon($data['soldier'], $i, $player->civ) }}" alt="{{ $data['soldier']['name'] }}" class="army-card-icon"
+                     onerror="this.style.display='none'" onload="this.style.display=''">
+                <div class="army-card-info">
+                    <div class="army-card-top">
+                        <a href="javascript:openHelp('army#UNIT{{ $data['helpIndex'] }}')" class="army-card-name" style="color: var(--border-accent)">{{ $data['soldier']['name'] }}</a>
+                        <span class="army-card-count" style="color: var(--border-accent)">{{ number_format($data['have']) }}</span>
+                    </div>
+                    <div class="army-card-mid">
+                        <span class="army-card-cost">
+                            <span>ATK {{ $data['soldier']['attack_pt'] }}</span>
+                            <span>DEF {{ $data['soldier']['defense_pt'] }}</span>
+                            @if($data['soldier']['gold_per_turn'] > 0)
+                                <span>{{ $data['soldier']['gold_per_turn'] }}g/t</span>
+                            @endif
+                        </span>
+                    </div>
+                    @php
+                        $hasStatus = $data['attacking'] > 0 || $data['training'] > 0;
+                    @endphp
+                    <div class="army-card-stats" {!! $hasStatus ? '' : 'style="display:none"' !!}>
+                        @if($data['attacking'] > 0)
+                            <span style="color: #cc8855">Attacking: {{ number_format($data['attacking']) }}</span>
+                        @endif
+                        @if($data['training'] > 0)
+                            <span style="color: var(--text-success)">Training: {{ number_format($data['training']) }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Action panel — lives inside grid, moves below selected card via JS --}}
+        <div class="army-action-panel" id="armyActionPanel" style="display:none;">
+            <div class="army-action-head">
+                <div class="army-action-left">
+                    <span class="army-action-info" id="armyInfo"></span>
+                    <span class="army-action-desc" id="armyDesc"></span>
+                </div>
+            </div>
+            <div class="army-action-row">
+                <div class="army-action-controls">
+                    <label for="armyQty" class="army-qty-label">Qty:</label>
+                    <div class="army-qty-stepper">
+                        <button type="button" class="army-qty-btn" id="armyQtyMinus">&minus;</button>
+                        <input type="number" id="armyQty" value="1" min="1" max="10000000" class="army-qty-input">
+                        <button type="button" class="army-qty-btn" id="armyQtyPlus">+</button>
+                    </div>
+                    <button type="button" class="army-max-btn" id="armyHalfBtn" title="Set to half of max">&frac12;</button>
+                    <button type="button" class="army-max-btn" id="armyMaxBtn" title="Set to max you can train">Max</button>
+                    <button type="button" class="army-go-btn" id="armyTrainBtn">Train</button>
+                </div>
+                <button type="button" class="army-disband-btn" id="armyDisbandBtn">Disband</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="army-status-bar">
+        <span class="army-totals">
+            {{ number_format($totalHave) }} soldiers &middot;
+            {{ number_format($totalCost) }}g + {{ number_format($totalFood) }}f upkeep &middot;
+            {{ number_format($capacityPercent, 1) }}% capacity
+            @if($canHold > 0)
+                (room for {{ number_format($canHold) }})
+            @elseif($canHold == 0)
+                (full)
+            @endif
+        </span>
+    </div>
 </div>
 
 {{-- Military Strength --}}
-<hr>
-<b>Military Strength:</b>
-<table class="game-table">
-<tr>
-    <td class="header">&nbsp;</td>
-    <td class="header">Attacking Power</td>
-    <td class="header">Defense Power</td>
-</tr>
-<tr>
-    <td>Army</td>
-    <td>{{ number_format($attackPower) }}</td>
-    <td>{{ number_format($defensePower) }}</td>
-</tr>
-<tr>
-    <td>Catapults</td>
-    <td>{{ number_format($cAttackPower) }}</td>
-    <td>{{ number_format($cDefensePower) }}</td>
-</tr>
-<tr>
-    <td>Thieves</td>
-    <td>{{ number_format($tAttackPower) }}</td>
-    <td>{{ number_format($tDefensePower) }}</td>
-</tr>
-</table>
-<hr>
-
-{{-- Training Queue --}}
-@if($trainQueue->count() > 0)
-<b>Training Queue:</b>
-<table class="game-table">
-<tr>
-    <td class="header">Type</td>
-    <td class="header">Number</td>
-    <td class="header">Turns Remaining</td>
-    <td class="header">&nbsp;</td>
-</tr>
-@foreach($trainQueue as $tq)
-    <tr>
-        <td>
-            @if(isset($soldiers[$tq->soldier_type]))
-                <x-game-icon :src="soldierIcon($soldiers[$tq->soldier_type], $tq->soldier_type, $player->civ)" :alt="$soldiers[$tq->soldier_type]['name']" :size="32" />
-            @endif
-            {{ $soldiers[$tq->soldier_type]['name'] ?? 'Unknown' }}
-        </td>
-        <td>{{ $tq->qty }}</td>
-        <td>{{ $tq->turns_remaining }}</td>
-        <td>
-            <form action="{{ route('game.army.cancel') }}" method="POST" class="inline-form">
-                @csrf
-                <input type="hidden" name="q_id" value="{{ $tq->id }}">
-                <a href="#" onclick="this.closest('form').submit(); return false;">Cancel</a>
-            </form>
-        </td>
-    </tr>
-@endforeach
-</table>
-@endif
-<br>
-
-{{-- Army Table --}}
-<b>Your Army:</b>
-<div class="table-scroll">
-<table class="game-table">
-<script type="text/javascript">
-function disbandArmy() {
-    var form = document.getElementById('armyForm');
-    if (confirm("Are you sure you want to disband some of your army?")) {
-        form.action = "{{ route('game.army.disband') }}";
-        form.submit();
-    }
-}
-</script>
-<form action="{{ route('game.army.train') }}" method="POST" name="aForm" id="armyForm">
-@csrf
-<tr>
-    <td class="header" valign="bottom">Unit Type</td>
-    <td class="header" valign="bottom">You Have</td>
-    <td class="header hide-mobile" valign="bottom">Upkeep<br>Cost</td>
-    <td class="header hide-mobile" valign="bottom">Attacking</td>
-    <td class="header hide-mobile" valign="bottom">Training</td>
-    <td class="header hide-mobile" valign="bottom">Needed<br>To Train</td>
-    <td class="header hide-mobile" valign="bottom">Max.<br>Train</td>
-    <td class="header" valign="bottom">Qty.</td>
-</tr>
-@foreach($soldierDisplay as $i)
-    @php $data = $armyData[$i]; @endphp
-    <tr>
-        <td>
-            <a href="javascript:openHelp('army#UNIT{{ $data['helpIndex'] }}')" class="icon-name-cell">
-                <x-game-icon :src="soldierIcon($data['soldier'], $i, $player->civ)" :alt="$data['soldier']['name']" :size="48" />
-                <span class="icon-label">{{ $data['soldier']['name'] }}</span>
-            </a>
-        </td>
-        <td>{{ number_format($data['have']) }}</td>
-        <td class="hide-mobile" valign="top">
-            {{ number_format($data['goldCost']) }} gold<br>
-            {{ number_format($data['foodUsed']) }} food
-        </td>
-        <td class="hide-mobile">{{ number_format($data['attacking']) }}</td>
-        <td class="hide-mobile">{{ $data['training'] }}</td>
-        <td class="hide-mobile">{!! $data['neededToTrain'] !!}</td>
-        <td class="hide-mobile">{{ number_format($data['maxTrain']) }}</td>
-        <td align="center"><input type="text" name="qty{{ $i }}" value="" size="5"></td>
-    </tr>
-@endforeach
-<tr>
-    <td class="header"><a href="javascript:openHelp('army')">Units Help</a></td>
-    <td class="header">{{ number_format($totalHave) }}</td>
-    <td class="header hide-mobile" valign="top">
-        {{ number_format($totalCost) }} gold<br>
-        {{ number_format($totalFood) }} food
-    </td>
-    <td class="header hide-mobile">{{ number_format(array_sum($attackQty)) }}</td>
-    <td class="header hide-mobile">{{ number_format(array_sum($trainQty)) }}</td>
-    <td class="header hide-mobile">&nbsp;</td>
-    <td class="header hide-mobile">{{ number_format($canTrain) }}</td>
-    <td class="header" align="center"><input type="submit" value="Train" style="width:55px;"></td>
-</tr>
-<tr>
-    <td colspan="8"><br>
-        @if($canHold == 0)
-            Your forts and town center are full.<br>
-        @elseif($canHold > 0)
-            You have room for {{ number_format($canHold) }} more soldiers.<br>
-        @else
-            <span class="text-error">{{ number_format(abs($canHold)) }} of your soldiers don't have any place to live.</span><br>
-        @endif
-        <br>
-        <br>
-        If you want to disband some of your soldiers,<br>
-        fill up the quantities above and press the button below
-        <br>
-        <input type="button" value="Disband Army" onclick="disbandArmy()">
-    </td>
-</tr>
-</form>
-</table>
+<div class="bq-pop-summary">
+    <div class="bq-pop-title">Military Strength</div>
+    <div class="bq-pop-grid">
+        <span class="bq-pop-label">Army:</span><span>{{ number_format($attackPower) }} ATK / {{ number_format($defensePower) }} DEF</span>
+        <span class="bq-pop-label">Catapults:</span><span>{{ number_format($cAttackPower) }} ATK / {{ number_format($cDefensePower) }} DEF</span>
+        <span class="bq-pop-label">Thieves:</span><span>{{ number_format($tAttackPower) }} ATK / {{ number_format($tDefensePower) }} DEF</span>
+    </div>
 </div>
+
+{{-- Weapons & Capacity --}}
+<div class="bq-pop-summary">
+    <div class="bq-pop-title">Weapons & Capacity</div>
+    <div class="bq-pop-grid">
+        <span class="bq-pop-label">Capacity:</span><span>{{ number_format($maxSoldiers) }} max &middot; train {{ number_format($maxTrain) }} at a time &middot; {{ number_format($canTrain) }} slots free</span>
+        <span class="bq-pop-label">Weapons:</span><span>{{ number_format($player->swords) }} swords &middot; {{ number_format($player->bows) }} bows &middot; {{ number_format($player->horses) }} horses &middot; {{ number_format($player->maces) }} maces</span>
+    </div>
+</div>
+
+<script>
+(function() {
+    var selectedCard = null;
+    var panel = document.getElementById('armyActionPanel');
+    var infoEl = document.getElementById('armyInfo');
+    var descEl = document.getElementById('armyDesc');
+    var qtyInput = document.getElementById('armyQty');
+
+    // Qty stepper
+    document.getElementById('armyQtyMinus').addEventListener('click', function() {
+        var v = parseInt(qtyInput.value, 10) || 1;
+        if (v > 1) qtyInput.value = v - 1;
+    });
+    document.getElementById('armyQtyPlus').addEventListener('click', function() {
+        var v = parseInt(qtyInput.value, 10) || 0;
+        qtyInput.value = v + 1;
+    });
+
+    // Half / Max buttons
+    document.getElementById('armyHalfBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var half = Math.floor(parseInt(selectedCard.dataset.maxTrain, 10) / 2);
+        if (half > 0) qtyInput.value = half;
+    });
+    document.getElementById('armyMaxBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var max = parseInt(selectedCard.dataset.maxTrain, 10);
+        if (max > 0) qtyInput.value = max;
+    });
+
+    // Card selection
+    var cards = document.querySelectorAll('.army-card');
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].addEventListener('click', function() {
+            var card = this;
+            if (selectedCard) selectedCard.classList.remove('army-card-selected');
+            selectedCard = card;
+            card.classList.add('army-card-selected');
+
+            // Move panel right after selected card
+            card.insertAdjacentElement('afterend', panel);
+            panel.style.display = '';
+
+            updatePanel(card);
+
+            setTimeout(function() {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
+        });
+    }
+
+    function updatePanel(card) {
+        var maxTrain = parseInt(card.dataset.maxTrain, 10);
+        var have = parseInt(card.dataset.have, 10);
+        var needed = card.dataset.needed;
+        var turns = card.dataset.turns;
+        var own = parseInt(card.dataset.own, 10);
+
+        infoEl.textContent = 'Can train ' + maxTrain.toLocaleString() + ' \u00b7 Have ' + have.toLocaleString()
+            + (own !== have ? ' (' + own.toLocaleString() + ' home)' : '');
+        descEl.textContent = 'Needs: ' + needed + ' \u00b7 Trains in ' + turns + ' turn' + (turns != 1 ? 's' : '');
+        descEl.style.display = needed ? '' : 'none';
+
+        qtyInput.value = 1;
+    }
+
+    // Train button
+    document.getElementById('armyTrainBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var soldierIdx = selectedCard.dataset.soldier;
+        var qty = parseInt(qtyInput.value, 10) || 0;
+        if (qty <= 0) return;
+
+        var data = {};
+        data['qty' + soldierIdx] = qty;
+
+        Game.Ajax.post('/game/army/train', data)
+            .then(function(json) {
+                if (json.success) {
+                    setTimeout(function() { window.location.reload(); }, 800);
+                }
+            });
+    });
+
+    // Disband button
+    document.getElementById('armyDisbandBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var soldierIdx = selectedCard.dataset.soldier;
+        var qty = parseInt(qtyInput.value, 10) || 0;
+        var name = selectedCard.dataset.sname;
+        if (qty <= 0) return;
+
+        if (!confirm('Are you sure you want to disband ' + qty + ' ' + name + '?')) return;
+
+        var data = {};
+        data['qty' + soldierIdx] = qty;
+
+        Game.Ajax.post('/game/army/disband', data)
+            .then(function(json) {
+                if (json.success) {
+                    setTimeout(function() { window.location.reload(); }, 800);
+                }
+            });
+    });
+})();
+</script>
 @endsection

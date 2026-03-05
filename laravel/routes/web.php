@@ -116,6 +116,7 @@ Route::middleware(['auth', 'game.session'])->prefix('game')->group(function () {
     Route::post('/army/train', [ArmyController::class, 'train'])->name('game.army.train');
     Route::post('/army/disband', [ArmyController::class, 'disband'])->name('game.army.disband');
     Route::post('/army/cancel', [ArmyController::class, 'cancelTraining'])->name('game.army.cancel');
+    Route::post('/army/cancel-all', [ArmyController::class, 'cancelAll'])->name('game.army.cancel-all');
 
     // Attack
     Route::get('/attack', [AttackController::class, 'index'])->name('game.attack');

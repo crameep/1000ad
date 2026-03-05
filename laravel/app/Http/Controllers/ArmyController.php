@@ -448,6 +448,35 @@ class ArmyController extends Controller
     }
 
     /**
+     * Calculate resource refund for a training queue item.
+     */
+    private function calcRefund(TrainQueue $tq, array $soldiers): array
+    {
+        $r = ['gold' => 0, 'swords' => 0, 'bows' => 0, 'maces' => 0, 'horses' => 0, 'wood' => 0, 'iron' => 0, 'people' => $tq->qty];
+
+        switch ($tq->soldier_type) {
+            case 1: $r['bows'] = $tq->qty; break;
+            case 2: $r['swords'] = $tq->qty; break;
+            case 3: $r['swords'] = $tq->qty; $r['horses'] = $tq->qty; break;
+            case 5:
+                $cost = $soldiers[5]['train_cost'] ?? 250;
+                $r['wood'] = $tq->qty * $cost;
+                $r['iron'] = $tq->qty * $cost;
+                break;
+            case 6: $r['maces'] = $tq->qty; break;
+            case 8: $r['gold'] = $tq->qty * 1000; break;
+            case 9:
+                $r['gold'] = $tq->qty * ($soldiers[9]['train_gold'] ?? 1000);
+                $r['swords'] = $tq->qty * ($soldiers[9]['train_swords'] ?? 0);
+                $r['bows'] = $tq->qty * ($soldiers[9]['train_bows'] ?? 0);
+                $r['horses'] = $tq->qty * ($soldiers[9]['train_horses'] ?? 0);
+                break;
+        }
+
+        return $r;
+    }
+
+    /**
      * Cancel a training queue item.
      * Ported from eflag_army.cfm eflag=dequeue
      */
@@ -465,54 +494,17 @@ class ArmyController extends Controller
             ->first();
 
         if ($tq) {
-            // Determine what resources to refund
-            $getGold = 0;
-            $getSwords = 0;
-            $getHorses = 0;
-            $getBows = 0;
-            $getMaces = 0;
-            $getWood = 0;
-            $getIron = 0;
-
-            switch ($tq->soldier_type) {
-                case 1: // Archer
-                    $getBows = $tq->qty;
-                    break;
-                case 2: // Swordsman
-                    $getSwords = $tq->qty;
-                    break;
-                case 3: // Horseman
-                    $getSwords = $tq->qty;
-                    $getHorses = $tq->qty;
-                    break;
-                case 5: // Catapult
-                    $trainCost = $soldiers[5]['train_cost'] ?? 250;
-                    $getWood = $tq->qty * $trainCost;
-                    $getIron = $tq->qty * $trainCost;
-                    break;
-                case 6: // Macemen
-                    $getMaces = $tq->qty;
-                    break;
-                case 8: // Thief
-                    $getGold = $tq->qty * 1000;
-                    break;
-                case 9: // Unique unit
-                    $getGold = $tq->qty * ($soldiers[9]['train_gold'] ?? 1000);
-                    $getSwords = $tq->qty * ($soldiers[9]['train_swords'] ?? 0);
-                    $getBows = $tq->qty * ($soldiers[9]['train_bows'] ?? 0);
-                    $getHorses = $tq->qty * ($soldiers[9]['train_horses'] ?? 0);
-                    break;
-            }
+            $r = $this->calcRefund($tq, $soldiers);
 
             $player->update([
-                'gold' => $player->gold + $getGold,
-                'swords' => $player->swords + $getSwords,
-                'bows' => $player->bows + $getBows,
-                'maces' => $player->maces + $getMaces,
-                'horses' => $player->horses + $getHorses,
-                'wood' => $player->wood + $getWood,
-                'iron' => $player->iron + $getIron,
-                'people' => $player->people + $tq->qty,
+                'gold' => $player->gold + $r['gold'],
+                'swords' => $player->swords + $r['swords'],
+                'bows' => $player->bows + $r['bows'],
+                'maces' => $player->maces + $r['maces'],
+                'horses' => $player->horses + $r['horses'],
+                'wood' => $player->wood + $r['wood'],
+                'iron' => $player->iron + $r['iron'],
+                'people' => $player->people + $r['people'],
             ]);
 
             $tq->delete();
@@ -521,6 +513,52 @@ class ArmyController extends Controller
         if ($request->expectsJson()) {
             return $this->jsonSuccess($player, 'Training cancelled.');
         }
+        return redirect()->route('game.army');
+    }
+
+    /**
+     * Cancel all training queue items.
+     */
+    public function cancelAll(Request $request)
+    {
+        $player = player();
+        $soldiers = session('soldiers');
+
+        $items = TrainQueue::where('player_id', $player->id)->get();
+
+        if ($items->isEmpty()) {
+            if ($request->expectsJson()) {
+                return $this->jsonError('No training to cancel.');
+            }
+            return redirect()->route('game.army');
+        }
+
+        // Sum refunds from all items
+        $totals = ['gold' => 0, 'swords' => 0, 'bows' => 0, 'maces' => 0, 'horses' => 0, 'wood' => 0, 'iron' => 0, 'people' => 0];
+        foreach ($items as $tq) {
+            $r = $this->calcRefund($tq, $soldiers);
+            foreach ($totals as $k => &$v) {
+                $v += $r[$k];
+            }
+        }
+
+        $player->update([
+            'gold' => $player->gold + $totals['gold'],
+            'swords' => $player->swords + $totals['swords'],
+            'bows' => $player->bows + $totals['bows'],
+            'maces' => $player->maces + $totals['maces'],
+            'horses' => $player->horses + $totals['horses'],
+            'wood' => $player->wood + $totals['wood'],
+            'iron' => $player->iron + $totals['iron'],
+            'people' => $player->people + $totals['people'],
+        ]);
+
+        TrainQueue::where('player_id', $player->id)->delete();
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'All training cancelled.');
+        }
+        session()->flash('game_message', 'All training cancelled.');
         return redirect()->route('game.army');
     }
 
