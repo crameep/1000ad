@@ -2216,6 +2216,9 @@ button.explore-btn {
     border-color: var(--border-accent) !important;
     box-shadow: 0 0 12px rgba(201, 168, 76, 0.3);
     background: var(--bg-header);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
 }
 
 /* Card icon */
@@ -2343,13 +2346,15 @@ button.explore-btn {
 /* === Action panel — appears below grid when a card is selected === */
 .build-action-panel {
     grid-column: 1 / -1;
-    background: var(--bg-header);
-    border: 1px solid var(--border-accent);
-    border-radius: var(--radius-lg);
+    background: var(--bg-panel);
+    border-left: 3px solid var(--border-accent);
+    border-right: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     padding: 12px 14px;
-    margin-top: 4px;
+    margin-top: -4px;
     margin-bottom: 8px;
-    box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
 }
 .build-action-header {
     display: flex;
