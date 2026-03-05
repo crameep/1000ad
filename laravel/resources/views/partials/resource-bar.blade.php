@@ -77,3 +77,28 @@
         <span class="land-free-cell"><img class="land-icon" src="{{ landIcon('plains') }}" alt="P"><span data-resource="free_pland">{{ number_format($freeP) }}</span></span>
     </div>
 </div>
+
+{{-- Progress indicators --}}
+<div class="progress-indicators">
+    <div class="progress-ind" title="Great Wall: {{ number_format($wallCurrent) }} / {{ number_format($wallMax) }} ({{ $wallPercent }}% protection)">
+        <span class="progress-ind-label">Wall</span>
+        <div class="progress-ind-track progress-ind-track--wall">
+            <div class="progress-ind-fill progress-ind-fill--wall" style="width: {{ $wallPercent }}%"></div>
+        </div>
+        <span class="progress-ind-pct">{{ $wallPercent }}%</span>
+    </div>
+    <div class="progress-ind" title="Research: {{ number_format($researchPoints) }} / {{ number_format($researchNextLevel) }} — {{ $currentResearchName }}">
+        <span class="progress-ind-label">Research</span>
+        <div class="progress-ind-track progress-ind-track--research">
+            <div class="progress-ind-fill progress-ind-fill--research" style="width: {{ $researchPercent }}%"></div>
+        </div>
+        <span class="progress-ind-pct">{{ $researchPercent }}%</span>
+    </div>
+    <div class="progress-ind" title="Warehouse: {{ number_format($warehouseCurrent) }} / {{ number_format($warehouseMax) }} goods stored">
+        <span class="progress-ind-label">Storage</span>
+        <div class="progress-ind-track progress-ind-track--warehouse">
+            <div class="progress-ind-fill progress-ind-fill--warehouse" style="width: {{ $warehousePercent }}%"></div>
+        </div>
+        <span class="progress-ind-pct">{{ $warehousePercent }}%</span>
+    </div>
+</div>

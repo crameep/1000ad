@@ -459,6 +459,64 @@ td.header, th {
     height: 14px;
 }
 
+/* Progress indicators (wall / research / warehouse) */
+.progress-indicators {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.progress-ind {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    cursor: default;
+}
+.progress-ind-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    min-width: 46px;
+}
+.progress-ind-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-input);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    min-width: 40px;
+}
+.progress-ind-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+/* Wall — stone / blue-grey */
+.progress-ind-fill--wall {
+    background: linear-gradient(90deg, #5a7a9a, #8ab4d4);
+}
+/* Research — purple / arcane */
+.progress-ind-fill--research {
+    background: linear-gradient(90deg, #7b4fbf, #b07ae8);
+}
+/* Warehouse — amber / gold */
+.progress-ind-fill--warehouse {
+    background: linear-gradient(90deg, #b8862a, #e8c44c);
+}
+.progress-ind-pct {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    min-width: 28px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
 /* === 10. Menu === */
 .menu-list {
     list-style: none;
@@ -831,6 +889,219 @@ td.header, th {
     margin-top: 16px;
 }
 
+/* === Local Trade === */
+.trade-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    margin-bottom: 10px;
+    font-size: var(--font-size-base);
+}
+.trade-summary-label {
+    color: var(--text-secondary);
+    margin-right: 4px;
+}
+.trade-summary-value {
+    font-weight: bold;
+}
+.trade-summary-sep {
+    color: var(--text-muted);
+    margin: 0 2px;
+}
+.trade-summary-max {
+    color: var(--text-muted);
+}
+
+.trade-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.trade-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 10px;
+}
+.trade-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.trade-card-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+.trade-card-name {
+    font-weight: bold;
+    font-size: var(--font-size-base);
+}
+.trade-card-have {
+    margin-left: auto;
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+}
+.trade-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.trade-card-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.trade-input {
+    width: 70px;
+    padding: 4px 6px;
+    font-size: var(--font-size-base);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    text-align: right;
+}
+.trade-input:focus {
+    border-color: var(--border-accent);
+    outline: none;
+}
+.trade-btn {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--text-primary);
+    text-align: center;
+    white-space: nowrap;
+}
+.trade-btn-buy {
+    background: linear-gradient(180deg, #2a4a2a 0%, #1a3a1a 100%);
+    border-color: #3a5a3a;
+}
+.trade-btn-buy:hover {
+    background: linear-gradient(180deg, #3a5a3a 0%, #2a4a2a 100%);
+}
+.trade-btn-sell {
+    background: linear-gradient(180deg, #4a2a2a 0%, #3a1a1a 100%);
+    border-color: #5a3a3a;
+}
+.trade-btn-sell:hover {
+    background: linear-gradient(180deg, #5a3a3a 0%, #4a2a2a 100%);
+}
+.trade-price {
+    font-weight: normal;
+    font-size: var(--font-size-xs);
+    opacity: 0.7;
+    margin-left: 4px;
+}
+.trade-exhausted {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 12px;
+}
+
+/* Auto-trade section */
+.auto-trade-section {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+}
+.auto-trade-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+}
+.auto-trade-header:hover {
+    background: var(--bg-hover);
+    border-radius: var(--radius-lg);
+}
+.auto-trade-hint {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+.auto-trade-body {
+    padding: 0 12px 12px;
+}
+.auto-trade-status {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+.auto-trade-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.auto-trade-grid-header,
+.auto-trade-grid-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 1fr 1fr 1fr 80px;
+    gap: 6px;
+    align-items: center;
+}
+.auto-trade-grid-header {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    text-align: center;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.auto-trade-grid-header .trade-card-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    margin: 0 auto;
+}
+.auto-trade-label {
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    white-space: nowrap;
+}
+.auto-trade-gold {
+    text-align: right;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+}
+.auto-trade-grid-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+}
+.auto-trade-net {
+    margin-left: auto;
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+}
+.at-input {
+    width: 100%;
+    min-width: 0;
+}
+
 /* === 18. Responsive === */
 
 /* Tablet */
@@ -911,6 +1182,37 @@ td.header, th {
     }
     .res-divider {
         display: none;
+    }
+
+    /* Progress indicators compact on mobile */
+    .progress-indicators {
+        gap: 6px;
+    }
+    .progress-ind-label {
+        font-size: 9px;
+        min-width: 36px;
+    }
+    .progress-ind-track {
+        height: 6px;
+    }
+    .progress-ind-pct {
+        font-size: 9px;
+        min-width: 24px;
+    }
+
+    /* Trade cards stack on mobile */
+    .trade-grid {
+        grid-template-columns: 1fr;
+    }
+    .trade-summary {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+    .auto-trade-grid-header,
+    .auto-trade-grid-row {
+        grid-template-columns: 60px 1fr 1fr 1fr 1fr 60px;
+        gap: 4px;
     }
 
     /* Form inputs touch-friendly */

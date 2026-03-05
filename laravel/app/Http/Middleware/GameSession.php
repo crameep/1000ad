@@ -197,6 +197,34 @@ class GameSession
         $exploreTurns = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->max('turn') ?? 0;
         $totalExplorerPeople = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->sum('people');
 
+        // --- Progress indicators (wall, research, warehouse) ---
+        // Great Wall
+        $totalLand = $player->mland + $player->fland + $player->pland;
+        $totalWallNeeded = round($totalLand * 0.05);
+        $wallPercent = ($totalWallNeeded > 0) ? min(100, round(($player->wall / $totalWallNeeded) * 100)) : 0;
+
+        // Research
+        $totalResearchLevels = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $totalResearchLevels += $player->{"research{$i}"};
+        }
+        $nextLevelPoints = 10 + round($totalResearchLevels * $totalResearchLevels * sqrt($totalResearchLevels));
+        $researchPercent = ($nextLevelPoints > 0) ? min(100, round(($player->research_points / $nextLevelPoints) * 100)) : 0;
+        $researchNames = [
+            1 => 'Attack', 2 => 'Defense', 3 => 'Thieves', 4 => 'Losses',
+            5 => 'Food', 6 => 'Mining', 7 => 'Weapons', 8 => 'Storage',
+            9 => 'Markets', 10 => 'Explorers', 11 => 'Catapults', 12 => 'Wood',
+        ];
+        $currentResearchName = $researchNames[$player->current_research] ?? 'None';
+
+        // Warehouse
+        $totalGoods = $player->wood + $player->iron + $player->food + $player->tools
+            + $player->swords + $player->bows + $player->horses + $player->maces + $player->wine;
+        $warehouseSpace = ($player->town_center * $buildings[11]['supplies'])
+            + ($player->warehouse * $buildings[13]['supplies']);
+        $warehouseSpace = round($warehouseSpace + $warehouseSpace * ($player->research8 / 100));
+        $warehousePercent = ($warehouseSpace > 0) ? min(100, round(($totalGoods / $warehouseSpace) * 100)) : 0;
+
         // Share data with all views
         View::share([
             'player' => $player,
@@ -222,6 +250,17 @@ class GameSession
             'exploreTurns' => $exploreTurns,
             'totalExplorerPeople' => $totalExplorerPeople,
             'otherEmpires' => $otherEmpires,
+            // Progress indicators
+            'wallPercent' => $wallPercent,
+            'wallCurrent' => $player->wall,
+            'wallMax' => $totalWallNeeded,
+            'researchPercent' => $researchPercent,
+            'researchPoints' => $player->research_points,
+            'researchNextLevel' => $nextLevelPoints,
+            'currentResearchName' => $currentResearchName,
+            'warehousePercent' => $warehousePercent,
+            'warehouseCurrent' => $totalGoods,
+            'warehouseMax' => $warehouseSpace,
         ]);
 
         return $next($request);

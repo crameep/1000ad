@@ -181,7 +181,11 @@ class TradeController extends Controller
         $message .= 'You spent a total of ' . number_format($needGold) . ' gold.';
 
         if ($request->expectsJson()) {
-            return $this->jsonSuccess($player, $message);
+            $newRemaining = $maxTrades - $player->trades_this_turn;
+            return $this->jsonSuccess($player, $message, [
+                'tradesRemaining' => $newRemaining,
+                'maxTrades' => $maxTrades,
+            ]);
         }
 
         session()->flash('game_message', $message);
@@ -289,7 +293,11 @@ class TradeController extends Controller
         $message .= 'You made a total of ' . number_format($getGold) . ' gold.';
 
         if ($request->expectsJson()) {
-            return $this->jsonSuccess($player, $message);
+            $newRemaining = $maxTrades - $player->trades_this_turn;
+            return $this->jsonSuccess($player, $message, [
+                'tradesRemaining' => $newRemaining,
+                'maxTrades' => $maxTrades,
+            ]);
         }
 
         session()->flash('game_message', $message);
