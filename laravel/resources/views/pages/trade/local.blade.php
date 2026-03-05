@@ -76,40 +76,48 @@
     </div>
     <div class="auto-trade-body" id="auto-trade-body">
         <div class="auto-trade-status">
-            Auto trading <b>{{ number_format($totalAutoTrade) }}</b> / {{ number_format($maxTrades) }} goods
+            Auto trading <b id="at-total">{{ number_format($totalAutoTrade) }}</b> / {{ number_format($maxTrades) }} goods
             &middot; <span id="at-remaining">{{ number_format($remAutoTrade) }}</span> remaining
         </div>
-        <div class="auto-trade-grid">
-            <div class="auto-trade-grid-header">
-                <span></span>
-                <span><img class="trade-card-icon" src="{{ resourceIcon('wood') }}" alt="Wood" title="Wood"></span>
-                <span><img class="trade-card-icon" src="{{ resourceIcon('food') }}" alt="Food" title="Food"></span>
-                <span><img class="trade-card-icon" src="{{ resourceIcon('iron') }}" alt="Iron" title="Iron"></span>
-                <span><img class="trade-card-icon" src="{{ resourceIcon('tools') }}" alt="Tools" title="Tools"></span>
-                <span title="Gold per turn">Gold/turn</span>
+
+        @php
+            $atResources = [
+                ['key' => 'wood',  'name' => 'Wood',  'buy' => $player->auto_buy_wood,  'sell' => $player->auto_sell_wood,  'buyPrice' => $woodBuyPrice,  'sellPrice' => $woodSellPrice],
+                ['key' => 'food',  'name' => 'Food',  'buy' => $player->auto_buy_food,  'sell' => $player->auto_sell_food,  'buyPrice' => $foodBuyPrice,  'sellPrice' => $foodSellPrice],
+                ['key' => 'iron',  'name' => 'Iron',  'buy' => $player->auto_buy_iron,  'sell' => $player->auto_sell_iron,  'buyPrice' => $ironBuyPrice,  'sellPrice' => $ironSellPrice],
+                ['key' => 'tools', 'name' => 'Tools', 'buy' => $player->auto_buy_tools, 'sell' => $player->auto_sell_tools, 'buyPrice' => $toolBuyPrice, 'sellPrice' => $toolSellPrice],
+            ];
+        @endphp
+
+        <div class="at-cards">
+            @foreach($atResources as $r)
+            <div class="at-card">
+                <div class="at-card-header">
+                    <img class="trade-card-icon" src="{{ resourceIcon($r['key']) }}" alt="{{ $r['name'] }}">
+                    <span class="at-card-name">{{ $r['name'] }}</span>
+                    <span class="at-card-price">{{ number_format($r['buyPrice']) }}g / {{ number_format($r['sellPrice']) }}g</span>
+                </div>
+                <div class="at-card-body">
+                    <div class="at-card-row">
+                        <span class="at-card-label">Buy</span>
+                        <input type="number" class="trade-input at-input" name="auto_buy_{{ $r['key'] }}" value="{{ $r['buy'] }}" min="0">
+                    </div>
+                    <div class="at-card-row">
+                        <span class="at-card-label">Sell</span>
+                        <input type="number" class="trade-input at-input" name="auto_sell_{{ $r['key'] }}" value="{{ $r['sell'] }}" min="0">
+                    </div>
+                </div>
             </div>
-            <div class="auto-trade-grid-row">
-                <span class="auto-trade-label">Auto Buy</span>
-                <input type="number" class="trade-input at-input" name="auto_buy_wood" value="{{ $player->auto_buy_wood }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_buy_food" value="{{ $player->auto_buy_food }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_buy_iron" value="{{ $player->auto_buy_iron }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_buy_tools" value="{{ $player->auto_buy_tools }}" min="0">
-                <span class="auto-trade-gold text-error" id="at-gold-buy">-{{ number_format($autoTradeGoldUsed) }}</span>
-            </div>
-            <div class="auto-trade-grid-row">
-                <span class="auto-trade-label">Auto Sell</span>
-                <input type="number" class="trade-input at-input" name="auto_sell_wood" value="{{ $player->auto_sell_wood }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_sell_food" value="{{ $player->auto_sell_food }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_sell_iron" value="{{ $player->auto_sell_iron }}" min="0">
-                <input type="number" class="trade-input at-input" name="auto_sell_tools" value="{{ $player->auto_sell_tools }}" min="0">
-                <span class="auto-trade-gold text-success" id="at-gold-sell">+{{ number_format($autoTradeGoldEarned) }}</span>
-            </div>
-            <div class="auto-trade-grid-footer">
-                <button type="button" class="turn-btn" id="at-save">Save Auto-Trade</button>
-                <span class="auto-trade-net">
-                    Net: <b id="at-gold-net">{{ number_format($autoTradeGoldEarned - $autoTradeGoldUsed) }}</b> gold/turn
-                </span>
-            </div>
+            @endforeach
+        </div>
+
+        <div class="at-footer">
+            <button type="button" class="turn-btn" id="at-save">Save Auto-Trade</button>
+            <span class="at-gold-summary">
+                <span class="text-error" id="at-gold-buy">-{{ number_format($autoTradeGoldUsed) }}</span>
+                <span class="text-success" id="at-gold-sell">+{{ number_format($autoTradeGoldEarned) }}</span>
+                &middot; Net: <b id="at-gold-net">{{ number_format($autoTradeGoldEarned - $autoTradeGoldUsed) }}</b> gold/turn
+            </span>
         </div>
     </div>
 </div>
@@ -191,8 +199,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.at-input').forEach(function(el) {
                 data[el.name] = parseInt(el.value, 10) || 0;
             });
-            Ajax.post('/game/localtrade/autotrade', data).then(function() {
-                // success toast handled by Ajax
+            Ajax.post('/game/localtrade/autotrade', data).then(function(json) {
+                // Update auto-trade counters
+                var totalEl = document.getElementById('at-total');
+                var remEl = document.getElementById('at-remaining');
+                if (json.totalAutoTrade !== undefined && totalEl) {
+                    totalEl.textContent = Number(json.totalAutoTrade).toLocaleString();
+                }
+                if (json.remaining !== undefined && remEl) {
+                    remEl.textContent = Number(json.remaining).toLocaleString();
+                }
             }).catch(function() {});
         });
     }
@@ -201,24 +217,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var buyPrices = { wood: {{ $woodBuyPrice }}, food: {{ $foodBuyPrice }}, iron: {{ $ironBuyPrice }}, tools: {{ $toolBuyPrice }} };
     var sellPrices = { wood: {{ $woodSellPrice }}, food: {{ $foodSellPrice }}, iron: {{ $ironSellPrice }}, tools: {{ $toolSellPrice }} };
 
-    function updateAutoTradeGold() {
-        var buyGold = 0, sellGold = 0;
+    var maxTrades = {{ $maxTrades }};
+
+    function updateAutoTradeEstimates() {
+        var buyGold = 0, sellGold = 0, totalQty = 0;
         ['wood', 'food', 'iron', 'tools'].forEach(function(r) {
             var buyEl = document.querySelector('[name="auto_buy_' + r + '"]');
             var sellEl = document.querySelector('[name="auto_sell_' + r + '"]');
-            if (buyEl) buyGold += (parseInt(buyEl.value, 10) || 0) * buyPrices[r];
-            if (sellEl) sellGold += (parseInt(sellEl.value, 10) || 0) * sellPrices[r];
+            var bv = parseInt(buyEl ? buyEl.value : 0, 10) || 0;
+            var sv = parseInt(sellEl ? sellEl.value : 0, 10) || 0;
+            buyGold += bv * buyPrices[r];
+            sellGold += sv * sellPrices[r];
+            totalQty += bv + sv;
         });
+        // Gold estimates
         var buySpan = document.getElementById('at-gold-buy');
         var sellSpan = document.getElementById('at-gold-sell');
         var netSpan = document.getElementById('at-gold-net');
         if (buySpan) buySpan.textContent = '-' + buyGold.toLocaleString();
         if (sellSpan) sellSpan.textContent = '+' + sellGold.toLocaleString();
         if (netSpan) netSpan.textContent = (sellGold - buyGold).toLocaleString();
+        // Quantity counters
+        var totalEl = document.getElementById('at-total');
+        var remEl = document.getElementById('at-remaining');
+        if (totalEl) totalEl.textContent = totalQty.toLocaleString();
+        if (remEl) remEl.textContent = (maxTrades - totalQty).toLocaleString();
     }
 
     document.querySelectorAll('.at-input').forEach(function(el) {
-        el.addEventListener('input', updateAutoTradeGold);
+        el.addEventListener('input', updateAutoTradeEstimates);
     });
 });
 </script>

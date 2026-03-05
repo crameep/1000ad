@@ -357,7 +357,11 @@ class TradeController extends Controller
         ]);
 
         if ($request->expectsJson()) {
-            return $this->jsonSuccess($player, 'Auto-trade settings updated.');
+            return $this->jsonSuccess($player, 'Auto-trade settings updated.', [
+                'totalAutoTrade' => $totalAutoTrade,
+                'maxTrades' => $maxTrades,
+                'remaining' => $maxTrades - $totalAutoTrade,
+            ]);
         }
 
         return redirect()->route('game.localtrade');

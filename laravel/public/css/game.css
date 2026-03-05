@@ -1193,42 +1193,57 @@ td.header, th {
     color: var(--text-secondary);
     margin-bottom: 8px;
 }
-.auto-trade-grid {
+/* Auto-trade cards grid */
+.at-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.at-card {
+    background: var(--bg-header);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 8px;
+}
+.at-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.at-card-name {
+    font-weight: bold;
+    font-size: var(--font-size-base);
+}
+.at-card-price {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+.at-card-body {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-.auto-trade-grid-header,
-.auto-trade-grid-row {
-    display: grid;
-    grid-template-columns: 70px 1fr 1fr 1fr 1fr 80px;
-    gap: 6px;
+.at-card-row {
+    display: flex;
     align-items: center;
+    gap: 6px;
 }
-.auto-trade-grid-header {
+.at-card-label {
     font-size: var(--font-size-small);
+    font-weight: bold;
+    min-width: 28px;
     color: var(--text-secondary);
-    text-align: center;
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--border-subtle);
 }
-.auto-trade-grid-header .trade-card-icon {
-    width: 20px;
-    height: 20px;
-    display: block;
-    margin: 0 auto;
+.at-input {
+    flex: 1;
+    min-width: 0;
 }
-.auto-trade-label {
-    font-size: var(--font-size-small);
-    font-weight: bold;
-    white-space: nowrap;
-}
-.auto-trade-gold {
-    text-align: right;
-    font-size: var(--font-size-small);
-    font-weight: bold;
-}
-.auto-trade-grid-footer {
+/* Auto-trade footer */
+.at-footer {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1236,14 +1251,10 @@ td.header, th {
     padding-top: 8px;
     border-top: 1px solid var(--border-subtle);
 }
-.auto-trade-net {
+.at-gold-summary {
     margin-left: auto;
     font-size: var(--font-size-small);
     color: var(--text-secondary);
-}
-.at-input {
-    width: 100%;
-    min-width: 0;
 }
 
 /* === 18. Responsive === */
@@ -1353,10 +1364,24 @@ td.header, th {
         gap: 4px;
         text-align: center;
     }
-    .auto-trade-grid-header,
-    .auto-trade-grid-row {
-        grid-template-columns: 60px 1fr 1fr 1fr 1fr 60px;
-        gap: 4px;
+    /* Auto-trade cards: single column on mobile */
+    .at-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+    .at-card-price {
+        display: none;
+    }
+    .at-input {
+        font-size: 14px !important;
+        padding: 6px 6px !important;
+        min-height: 36px !important;
+    }
+    .at-footer {
+        flex-direction: column;
+        gap: 6px;
+    }
+    .at-gold-summary {
+        margin-left: 0;
     }
 
     /* Form inputs touch-friendly */
