@@ -82,6 +82,19 @@
             Next in {{ intdiv((int)$nextTurnSeconds, 60) }}:{{ str_pad(((int)$nextTurnSeconds) % 60, 2, '0', STR_PAD_LEFT) }}
         @endif
         </span>
+        @if($playerTurns < $maxTurnsStored)
+            @php
+                $turnsToFull = $maxTurnsStored - $playerTurns;
+                $minutesToFull = $turnsToFull * $minutesPerTurn;
+                $hoursToFull = intdiv($minutesToFull, 60);
+                $minsRemainder = $minutesToFull % 60;
+            @endphp
+            <span class="turn-info-sep" id="turn-full-sep">&middot;</span>
+            <span id="turn-full">Full in {{ $hoursToFull > 0 ? $hoursToFull . 'h ' : '' }}{{ $minsRemainder }}m</span>
+        @else
+            <span class="turn-info-sep" id="turn-full-sep" style="display:none">&middot;</span>
+            <span id="turn-full" style="display:none"></span>
+        @endif
     </div>
 
     {{-- Quick turn presets (always visible) --}}
@@ -89,6 +102,7 @@
         <span class="turn-presets-label">End Turns:</span>
         <button type="button" class="turn-btn" data-turns="1">1</button>
         <button type="button" class="turn-btn" data-turns="6">6</button>
+        <button type="button" class="turn-btn" data-turns="8">8</button>
         <button type="button" class="turn-btn" data-turns="12">12</button>
         <span class="turn-divider">|</span>
         <div class="turn-counter">

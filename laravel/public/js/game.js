@@ -233,6 +233,8 @@
         _interval: null,
         _timerEl: null,
         _countEl: null,
+        _fullEl: null,
+        _fullSepEl: null,
 
         /**
          * Initialize the live countdown timer.
@@ -244,6 +246,8 @@
             this._minutesPerTurn = minutesPerTurn || 5;
             this._timerEl = document.getElementById('turn-timer');
             this._countEl = document.getElementById('turn-count');
+            this._fullEl = document.getElementById('turn-full');
+            this._fullSepEl = document.getElementById('turn-full-sep');
 
             if (this._interval) clearInterval(this._interval);
             this._interval = setInterval(function () { TurnTimer._tick(); }, 1000);
@@ -290,6 +294,9 @@
 
             if (this._turns >= this._maxTurns) {
                 this._timerEl.textContent = 'Max stored';
+                // Hide "Full in" when at max
+                if (this._fullEl) this._fullEl.style.display = 'none';
+                if (this._fullSepEl) this._fullSepEl.style.display = 'none';
                 return;
             }
 
@@ -297,6 +304,24 @@
             var s = this._seconds % 60;
             var pad = s < 10 ? '0' : '';
             this._timerEl.textContent = 'Next in ' + m + ':' + pad + s;
+
+            // Calculate and display time to full
+            if (this._fullEl) {
+                this._fullEl.style.display = '';
+                if (this._fullSepEl) this._fullSepEl.style.display = '';
+
+                var turnsNeeded = this._maxTurns - this._turns;
+                var totalSecondsToFull = this._seconds + (turnsNeeded - 1) * this._minutesPerTurn * 60;
+                var totalMinutes = Math.ceil(totalSecondsToFull / 60);
+                var h = Math.floor(totalMinutes / 60);
+                var rm = totalMinutes % 60;
+
+                if (h > 0) {
+                    this._fullEl.textContent = 'Full in ' + h + 'h ' + rm + 'm';
+                } else {
+                    this._fullEl.textContent = 'Full in ' + rm + 'm';
+                }
+            }
         }
     };
 

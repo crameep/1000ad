@@ -9,118 +9,223 @@
 
 <x-advisor-panel :tips="$advisorTips" />
 
-<br>
+{{-- Build Section — integrated cards with status, production, workers --}}
+<div class="build-section">
+    <form action="{{ route('game.build.status') }}" method="POST" id="statusForm">
+    @csrf
 
-{{-- Build / Demolish Form --}}
-<table class="game-table">
-<tr>
-    <td class="header">Build or Demolish Buildings</td>
-</tr>
-<script type="text/javascript">
-function showBuild() {
+    <div class="build-card-grid">
+        @foreach($displayOrder as $i)
+            @php
+                $b = $buildings[$i];
+                $stats = $buildingStats[$i];
+                $color = $colors[$i];
+            @endphp
+            <div class="build-card"
+                 data-building="{{ $i }}"
+                 data-bname="{{ $b['name'] }}"
+                 data-wood="{{ $b['cost_wood'] }}"
+                 data-iron="{{ $b['cost_iron'] }}"
+                 data-gold="{{ $b['cost_gold'] }}"
+                 data-sq="{{ $b['sq'] }}"
+                 data-land="{{ $b['land'] }}"
+                 data-have="{{ $stats['have'] }}">
+                <img src="{{ buildingIcon($b) }}" alt="{{ $b['name'] }}" class="build-card-icon"
+                     onerror="this.style.display='none'" onload="this.style.display=''">
+                <div class="build-card-info">
+                    <div class="build-card-top">
+                        <span class="build-card-name" style="color: {{ $color }}">{{ $b['name'] }}</span>
+                        <span class="build-card-count" style="color: {{ $color }}">{{ number_format($stats['have']) }}</span>
+                    </div>
+                    <div class="build-card-mid">
+                        <span class="build-card-cost">
+                            @if($b['cost_wood'] > 0)<span>{{ $b['cost_wood'] }}W</span>@endif
+                            @if($b['cost_iron'] > 0)<span>{{ $b['cost_iron'] }}I</span>@endif
+                            @if($b['cost_gold'] > 0)<span>{{ $b['cost_gold'] }}G</span>@endif
+                            <span>{{ $b['sq'] }}{{ $b['land'] }}</span>
+                        </span>
+                        @if($b['allow_off'])
+                            <select name="{{ $b['db_column'] }}_status" class="build-card-status" onclick="event.stopPropagation()">
+                                @for($s = 0; $s <= 10; $s++)
+                                    @php $sIndex = $s * 10; @endphp
+                                    <option value="{{ $s }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }}%</option>
+                                @endfor
+                            </select>
+                        @endif
+                    </div>
+                    @if(!empty($stats['production']) || !empty($stats['consumption']) || $stats['workers'] > 0)
+                    <div class="build-card-stats">
+                        @if(!empty($stats['production']))
+                            <span class="build-card-prod">{!! $stats['production'] !!}</span>
+                        @endif
+                        @if(!empty($stats['consumption']))
+                            <span class="build-card-cons">{!! $stats['consumption'] !!}</span>
+                        @endif
+                        @if($stats['workers'] > 0)
+                            <span class="build-card-workers">{{ number_format($stats['workers']) }} workers</span>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <div class="build-status-bar">
+        <span class="build-totals">
+            {{ number_format($totalBuildings) }} buildings &middot; {{ number_format($totalLand) }} land &middot; {{ number_format($totalWorkers) }} workers
+        </span>
+        <input type="submit" value="Update Status" class="build-status-btn">
+    </div>
+
+    </form>
+
+    <div class="build-legend">W = Wood, I = Iron, G = Gold, P = Plains, F = Forest, M = Mountains</div>
+
+    {{-- Action panel — appears when a building is selected --}}
+    <div class="build-action-panel" id="buildActionPanel" style="display:none;">
+        <div class="build-action-header">
+            <img src="" alt="" class="build-action-icon" id="actionIcon">
+            <div class="build-action-title">
+                <span id="actionName"></span>
+                <span class="build-action-have" id="actionHave"></span>
+            </div>
+        </div>
+        <div class="build-action-afford" id="buildAfford"></div>
+        <div class="build-action-row">
+            <form action="{{ route('game.build.submit') }}" method="POST" id="buildForm" class="build-action-form">
+                @csrf
+                <input type="hidden" name="building_no" id="buildBuildingNo" value="0">
+                <label for="buildQty" class="build-qty-label">Qty:</label>
+                <div class="build-qty-stepper">
+                    <button type="button" class="build-qty-btn" id="qtyMinus">&minus;</button>
+                    <input type="number" name="qty" id="buildQty" value="1" min="1" max="10000000" class="build-qty-input">
+                    <button type="button" class="build-qty-btn" id="qtyPlus">+</button>
+                </div>
+                <button type="button" class="build-max-btn" id="buildHalfBtn" title="Set to half of max">&frac12;</button>
+                <button type="button" class="build-max-btn" id="buildMaxBtn" title="Set to max you can build">Max</button>
+                <button type="submit" class="build-go-btn">Build</button>
+            </form>
+            <form action="{{ route('game.build.demolish') }}" method="POST" id="demolishForm" class="build-demolish-form">
+                @csrf
+                <input type="hidden" name="building_no" id="demolishBuildingNo" value="0">
+                <input type="hidden" name="qty" id="demolishQty" value="1">
+                <button type="submit" class="build-demolish-btn">Demolish</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
     var freePLand = {{ $freePlains }};
     var freeMLand = {{ $freeMountain }};
     var freeFLand = {{ $freeForest }};
     var gold = {{ $player->gold }};
     var iron = {{ $player->iron }};
     var wood = {{ $player->wood }};
+    var selectedCard = null;
 
-    var sel = document.buildForm.building_no;
-    var preview = document.getElementById('buildingPreview');
-    if (sel.selectedIndex == 0) { preview.style.display = 'none'; return; }
+    var panel = document.getElementById('buildActionPanel');
+    var actionIcon = document.getElementById('actionIcon');
+    var actionName = document.getElementById('actionName');
+    var actionHave = document.getElementById('actionHave');
+    var affordEl = document.getElementById('buildAfford');
+    var buildQty = document.getElementById('buildQty');
+    var demolishQty = document.getElementById('demolishQty');
 
-    var box = sel.options[sel.selectedIndex];
+    // Sync qty fields so demolish uses the same number
+    buildQty.addEventListener('input', function() {
+        demolishQty.value = this.value;
+    });
 
-    // Update preview panel
-    document.getElementById('previewIcon').src = box.dataset.icon;
-    document.getElementById('previewName').textContent = box.dataset.bname;
-    document.getElementById('previewCosts').innerHTML =
-        '<span>' + box.dataset.wood + ' Wood</span>' +
-        '<span>' + box.dataset.iron + ' Iron</span>' +
-        '<span>' + box.dataset.gold + ' Gold</span>' +
-        '<span>' + box.dataset.sq + ' ' + box.dataset.land + ' land</span>';
-    preview.style.display = '';
-    var s = "Your resources allow you to build ";
-    var canBuild = 1000000000;
-    var temp = 0;
+    // Qty stepper +/- buttons
+    document.getElementById('qtyMinus').addEventListener('click', function() {
+        var v = parseInt(buildQty.value, 10) || 1;
+        if (v > 1) { buildQty.value = v - 1; demolishQty.value = v - 1; }
+    });
+    document.getElementById('qtyPlus').addEventListener('click', function() {
+        var v = parseInt(buildQty.value, 10) || 0;
+        buildQty.value = v + 1;
+        demolishQty.value = v + 1;
+    });
 
-    if (box.dataset.gold > 0) {
-        temp = Math.floor(gold / box.dataset.gold);
-        if (temp < canBuild) canBuild = temp;
-    }
-    if (box.dataset.iron > 0) {
-        temp = Math.floor(iron / box.dataset.iron);
-        if (temp < canBuild) canBuild = temp;
-    }
-    if (box.dataset.wood > 0) {
-        temp = Math.floor(wood / box.dataset.wood);
-        if (temp < canBuild) canBuild = temp;
+    // Half button — fill qty with half of max affordable
+    document.getElementById('buildHalfBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var half = Math.floor(calcMaxBuild(selectedCard) / 2);
+        if (half > 0) { buildQty.value = half; demolishQty.value = half; }
+    });
+
+    // Max button — fill qty with max affordable
+    document.getElementById('buildMaxBtn').addEventListener('click', function() {
+        if (!selectedCard) return;
+        var max = calcMaxBuild(selectedCard);
+        if (max > 0) { buildQty.value = max; demolishQty.value = max; }
+    });
+
+    // Card selection — ignore clicks on <select> elements
+    var cards = document.querySelectorAll('.build-card');
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].addEventListener('click', function(e) {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') return;
+
+            var card = this;
+            var buildingNo = card.dataset.building;
+
+            // Deselect previous
+            if (selectedCard) selectedCard.classList.remove('build-card-selected');
+
+            // Select new
+            selectedCard = card;
+            card.classList.add('build-card-selected');
+
+            // Update hidden inputs on both forms
+            document.getElementById('buildBuildingNo').value = buildingNo;
+            document.getElementById('demolishBuildingNo').value = buildingNo;
+
+            // Update action panel header
+            var img = card.querySelector('.build-card-icon');
+            if (img && img.style.display !== 'none') {
+                actionIcon.src = img.src;
+                actionIcon.style.display = '';
+            } else {
+                actionIcon.style.display = 'none';
+            }
+            actionName.textContent = card.dataset.bname;
+            actionName.style.color = card.querySelector('.build-card-name').style.color;
+            actionHave.textContent = '(Have: ' + parseInt(card.dataset.have, 10).toLocaleString() + ')';
+
+            // Show the panel
+            panel.style.display = '';
+
+            updateAfford(card);
+        });
     }
 
-    if (box.dataset.land == "P") {
-        temp = Math.floor(freePLand / box.dataset.sq);
-        if (temp < canBuild) canBuild = temp;
-    }
-    if (box.dataset.land == "M") {
-        temp = Math.floor(freeMLand / box.dataset.sq);
-        if (temp < canBuild) canBuild = temp;
-    }
-    if (box.dataset.land == "F") {
-        temp = Math.floor(freeFLand / box.dataset.sq);
-        if (temp < canBuild) canBuild = temp;
+    function calcMaxBuild(card) {
+        var costGold = parseInt(card.dataset.gold, 10);
+        var costIron = parseInt(card.dataset.iron, 10);
+        var costWood = parseInt(card.dataset.wood, 10);
+        var sq = parseInt(card.dataset.sq, 10);
+        var land = card.dataset.land;
+
+        var canBuild = 1000000000;
+        if (costGold > 0) canBuild = Math.min(canBuild, Math.floor(gold / costGold));
+        if (costIron > 0) canBuild = Math.min(canBuild, Math.floor(iron / costIron));
+        if (costWood > 0) canBuild = Math.min(canBuild, Math.floor(wood / costWood));
+
+        var freeLand = land === 'P' ? freePLand : (land === 'M' ? freeMLand : freeFLand);
+        if (sq > 0) canBuild = Math.min(canBuild, Math.floor(freeLand / sq));
+
+        return canBuild;
     }
 
-    s = s + " " + canBuild + " " + box.dataset.bname;
-    document.getElementById('allowBuild').innerHTML = s;
-}
+    function updateAfford(card) {
+        affordEl.textContent = 'You can build up to ' + calcMaxBuild(card).toLocaleString();
+    }
+})();
 </script>
-<tr><td>
-    <table width="100%">
-    <tr><td>
-        {{-- Build form --}}
-        <form action="{{ route('game.build.submit') }}" method="POST" name="buildForm" id="buildActionForm">
-            @csrf
-            <input type="hidden" name="action_type" id="actionType" value="build">
-            <select name="action_type_select" onchange="document.getElementById('actionType').value = this.value;">
-                <option value="build">Build</option>
-                <option value="demolish">Demolish</option>
-            </select>
-            <input type="text" name="qty" value="1" maxlength="8" size="5">
-            <select name="building_no" onchange="showBuild()">
-                <option value="0">--- Select a building to build or demolish ---</option>
-                @foreach($displayOrder as $i)
-                    @php $b = $buildings[$i]; @endphp
-                    <option value="{{ $i }}"
-                        data-bname="{{ $b['name'] }}"
-                        data-wood="{{ $b['cost_wood'] }}"
-                        data-iron="{{ $b['cost_iron'] }}"
-                        data-gold="{{ $b['cost_gold'] }}"
-                        data-sq="{{ $b['sq'] }}"
-                        data-land="{{ $b['land'] }}"
-                        data-icon="{{ buildingIcon($b) }}">
-                        {{ $b['name'] }} ({{ $b['cost_wood'] }} W, {{ $b['cost_iron'] }} I, {{ $b['cost_gold'] }} G, {{ $b['sq'] }} {{ $b['land'] }})
-                    </option>
-                @endforeach
-            </select>
-            <input type="submit" value="Go">
-        </form>
-        <div class="building-info-card" id="buildingPreview" style="display:none;">
-            <img id="previewIcon" class="game-icon game-icon-80" width="80" height="80" src="" alt="" onerror="this.style.display='none'" onload="this.style.display=''">
-            <div class="card-details">
-                <div class="card-name" id="previewName"></div>
-                <div class="card-costs" id="previewCosts"></div>
-            </div>
-        </div>
-    </td></tr>
-    <tr>
-        <td class="small" align="right">W - Wood, I - Iron, G - Gold, P - Plains, F - Forest, M - Mountains</td>
-    </tr>
-    <tr>
-        <td class="header" id="allowBuild"></td>
-    </tr>
-    </table>
-</td></tr>
-</table>
 
 {{-- Build Queue --}}
 @if($buildQueue->count() > 0)
@@ -179,93 +284,6 @@ function showBuild() {
 @endif
 </table>
 @endif
-
-<br>
-<br>
-
-{{-- Building List Table --}}
-<form action="{{ route('game.build.status') }}" method="POST">
-@csrf
-<div class="table-scroll">
-<table class="game-table building-table">
-<tr>
-    <td class="header">Building</td>
-    <td class="header">You Have</td>
-    <td class="header hide-mobile">Land</td>
-    <td class="header">Status</td>
-    <td class="header hide-mobile">Working</td>
-    <td class="header hide-mobile">Workers</td>
-    <td class="header hide-mobile">Production</td>
-    <td class="header hide-mobile">Consumption</td>
-</tr>
-@foreach($displayOrder as $i)
-    @php
-        $b = $buildings[$i];
-        $stats = $buildingStats[$i];
-        $color = $colors[$i];
-    @endphp
-    <tr>
-        <td style="color:{{ $color }}">
-            <a href="javascript:openHelp('buildings#{{ $b['db_column'] }}')" class="icon-name-cell">
-                <x-game-icon :src="buildingIcon($b)" :alt="$b['name']" :size="48" />
-                <span class="icon-label">{{ $b['name'] }}</span>
-            </a>
-        </td>
-        <td align="right" style="color:{{ $color }}">{{ number_format($stats['have']) }}</td>
-        <td class="hide-mobile" align="right" style="color:{{ $color }}">{{ $stats['land'] }} {{ $b['land'] }}</td>
-
-        {{-- Status dropdown or empty --}}
-        @if($b['allow_off'])
-            <td style="color:{{ $color }}">
-                <select name="{{ $b['db_column'] }}_status">
-                    @for($s = 0; $s <= 10; $s++)
-                        @php $sIndex = $s * 10; @endphp
-                        <option value="{{ $s }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }} %</option>
-                    @endfor
-                </select>
-            </td>
-        @else
-            <td style="color:{{ $color }}">&nbsp;</td>
-        @endif
-
-        <td class="hide-mobile" style="color:{{ $color }}" align="right">{{ number_format($stats['bWorking']) }}</td>
-        <td class="hide-mobile" style="color:{{ $color }}" align="right">{{ number_format($stats['workers']) }}</td>
-
-        {{-- Production --}}
-        <td class="hide-mobile" style="color:{{ $color }}">
-            @if(!empty($stats['production']))
-                {!! $stats['production'] !!}
-            @else
-                &nbsp;
-            @endif
-        </td>
-
-        {{-- Consumption --}}
-        <td class="hide-mobile" style="color:{{ $color }}">
-            @if(!empty($stats['consumption']))
-                {!! $stats['consumption'] !!}
-            @else
-                &nbsp;
-            @endif
-        </td>
-    </tr>
-@endforeach
-<tr>
-    <td class="header" align="right"><b>Totals</b></td>
-    <td class="header" align="right">{{ number_format($totalBuildings) }}</td>
-    <td class="header hide-mobile" align="right">{{ number_format($totalLand) }}</td>
-    <td class="header"><input type="submit" value="Update"></td>
-    <td class="header hide-mobile">&nbsp;</td>
-    <td class="header hide-mobile" align="right">{{ number_format($totalWorkers) }}</td>
-    <td class="header hide-mobile">&nbsp;</td>
-    <td class="header hide-mobile">&nbsp;</td>
-</tr>
-</table>
-</div>
-</form>
-
-<br>
-<br>
 
 {{-- Population Summary --}}
 <table class="game-table">

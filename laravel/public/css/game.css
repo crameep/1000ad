@@ -315,6 +315,10 @@ td.header, th {
     margin: 0 4px;
     color: var(--text-muted);
 }
+#turn-full {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
 
 .main-layout {
     display: flex;
@@ -2179,6 +2183,321 @@ button.explore-btn {
     white-space: nowrap;
 }
 
+/* === Build Section — Card Grid UI === */
+.build-section {
+    margin-bottom: 16px;
+}
+
+/* Card grid — integrated with status, production, workers */
+.build-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+/* Individual building card */
+.build-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: var(--bg-panel);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.build-card:hover {
+    background: var(--bg-hover);
+    box-shadow: 0 0 6px rgba(201, 168, 76, 0.12);
+}
+.build-card-selected {
+    border-color: var(--border-accent) !important;
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.3);
+    background: var(--bg-header);
+}
+
+/* Card icon */
+.build-card-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.build-card-selected .build-card-icon {
+    border-color: var(--border-accent);
+}
+
+/* Card text */
+.build-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Row 1: Name + Have count */
+.build-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+}
+.build-card-name {
+    font-family: var(--font-title);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.build-card-count {
+    font-family: var(--font-title);
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Row 2: Cost + Status dropdown */
+.build-card-mid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+.build-card-cost {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+.build-card-cost span {
+    margin-right: 3px;
+}
+.build-card-status {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: var(--font-size-xs);
+    padding: 1px 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Row 3: Production / Consumption / Workers */
+.build-card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    margin-top: 3px;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+}
+.build-card-prod {
+    color: var(--text-success);
+}
+.build-card-cons {
+    color: #cc8855;
+}
+.build-card-workers {
+    color: var(--text-secondary);
+}
+
+/* Status bar — totals + update button */
+.build-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    margin-bottom: 4px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.build-totals {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+}
+.build-status-btn {
+    background: var(--bg-button);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 4px 14px;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+}
+.build-status-btn:hover {
+    background: var(--bg-button-hover);
+    border-color: var(--border-accent);
+}
+
+/* Legend */
+.build-legend {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 2px;
+    margin-bottom: 8px;
+}
+
+/* === Action panel — appears below grid when a card is selected === */
+.build-action-panel {
+    background: var(--bg-header);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
+}
+.build-action-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.build-action-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+}
+.build-action-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.build-action-title span:first-child {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 700;
+}
+.build-action-have {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+}
+.build-action-afford {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 8px;
+}
+
+/* Build + Demolish row */
+.build-action-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.build-action-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.build-qty-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-small);
+}
+.build-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.build-qty-btn {
+    background: var(--bg-header);
+    border: none;
+    color: var(--text-secondary);
+    width: 28px;
+    min-height: var(--tap-target-min);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, color 0.12s;
+    padding: 0;
+}
+.build-qty-btn:hover {
+    background: var(--bg-hover);
+    color: var(--border-accent);
+}
+.build-qty-input {
+    width: 60px;
+    padding: 6px 4px;
+    background: var(--bg-input);
+    border: none;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    text-align: center;
+    min-height: var(--tap-target-min);
+    -moz-appearance: textfield;
+}
+.build-qty-input::-webkit-outer-spin-button,
+.build-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.build-max-btn {
+    background: var(--bg-header);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: color 0.12s, border-color 0.12s;
+    min-height: var(--tap-target-min);
+}
+.build-max-btn:hover {
+    color: var(--border-accent);
+    border-color: var(--border-accent);
+}
+.build-go-btn {
+    background: linear-gradient(180deg, #3d3226 0%, #2a2218 50%, #1a1510 100%);
+    color: var(--border-accent);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius);
+    padding: 6px 24px;
+    font-family: var(--font-title);
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    min-height: var(--tap-target-min);
+}
+.build-go-btn:hover {
+    background: linear-gradient(180deg, #4d4230 0%, #3d3226 50%, #2a2218 100%);
+    box-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
+}
+
+/* Demolish — small, muted, clearly separate */
+.build-demolish-form {
+    margin-left: auto;
+}
+.build-demolish-btn {
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+.build-demolish-btn:hover {
+    color: #cc4444;
+    border-color: #cc4444;
+}
+
 @media (max-width: 600px) {
     /* Shrink icons on mobile for better table fit */
     .game-icon-32 { width: 24px; height: 24px; }
@@ -2200,5 +2519,67 @@ button.explore-btn {
     }
     .building-info-card .card-name {
         font-size: 13px;
+    }
+
+    /* Build card grid mobile — single column for info-dense cards */
+    .build-card-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    .build-card {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+    .build-card-icon {
+        width: 32px;
+        height: 32px;
+    }
+    .build-card-name {
+        font-size: 11px;
+    }
+    .build-card-count {
+        font-size: 12px;
+    }
+    .build-card-stats {
+        gap: 1px 8px;
+    }
+    .build-status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    /* Action panel mobile — two-row layout */
+    .build-action-panel {
+        padding: 8px;
+    }
+    .build-action-icon {
+        width: 28px;
+        height: 28px;
+    }
+    .build-action-title span:first-child {
+        font-size: 13px;
+    }
+    .build-action-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+        align-items: center;
+    }
+    .build-action-form {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .build-qty-label {
+        display: none;
+    }
+    .build-go-btn {
+        margin-left: auto;
+    }
+    .build-demolish-form {
+        grid-column: 2;
+        margin-left: 0;
     }
 }

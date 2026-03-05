@@ -176,12 +176,22 @@ class BuildingController extends Controller
             $player, $buildingStats, $buildQueue, $free, $freeMountain, $freeForest, $freePlains
         );
 
+        // Building categories for card grid
+        $buildingCategories = [
+            ['label' => 'Food',             'color' => '#ff6600', 'ids' => [2, 3]],
+            ['label' => 'Wood',             'color' => '#00ff00', 'ids' => [1]],
+            ['label' => 'Mining',           'color' => '#ffcc00', 'ids' => [5, 6]],
+            ['label' => 'Industry',         'color' => '#00ccff', 'ids' => [16, 7, 8, 14, 15]],
+            ['label' => 'Military & Other', 'color' => '#ffffff', 'ids' => [9, 10, 11, 12, 13, 4]],
+        ];
+
         return view('pages.build', compact(
             'buildQueue',
             'numBuilders',
             'displayOrder',
             'colors',
             'buildingStats',
+            'buildingCategories',
             'totalWorkers',
             'totalBuildings',
             'totalLand',
