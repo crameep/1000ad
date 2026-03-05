@@ -163,6 +163,64 @@ class BuildingController extends Controller
             ];
         }
 
+        // === Economy analysis: per-turn net resource production ===
+        $economy = ['food' => 0, 'wood' => 0, 'iron' => 0, 'gold' => 0];
+        $month = ($player->turn % 12) + 1;
+
+        foreach ($buildings as $i => $b) {
+            $have = $player->{$b['db_column']} ?? 0;
+            if ($have <= 0) continue;
+
+            $bWorking = $have;
+            if ($b['allow_off']) {
+                $statusColumn = $b['db_column'] . '_status';
+                $status = $player->{$statusColumn} ?? 100;
+                $bWorking = ($status == 0) ? 0 : round($have * ($status / 100));
+            }
+            if ($bWorking <= 0) continue;
+
+            // Production
+            if (!empty($b['production_name'])) {
+                $prod = $bWorking * ($b['production'] ?? 0);
+                $pName = strtolower($b['production_name']);
+                if (str_contains($pName, 'food')) {
+                    // Farms only produce in months 4-9
+                    if ($i == 3 && ($month < 4 || $month > 9)) {
+                        // Farm idle in winter — don't count
+                    } else {
+                        $economy['food'] += $prod;
+                    }
+                }
+                elseif (str_contains($pName, 'wood')) $economy['wood'] += $prod;
+                elseif (str_contains($pName, 'iron')) $economy['iron'] += $prod;
+                elseif (str_contains($pName, 'gold')) $economy['gold'] += $prod;
+            }
+
+            // Consumption
+            if ($i == 7) { // Tool maker
+                $economy['wood'] -= $bWorking * ($b['wood_need'] ?? 0);
+                $economy['iron'] -= $bWorking * ($b['iron_need'] ?? 0);
+            } elseif ($i == 14) { // Stable
+                $economy['food'] -= $bWorking * ($b['food_need'] ?? 0);
+            } elseif ($i == 15 || $i == 16) { // Mage Tower, Winery
+                $economy['gold'] -= $bWorking * ($b['gold_need'] ?? 0);
+            }
+        }
+
+        // Food consumption by population (50 people eat 1 food per turn)
+        $peopleEatOneFood = config('game.people_eat_one_food', 50);
+        if ($peopleEatOneFood > 0) {
+            $economy['food'] -= (int) floor($player->people / $peopleEatOneFood);
+        }
+
+        // Wood burning in winter (months 11, 12, 1, 2)
+        if ($month >= 11 || $month <= 2) {
+            $peopleBurnOneWood = config('game.people_burn_one_wood', 250);
+            if ($peopleBurnOneWood > 0) {
+                $economy['wood'] -= (int) round($player->people / $peopleBurnOneWood);
+            }
+        }
+
         // Population summary
         $free = $player->people - $totalWorkers - $numBuilders;
         if ($free < 0) {
@@ -175,9 +233,12 @@ class BuildingController extends Controller
         $houseSpace = round($houseSpace + $houseSpace * ($player->research8 / 100));
         $freeSpace = $houseSpace - $player->people;
 
+        // Population deficit for housing suggestion (negative = needs more housing)
+        $popDeficit = $freeSpace;
+
         // Advisor tips
         $advisorTips = $this->advisorService->getBuildTips(
-            $player, $buildingStats, $buildQueue, $free, $freeMountain, $freeForest, $freePlains
+            $player, $buildingStats, $buildQueue, $free, $freeMountain, $freeForest, $freePlains, $economy
         );
 
         // Building categories for card grid
@@ -204,7 +265,9 @@ class BuildingController extends Controller
             'freeMountain',
             'freeForest',
             'freePlains',
-            'advisorTips'
+            'advisorTips',
+            'economy',
+            'popDeficit'
         ));
     }
 

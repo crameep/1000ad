@@ -48,7 +48,7 @@
                         @if($b['allow_off'])
                             <span class="build-card-status-wrap" onclick="event.stopPropagation()">
                                 <span class="build-card-status-label">Prod:</span>
-                                <select class="build-card-status" data-column="{{ $b['db_column'] }}_status" title="Production rate — how much of this building's capacity to use">
+                                <select class="build-card-status" data-column="{{ $b['db_column'] }}_status" autocomplete="off" title="Production rate — how much of this building's capacity to use">
                                     @for($s = 0; $s <= 10; $s++)
                                         @php $sIndex = $s * 10; @endphp
                                         <option value="{{ $sIndex }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }}%</option>
@@ -71,14 +71,8 @@
 
         {{-- Action panel — lives inside grid, moves below selected card via JS --}}
         <div class="build-action-panel" id="buildActionPanel" style="display:none;">
-            <div class="build-action-header">
-                <img src="" alt="" class="build-action-icon" id="actionIcon">
-                <div class="build-action-title">
-                    <span id="actionName"></span>
-                    <span class="build-action-have" id="actionHave"></span>
-                </div>
-            </div>
-            <div class="build-action-afford" id="buildAfford"></div>
+            <div class="build-action-info" id="buildInfo"></div>
+            <div class="build-action-suggest" id="buildSuggest" style="display:none;"></div>
             <div class="build-action-row">
                 <form action="{{ route('game.build.submit') }}" method="POST" id="buildForm" class="build-action-form">
                     @csrf
@@ -120,13 +114,16 @@
     var gold = {{ $player->gold }};
     var iron = {{ $player->iron }};
     var wood = {{ $player->wood }};
+    var freePeople = {{ $free }};
     var selectedCard = null;
 
+    // Economy data from controller (per-turn net production)
+    var economy = @json($economy);
+    var popDeficit = {{ $popDeficit }};
+
     var panel = document.getElementById('buildActionPanel');
-    var actionIcon = document.getElementById('actionIcon');
-    var actionName = document.getElementById('actionName');
-    var actionHave = document.getElementById('actionHave');
-    var affordEl = document.getElementById('buildAfford');
+    var infoEl = document.getElementById('buildInfo');
+    var suggestEl = document.getElementById('buildSuggest');
     var buildQty = document.getElementById('buildQty');
     var demolishQty = document.getElementById('demolishQty');
 
@@ -180,18 +177,6 @@
             document.getElementById('buildBuildingNo').value = buildingNo;
             document.getElementById('demolishBuildingNo').value = buildingNo;
 
-            // Update action panel header
-            var img = card.querySelector('.build-card-icon');
-            if (img && img.style.display !== 'none') {
-                actionIcon.src = img.src;
-                actionIcon.style.display = '';
-            } else {
-                actionIcon.style.display = 'none';
-            }
-            actionName.textContent = card.dataset.bname;
-            actionName.style.color = card.querySelector('.build-card-name').style.color;
-            actionHave.textContent = '(Have: ' + parseInt(card.dataset.have, 10).toLocaleString() + ')';
-
             // Move panel right after selected card inside the grid, then show
             card.insertAdjacentElement('afterend', panel);
             panel.style.display = '';
@@ -201,7 +186,7 @@
                 panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 50);
 
-            updateAfford(card);
+            updatePanel(card);
         });
     }
 
@@ -220,11 +205,85 @@
         var freeLand = land === 'P' ? freePLand : (land === 'M' ? freeMLand : freeFLand);
         if (sq > 0) canBuild = Math.min(canBuild, Math.floor(freeLand / sq));
 
-        return canBuild;
+        return Math.max(canBuild, 0);
     }
 
-    function updateAfford(card) {
-        affordEl.textContent = 'You can build up to ' + calcMaxBuild(card).toLocaleString();
+    function calcSuggestion(card) {
+        var bid = parseInt(card.dataset.building, 10);
+        var max = calcMaxBuild(card);
+        var have = parseInt(card.dataset.have, 10);
+        var workersPerB = parseInt(card.dataset.workersPer, 10);
+        var prodPerB = parseInt(card.dataset.prod, 10);
+        var prodName = (card.dataset.prodName || '').toLowerCase();
+
+        // Housing buildings (house=4, town_center=11)
+        if (bid === 4 || bid === 11) {
+            var hQty = popDeficit <= 0 ? 5 : Math.ceil(Math.abs(popDeficit) / 100);
+            var hReason = popDeficit <= 0 ? 'grow population' : 'housing needed';
+            return { qty: max > 0 ? Math.min(hQty, max) : hQty, reason: hReason };
+        }
+
+        // Resource-producing buildings — check economy deficits
+        var resKey = null;
+        if (prodName.indexOf('food') >= 0) resKey = 'food';
+        else if (prodName.indexOf('wood') >= 0) resKey = 'wood';
+        else if (prodName.indexOf('iron') >= 0) resKey = 'iron';
+        else if (prodName.indexOf('gold') >= 0) resKey = 'gold';
+
+        // Gold-consuming buildings (mage tower=15, winery=16) — suggest based on gold surplus
+        if (bid === 15 || bid === 16) {
+            var goldNet = economy.gold || 0;
+            var gQty = goldNet > 0 ? 5 : 2;
+            var gReason = goldNet > 0 ? 'gold surplus (+' + goldNet.toLocaleString() + '/turn)' : 'gold deficit (' + goldNet.toLocaleString() + '/turn)';
+            return { qty: max > 0 ? Math.min(gQty, max) : gQty, reason: gReason };
+        }
+
+        if (resKey && prodPerB > 0) {
+            var net = economy[resKey] || 0;
+            if (net < 0) {
+                // Deficit — suggest enough to cover it
+                var needed = Math.ceil(Math.abs(net) / prodPerB);
+                return { qty: max > 0 ? Math.min(needed, max) : needed, reason: resKey + ' deficit (' + net.toLocaleString() + '/turn)' };
+            } else {
+                // Surplus — suggest modest growth
+                var sQty = 10;
+                return { qty: max > 0 ? Math.min(sQty, max) : sQty, reason: resKey + ' surplus (+' + net.toLocaleString() + '/turn)' };
+            }
+        }
+
+        // Worker-based: if we have free people, fill them
+        if (freePeople > 0 && workersPerB > 0) {
+            var fillWorkers = Math.floor(freePeople / workersPerB);
+            if (fillWorkers > 0) return { qty: max > 0 ? Math.min(fillWorkers, max) : fillWorkers, reason: 'fills free workforce' };
+        }
+
+        // Default — steady growth
+        return { qty: max > 0 ? Math.min(5, max) : 5, reason: 'steady growth' };
+    }
+
+    function updatePanel(card) {
+        var max = calcMaxBuild(card);
+        var have = parseInt(card.dataset.have, 10);
+
+        // Info row: "Can build 100 · Have 8"
+        infoEl.textContent = 'Can build ' + max.toLocaleString() + ' \u00b7 Have ' + have.toLocaleString();
+
+        // Suggestion chip — always show based on economy analysis
+        var s = calcSuggestion(card);
+        if (s.qty > 0) {
+            suggestEl.style.display = '';
+            var chipClass = max > 0 ? 'build-suggest-chip' : 'build-suggest-chip build-suggest-chip-disabled';
+            suggestEl.innerHTML = 'Suggested: <span class="' + chipClass + '" title="' + (max > 0 ? 'Click to set qty' : 'Not enough resources') + '">'
+                + s.qty.toLocaleString() + '</span> <span class="build-suggest-reason">(' + s.reason + ')</span>';
+            if (max > 0) {
+                suggestEl.querySelector('.build-suggest-chip').addEventListener('click', function() {
+                    buildQty.value = s.qty;
+                    demolishQty.value = s.qty;
+                });
+            }
+        } else {
+            suggestEl.style.display = 'none';
+        }
     }
 
     // Building-specific data for consumption calculations
@@ -310,9 +369,13 @@
     var statusUrl = '{{ route("game.build.status") }}';
 
     document.querySelectorAll('.build-card-status').forEach(function(sel) {
+        // Track saved value for revert on failure
+        sel.dataset.savedValue = sel.value;
+
         sel.addEventListener('change', function() {
             var column = this.dataset.column;
             var value = parseInt(this.value, 10);
+            var savedValue = this.dataset.savedValue;
             var selectEl = this;
             var card = selectEl.closest('.build-card');
 
@@ -334,16 +397,25 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
+                    selectEl.dataset.savedValue = value;
                     selectEl.style.borderColor = 'var(--text-success)';
                     setTimeout(function() { selectEl.style.borderColor = ''; }, 800);
                 } else {
+                    // Revert to last saved value
+                    selectEl.value = savedValue;
+                    recalcCardStats(card, parseInt(savedValue, 10));
                     selectEl.style.borderColor = 'var(--text-error)';
-                    setTimeout(function() { selectEl.style.borderColor = ''; }, 1500);
+                    setTimeout(function() { selectEl.style.borderColor = ''; }, 2000);
+                    if (window.Game && Game.toast) Game.toast('Failed to save status', 'error');
                 }
             })
             .catch(function() {
+                // Revert to last saved value
+                selectEl.value = savedValue;
+                recalcCardStats(card, parseInt(savedValue, 10));
                 selectEl.style.borderColor = 'var(--text-error)';
-                setTimeout(function() { selectEl.style.borderColor = ''; }, 1500);
+                setTimeout(function() { selectEl.style.borderColor = ''; }, 2000);
+                if (window.Game && Game.toast) Game.toast('Failed to save status', 'error');
             });
         });
     });

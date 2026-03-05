@@ -277,7 +277,7 @@ class GameAdvisorService
      *
      * @return array<array{type: string, message: string}>
      */
-    public function getBuildTips(Player $player, array $buildingStats, $buildQueue, int $free, int $freeMountain, int $freeForest, int $freePlains): array
+    public function getBuildTips(Player $player, array $buildingStats, $buildQueue, int $free, int $freeMountain, int $freeForest, int $freePlains, array $economy = []): array
     {
         $tips = [];
         $buildings = $this->gameData->getBuildings($player->civ);
@@ -357,6 +357,16 @@ class GameAdvisorService
         $houseSpace = round($houseSpace + $houseSpace * ($player->research8 / 100));
         if ($player->people >= $houseSpace && $houseSpace > 0) {
             $tips[] = ['type' => 'warning', 'message' => "Housing is full. Build more houses to allow population growth."];
+        }
+
+        // ===== ECONOMY DEFICITS =====
+        if (!empty($economy)) {
+            foreach (['food', 'wood', 'iron', 'gold'] as $res) {
+                $net = $economy[$res] ?? 0;
+                if ($net < 0) {
+                    $tips[] = ['type' => 'warning', 'message' => ucfirst($res) . " deficit: <b>" . number_format($net) . "/turn</b>. Build more " . $res . " producers to cover the shortfall."];
+                }
+            }
         }
 
         // ===== STRATEGIC RECOMMENDATIONS =====

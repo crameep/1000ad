@@ -2356,39 +2356,45 @@ button.explore-btn {
     margin-top: -4px;
     margin-bottom: 8px;
 }
-.build-action-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.build-action-info {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
     margin-bottom: 4px;
 }
-.build-action-icon {
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--border-accent);
-    border-radius: var(--radius);
-    flex-shrink: 0;
-}
-.build-action-title {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.build-action-title span:first-child {
-    font-family: var(--font-title);
-    font-size: 15px;
-    font-weight: 700;
-}
-.build-action-have {
+.build-action-suggest {
     font-size: var(--font-size-small);
     color: var(--text-secondary);
-}
-.build-action-afford {
-    font-size: var(--font-size-small);
-    color: var(--text-secondary);
-    font-style: italic;
     margin-bottom: 8px;
+}
+.build-suggest-chip {
+    display: inline-block;
+    background: linear-gradient(180deg, #3d3226 0%, #2a2218 100%);
+    color: var(--border-accent);
+    border: 1px solid var(--border-accent);
+    border-radius: 12px;
+    padding: 1px 10px;
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: var(--font-size-small);
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+.build-suggest-chip:hover {
+    box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
+    background: linear-gradient(180deg, #4d4230 0%, #3d3226 100%);
+}
+.build-suggest-chip-disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.build-suggest-chip-disabled:hover {
+    box-shadow: none;
+    background: linear-gradient(180deg, #3d3226 0%, #2a2218 100%);
+}
+.build-suggest-reason {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-style: italic;
 }
 
 /* Build + Demolish row */
@@ -2556,13 +2562,6 @@ button.explore-btn {
     /* Action panel mobile — two-row layout */
     .build-action-panel {
         padding: 8px;
-    }
-    .build-action-icon {
-        width: 28px;
-        height: 28px;
-    }
-    .build-action-title span:first-child {
-        font-size: 13px;
     }
     .build-action-row {
         display: grid;

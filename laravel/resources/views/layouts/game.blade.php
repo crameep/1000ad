@@ -193,6 +193,12 @@
 
 <script src="{{ asset('js/game.js') }}?v={{ filemtime(public_path('js/game.js')) }}"></script>
 <script>
+// Force reload when restored from bfcache (fixes Android Chrome form state restoration)
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) { window.location.reload(); }
+});
+</script>
+<script>
 // Initialize turn timer with server data
 Game.TurnTimer.init({{ $nextTurnSeconds }}, {{ $playerTurns }}, {{ $maxTurnsStored }}, {{ $minutesPerTurn }});
 </script>
