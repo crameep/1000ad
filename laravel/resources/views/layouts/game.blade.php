@@ -190,8 +190,17 @@
             <option value="3">Horses: 3x</option>
         </select>
         @if($exploreCount > 0)
+            @php
+                if ($totalExplorerPeople >= 1000000) {
+                    $explorerLabel = round($totalExplorerPeople / 1000000, 1) . 'M';
+                } elseif ($totalExplorerPeople >= 1000) {
+                    $explorerLabel = round($totalExplorerPeople / 1000, 1) . 'k';
+                } else {
+                    $explorerLabel = $totalExplorerPeople;
+                }
+            @endphp
             <span class="explore-status" id="explore-status">
-                &#9203; {{ $exploreCount }} group{{ $exploreCount > 1 ? 's' : '' }} &middot; {{ $exploreTurns }} turns left
+                &#9203; {{ $explorerLabel }} explorer{{ $totalExplorerPeople != 1 ? 's' : '' }} &middot; {{ $exploreTurns }} turn{{ $exploreTurns != 1 ? 's' : '' }} left
             </span>
         @else
             <span class="explore-status explore-idle" id="explore-status">No explorers sent</span>

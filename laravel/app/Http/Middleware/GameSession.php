@@ -195,6 +195,7 @@ class GameSession
         // --- Exploration summary (for quick explore bar) ---
         $exploreCount = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->count();
         $exploreTurns = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->max('turn') ?? 0;
+        $totalExplorerPeople = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->sum('people');
 
         // Share data with all views
         View::share([
@@ -219,6 +220,7 @@ class GameSession
             'maxTurnsStored' => $maxTurnsStored,
             'exploreCount' => $exploreCount,
             'exploreTurns' => $exploreTurns,
+            'totalExplorerPeople' => $totalExplorerPeople,
             'otherEmpires' => $otherEmpires,
         ]);
 
