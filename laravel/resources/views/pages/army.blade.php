@@ -31,6 +31,10 @@
                     <div class="bq-item-detail">x{{ number_format($tq->qty) }} &middot; {{ $tq->turns_remaining }} turn{{ $tq->turns_remaining != 1 ? 's' : '' }}</div>
                 </div>
                 <div class="bq-item-actions">
+                    @if($trainQueue->count() > 1)
+                    <button type="button" class="bq-btn bq-btn-move" data-action="top" title="Move to top">&#9650;</button>
+                    <button type="button" class="bq-btn bq-btn-move" data-action="bottom" title="Move to bottom">&#9660;</button>
+                    @endif
                     <button type="button" class="bq-btn bq-btn-cancel" data-action="cancel" title="Cancel">&times;</button>
                 </div>
             </div>
@@ -68,36 +72,49 @@ function toggleTrainQueue(e) {
 
         var item = btn.closest('.bq-item');
         var qid = item ? item.dataset.qid : null;
-        if (!qid) return;
+        var action = btn.dataset.action;
+        if (!qid || !action) return;
 
-        item.style.opacity = '0.4';
+        var urls = { cancel: '/game/army/cancel', top: '/game/army/move-top', bottom: '/game/army/move-bottom' };
+        var url = urls[action];
+        if (!url) return;
 
-        Game.Ajax.post('/game/army/cancel', { q_id: qid }, { silent: false })
+        if (action === 'cancel') {
+            item.style.opacity = '0.4';
+        } else {
+            btn.style.color = 'var(--border-accent)';
+        }
+
+        Game.Ajax.post(url, { q_id: qid }, { silent: action !== 'cancel' })
             .then(function(data) {
                 if (data.success) {
-                    item.style.transition = 'opacity 0.2s, max-height 0.3s';
-                    item.style.maxHeight = item.offsetHeight + 'px';
-                    requestAnimationFrame(function() {
-                        item.style.opacity = '0';
-                        item.style.maxHeight = '0';
-                        item.style.overflow = 'hidden';
-                        item.style.padding = '0';
-                        item.style.margin = '0';
-                    });
-                    setTimeout(function() {
-                        item.remove();
-                        // Renumber remaining items
-                        document.querySelectorAll('#trainQueueList .bq-item .bq-item-rank').forEach(function(el, i) {
-                            el.textContent = i + 1;
+                    if (action === 'cancel') {
+                        item.style.transition = 'opacity 0.2s, max-height 0.3s';
+                        item.style.maxHeight = item.offsetHeight + 'px';
+                        requestAnimationFrame(function() {
+                            item.style.opacity = '0';
+                            item.style.maxHeight = '0';
+                            item.style.overflow = 'hidden';
+                            item.style.padding = '0';
+                            item.style.margin = '0';
                         });
-                        if (!document.querySelectorAll('#trainQueueList .bq-item').length) {
-                            queueSection.style.display = 'none';
-                        }
-                    }, 350);
+                        setTimeout(function() {
+                            item.remove();
+                            document.querySelectorAll('#trainQueueList .bq-item .bq-item-rank').forEach(function(el, i) {
+                                el.textContent = i + 1;
+                            });
+                            if (!document.querySelectorAll('#trainQueueList .bq-item').length) {
+                                queueSection.style.display = 'none';
+                            }
+                        }, 350);
+                    } else {
+                        window.location.reload();
+                    }
                 }
             })
             .catch(function() {
                 item.style.opacity = '1';
+                btn.style.color = '';
             });
     });
 
@@ -141,7 +158,9 @@ function toggleTrainQueue(e) {
                  data-gold-cost="{{ $data['goldCost'] }}"
                  data-food-cost="{{ $data['foodUsed'] }}"
                  data-help-index="{{ $data['helpIndex'] }}"
-                 data-own="{{ $player->{$data['soldier']['db_name']} ?? 0 }}">
+                 data-own="{{ $player->{$data['soldier']['db_name']} ?? 0 }}"
+                 data-tc-capped="{{ $data['tcCapped'] ? 1 : 0 }}"
+                 data-tc-max="{{ $data['tcMax'] }}">
                 <img src="{{ soldierIcon($data['soldier'], $i, $player->civ) }}" alt="{{ $data['soldier']['name'] }}" class="army-card-icon"
                      onerror="this.style.display='none'" onload="this.style.display=''">
                 <div class="army-card-info">
@@ -339,10 +358,18 @@ function toggleTrainQueue(e) {
         var turns = card.dataset.turns;
         var own = parseInt(card.dataset.own, 10);
 
+        var tcCapped = card.dataset.tcCapped === '1';
+        var tcMax = parseInt(card.dataset.tcMax, 10);
+
         infoEl.textContent = 'Can train ' + maxTrain.toLocaleString() + ' \u00b7 Have ' + have.toLocaleString()
             + (own !== have ? ' (' + own.toLocaleString() + ' home)' : '');
-        descEl.textContent = 'Needs: ' + needed + ' \u00b7 Trains in ' + turns + ' turn' + (turns != 1 ? 's' : '');
-        descEl.style.display = needed ? '' : 'none';
+
+        var descParts = [];
+        if (needed) descParts.push('Needs: ' + needed);
+        descParts.push('Trains in ' + turns + ' turn' + (turns != 1 ? 's' : ''));
+        if (tcCapped) descParts.push('Limit: ' + tcMax + ' (1 per town center)');
+        descEl.textContent = descParts.join(' \u00b7 ');
+        descEl.style.display = '';
 
         // Suggestion chip
         var s = calcSuggestion(card);

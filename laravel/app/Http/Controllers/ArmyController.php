@@ -120,6 +120,7 @@ class ArmyController extends Controller
 
         // Get training queue
         $trainQueue = TrainQueue::where('player_id', $player->id)
+            ->orderBy('pos')
             ->orderBy('id')
             ->get();
 
@@ -180,6 +181,7 @@ class ArmyController extends Controller
             }
 
             $neededToTrain = '';
+            $tcCapped = false;
             switch ($i) {
                 case 1: // Archer - needs bow
                     $neededToTrain = '1 Bow';
@@ -205,6 +207,7 @@ class ArmyController extends Controller
                 case 5: // Catapult - needs wood + iron
                     $cost = $s['train_cost'] ?? 250;
                     $neededToTrain = "{$cost} Wood, {$cost} Iron";
+                    $tcCapped = true;
                     $mCost = $cost * $cTrainLimit;
                     if ($player->wood < $mCost) {
                         $cTrainLimit = intdiv($player->wood, $cost);
@@ -229,6 +232,7 @@ class ArmyController extends Controller
                     break;
                 case 8: // Thief - needs 1000 gold
                     $neededToTrain = '1000 Gold';
+                    $tcCapped = true;
                     if ($player->gold < $cTrainLimit * 1000) {
                         $cTrainLimit = intdiv($player->gold, 1000);
                     }
@@ -248,6 +252,7 @@ class ArmyController extends Controller
                     if ($trainBows > 0) $parts[] = "{$trainBows} bows";
                     if ($trainHorses > 0) $parts[] = "{$trainHorses} horses";
                     $neededToTrain = implode(', ', $parts);
+                    $tcCapped = true;
 
                     if ($trainGold > 0 && $player->gold < $cTrainLimit * $trainGold) {
                         $cTrainLimit = intdiv($player->gold, $trainGold);
@@ -281,6 +286,8 @@ class ArmyController extends Controller
                 'neededToTrain' => $neededToTrain,
                 'maxTrain' => $cTrainLimit,
                 'helpIndex' => $helpIndex[$i],
+                'tcCapped' => $tcCapped,
+                'tcMax' => $tcCapped ? $player->town_center : 0,
             ];
         }
 
@@ -423,14 +430,17 @@ class ArmyController extends Controller
         }
 
         // Create training queue entries
+        $maxPos = TrainQueue::where('player_id', $player->id)->max('pos') ?? 0;
         foreach ([1, 2, 3, 5, 6, 7, 8, 9] as $i) {
             $qty = $quantities[$i];
             if ($qty > 0) {
+                $maxPos++;
                 TrainQueue::create([
                     'player_id' => $player->id,
                     'soldier_type' => $i,
                     'turns_remaining' => $soldiers[$i]['turns'],
                     'qty' => $qty,
+                    'pos' => $maxPos,
                 ]);
             }
         }
@@ -567,6 +577,54 @@ class ArmyController extends Controller
             return $this->jsonSuccess($player, 'All training cancelled.');
         }
         session()->flash('game_message', 'All training cancelled.');
+        return redirect()->route('game.army');
+    }
+
+    /**
+     * Move a training queue item to top priority.
+     */
+    public function moveToTop(Request $request)
+    {
+        $player = player();
+
+        $request->validate([
+            'q_id' => 'required|integer',
+        ]);
+
+        TrainQueue::where('player_id', $player->id)
+            ->increment('pos');
+
+        TrainQueue::where('player_id', $player->id)
+            ->where('id', $request->q_id)
+            ->update(['pos' => 0]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Training queue item moved to top.');
+        }
+        return redirect()->route('game.army');
+    }
+
+    /**
+     * Move a training queue item to bottom priority.
+     */
+    public function moveToBottom(Request $request)
+    {
+        $player = player();
+
+        $request->validate([
+            'q_id' => 'required|integer',
+        ]);
+
+        $maxPos = TrainQueue::where('player_id', $player->id)->max('pos');
+        $newPos = ($maxPos ?? 0) + 1;
+
+        TrainQueue::where('player_id', $player->id)
+            ->where('id', $request->q_id)
+            ->update(['pos' => $newPos]);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($player, 'Training queue item moved to bottom.');
+        }
         return redirect()->route('game.army');
     }
 
