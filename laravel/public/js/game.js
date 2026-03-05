@@ -512,6 +512,15 @@
                     curExplore.innerHTML = newExplore.innerHTML;
                     curExplore.className = newExplore.className;
                 }
+                // Refresh quick-explore data attributes (food, maxSend, horses, etc.)
+                var newBar = doc.getElementById('quick-explore');
+                var curBar = document.getElementById('quick-explore');
+                if (newBar && curBar) {
+                    var attrs = newBar.dataset;
+                    for (var key in attrs) {
+                        curBar.dataset[key] = attrs[key];
+                    }
+                }
             } catch (e) {
                 // Silent fail — resource bar already updated via AJAX
             }
@@ -608,12 +617,20 @@
 
             // Cap by people/capacity limits (pre-computed server-side)
             var maxSend = parseInt(bar.dataset.maxSend, 10) || 0;
+            if (maxSend < 4) {
+                Toast.show('No explorer capacity available \u2014 all groups are out or not enough people.', 'warning', 5000);
+                return;
+            }
             safeQty = Math.min(safeQty, maxSend);
 
             // Cap by horse availability
             if (withHorses >= 1 && withHorses <= 3) {
                 var horses = parseInt(bar.dataset.horses, 10) || 0;
                 var horseLimit = Math.floor(horses / withHorses);
+                if (horseLimit < 4) {
+                    Toast.show('Not enough horses \u2014 you have ' + horses + ' but need at least ' + (withHorses * 4) + ' for ' + withHorses + 'x.', 'warning', 5000);
+                    return;
+                }
                 safeQty = Math.min(safeQty, horseLimit);
             }
 
@@ -626,7 +643,10 @@
         },
 
         async send(qty) {
-            if (this._busy) return;
+            if (this._busy) {
+                Toast.show('Explorers already being sent\u2026', 'info', 2000);
+                return;
+            }
             this._busy = true;
 
             var horseSelect = document.getElementById('explore-horses');
