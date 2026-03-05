@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('train_queues', 'pos')) {
             Schema::table('train_queues', function (Blueprint $table) {
-                $table->integer('pos')->default(0)->after('qty');
+                $table->integer('pos')->default(0);
             });
         }
     }
