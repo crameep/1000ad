@@ -39,6 +39,7 @@
     </div>
 </div>
 <script>
+var Prefs = (window.Game && Game.Prefs) || { get: function() { return arguments[1]; }, set: function() {} };
 function toggleTrainQueue(e) {
     var list = document.getElementById('trainQueueList');
     var arrow = document.getElementById('tqToggleArrow');
@@ -179,6 +180,7 @@ function toggleTrainQueue(e) {
                     <span class="army-action-info" id="armyInfo"></span>
                     <span class="army-action-desc" id="armyDesc"></span>
                 </div>
+                <div class="army-action-suggest" id="armySuggest" style="display:none;"></div>
             </div>
             <div class="army-action-row">
                 <div class="army-action-controls">
@@ -236,7 +238,10 @@ function toggleTrainQueue(e) {
     var panel = document.getElementById('armyActionPanel');
     var infoEl = document.getElementById('armyInfo');
     var descEl = document.getElementById('armyDesc');
+    var suggestEl = document.getElementById('armySuggest');
     var qtyInput = document.getElementById('armyQty');
+    var totalHave = {{ $totalHave }};
+    var canHold = {{ $canHold }};
 
     // Qty stepper
     document.getElementById('armyQtyMinus').addEventListener('click', function() {
@@ -281,6 +286,52 @@ function toggleTrainQueue(e) {
         });
     }
 
+    function calcSuggestion(card) {
+        var maxTrain = parseInt(card.dataset.maxTrain, 10);
+        var have = parseInt(card.dataset.have, 10);
+        var soldierIdx = parseInt(card.dataset.soldier, 10);
+        var roomCap = Math.min(maxTrain, Math.max(canHold, 0));
+
+        if (maxTrain <= 0) return { qty: 0, reason: 'cannot train' };
+        if (roomCap <= 0) return { qty: 0, reason: 'at capacity' };
+
+        // Trained peasants (7): free, weak
+        if (soldierIdx === 7) {
+            if (totalHave === 0) return { qty: Math.min(10, roomCap), reason: 'bootstrap your army' };
+            return { qty: Math.min(5, roomCap), reason: 'cheap filler' };
+        }
+
+        // Catapults (5): expensive resources, limited by town centers
+        if (soldierIdx === 5) {
+            return { qty: Math.min(3, roomCap), reason: 'siege power' };
+        }
+
+        // Thieves (8): expensive gold, limited by town centers
+        if (soldierIdx === 8) {
+            return { qty: Math.min(3, roomCap), reason: 'covert ops' };
+        }
+
+        // Combat units (1=archer, 2=swordsman, 3=horseman, 6=macemen, 9=unique)
+        var growth = Math.max(5, Math.ceil(have * 0.25));
+        var ratio = totalHave > 0 ? have / totalHave : 0;
+        var reason = '';
+
+        if (have === 0) {
+            growth = Math.min(10, roomCap);
+            reason = 'diversify army';
+        } else if (ratio < 0.1 && totalHave > 20) {
+            growth = Math.max(growth, Math.ceil(totalHave * 0.1));
+            reason = 'underrepresented (' + Math.round(ratio * 100) + '%)';
+        } else {
+            reason = 'steady growth';
+        }
+
+        if (soldierIdx === 9) reason = 'elite unit';
+        else if (soldierIdx === 3 && reason === 'steady growth') reason = 'cavalry power';
+
+        return { qty: Math.min(growth, roomCap), reason: reason };
+    }
+
     function updatePanel(card) {
         var maxTrain = parseInt(card.dataset.maxTrain, 10);
         var have = parseInt(card.dataset.have, 10);
@@ -292,6 +343,22 @@ function toggleTrainQueue(e) {
             + (own !== have ? ' (' + own.toLocaleString() + ' home)' : '');
         descEl.textContent = 'Needs: ' + needed + ' \u00b7 Trains in ' + turns + ' turn' + (turns != 1 ? 's' : '');
         descEl.style.display = needed ? '' : 'none';
+
+        // Suggestion chip
+        var s = calcSuggestion(card);
+        if (s.qty > 0) {
+            suggestEl.style.display = '';
+            var chipClass = maxTrain > 0 ? 'army-suggest-chip' : 'army-suggest-chip army-suggest-chip-disabled';
+            suggestEl.innerHTML = 'Suggested: <span class="' + chipClass + '" title="' + (maxTrain > 0 ? 'Click to set qty' : 'Not enough resources') + '">'
+                + s.qty.toLocaleString() + '</span> <span class="army-suggest-reason">(' + s.reason + ')</span>';
+            if (maxTrain > 0) {
+                suggestEl.querySelector('.army-suggest-chip').addEventListener('click', function() {
+                    qtyInput.value = s.qty;
+                });
+            }
+        } else {
+            suggestEl.style.display = 'none';
+        }
 
         qtyInput.value = 1;
     }

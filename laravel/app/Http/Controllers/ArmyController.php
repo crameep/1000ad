@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ReturnsJson;
+use App\Models\AttackNews;
 use App\Models\AttackQueue;
 use App\Models\TrainQueue;
 use App\Services\GameAdvisorService;
@@ -283,9 +284,16 @@ class ArmyController extends Controller
             ];
         }
 
+        // Recent battles where player was defender (for battle-analysis tips)
+        $recentDefenses = AttackNews::where('defense_id', $player->id)
+            ->where('deleted', 0)
+            ->orderByDesc('created_on')
+            ->limit(5)
+            ->get();
+
         // Advisor tips
         $advisorTips = $this->advisorService->getArmyTips(
-            $player, $armyData, $trainQueue, $maxSoldiers, $totalHave, $canTrain, $attackPower, $defensePower
+            $player, $armyData, $trainQueue, $maxSoldiers, $totalHave, $canTrain, $attackPower, $defensePower, $recentDefenses
         );
 
         return view('pages.army', compact(

@@ -46,6 +46,7 @@
     </div>
 </div>
 <script>
+var Prefs = (window.Game && Game.Prefs) || { get: function() { return arguments[1]; }, set: function() {} };
 function toggleBuildQueue(e) {
     var list = document.getElementById('buildQueueList');
     var arrow = document.getElementById('bqToggleArrow');

@@ -389,7 +389,7 @@ class GameAdvisorService
      *
      * @return array<array{type: string, message: string}>
      */
-    public function getArmyTips(Player $player, array $armyData, $trainQueue, int $maxSoldiers, int $totalHave, int $canTrain, int $attackPower, int $defensePower): array
+    public function getArmyTips(Player $player, array $armyData, $trainQueue, int $maxSoldiers, int $totalHave, int $canTrain, int $attackPower, int $defensePower, $recentDefenses = null): array
     {
         $tips = [];
         $soldiers = $this->gameData->getSoldiers($player->civ);
@@ -404,6 +404,12 @@ class GameAdvisorService
         // Massive army loss: few soldiers but many forts
         if ($totalHave > 0 && $totalHave < 10 && $player->turn > 50 && $player->fort > 5) {
             $tips[] = ['type' => 'danger', 'message' => "Your army is nearly wiped out — only {$totalHave} soldiers remain with {$player->fort} forts. Fill your training queue immediately!"];
+        }
+
+        // ===== BATTLE ANALYSIS =====
+        if ($recentDefenses && $recentDefenses->isNotEmpty()) {
+            $battleTips = $this->analyzeBattleTips($player, $recentDefenses, $soldiers);
+            $tips = array_merge($tips, $battleTips);
         }
 
         // ===== EARLY GAME GUIDANCE =====
@@ -508,6 +514,91 @@ class GameAdvisorService
         }
 
         return array_slice($tips, 0, 4);
+    }
+
+    /**
+     * Analyze recent battles where the player was defender and generate tips.
+     */
+    private function analyzeBattleTips(Player $player, $recentDefenses, array $soldiers): array
+    {
+        $tips = [];
+
+        $losses = $recentDefenses->where('attacker_wins', 1);
+        $wins = $recentDefenses->where('attacker_wins', 0);
+
+        // Repeat attacker check
+        $attackerCounts = $recentDefenses->groupBy('attack_id');
+        foreach ($attackerCounts as $attackerId => $attacks) {
+            if ($attacks->count() >= 2) {
+                $name = $attacks->first()->attacker->name ?? 'Unknown';
+                $tips[] = ['type' => 'danger', 'message' => "Empire \"{$name}\" has attacked you {$attacks->count()} times recently. Bolster your defenses!"];
+                break;
+            }
+        }
+
+        if ($losses->isNotEmpty()) {
+            $lastLoss = $losses->first();
+
+            // Summarize attacker's army composition (top 3 unit types by count)
+            $enemyArmy = [];
+            if ($lastLoss->attack_swordsman > 0) $enemyArmy['swordsmen'] = $lastLoss->attack_swordsman;
+            if ($lastLoss->attack_archers > 0) $enemyArmy['archers'] = $lastLoss->attack_archers;
+            if ($lastLoss->attack_horseman > 0) $enemyArmy['horsemen'] = $lastLoss->attack_horseman;
+            if ($lastLoss->attack_catapults > 0) $enemyArmy['catapults'] = $lastLoss->attack_catapults;
+            if ($lastLoss->attack_macemen > 0) $enemyArmy['macemen'] = $lastLoss->attack_macemen;
+            if ($lastLoss->attack_thieves > 0) $enemyArmy['thieves'] = $lastLoss->attack_thieves;
+            if ($lastLoss->attack_uunit > 0) $enemyArmy['elite'] = $lastLoss->attack_uunit;
+            if ($lastLoss->attack_peasants > 0) $enemyArmy['peasants'] = $lastLoss->attack_peasants;
+
+            arsort($enemyArmy);
+            $summary = [];
+            foreach (array_slice($enemyArmy, 0, 3, true) as $type => $count) {
+                $summary[] = number_format($count) . ' ' . $type;
+            }
+            $armySummary = implode(', ', $summary);
+            $tips[] = ['type' => 'danger', 'message' => "You lost a recent battle! The attacker sent {$armySummary}. Strengthen your defense."];
+
+            // Counter-suggestion based on dominant enemy unit type
+            $enemyUnits = [
+                'swordsman' => $lastLoss->attack_swordsman,
+                'archers' => $lastLoss->attack_archers,
+                'horseman' => $lastLoss->attack_horseman,
+                'catapults' => $lastLoss->attack_catapults,
+                'macemen' => $lastLoss->attack_macemen,
+            ];
+            arsort($enemyUnits);
+            $dominant = key($enemyUnits);
+
+            $counters = [
+                'swordsman' => 'Archers have the highest defense (12 DEF). Train archers and build towers to counter sword attacks.',
+                'archers' => 'Horsemen are fast strikers that can overwhelm archer-heavy attackers. Train horsemen.',
+                'horseman' => 'Macemen and strong walls can blunt cavalry charges. Train macemen and upgrade your wall.',
+                'catapults' => 'Catapults are devastating but slow to train. Build more towers and forts for passive defense.',
+                'macemen' => 'Swordsmen and archers together provide balanced defense against macemen.',
+            ];
+
+            if (isset($counters[$dominant])) {
+                $tips[] = ['type' => 'warning', 'message' => "Enemy relied on <b>{$dominant}</b>. " . $counters[$dominant]];
+            }
+
+            // Strength gap from battle_details
+            if ($lastLoss->battle_details) {
+                if (preg_match('/Attack Strength:\s*([\d,]+)\s*\|\s*Defense Strength:\s*([\d,]+)/', $lastLoss->battle_details, $m)) {
+                    $atkStr = (int) str_replace(',', '', $m[1]);
+                    $defStr = (int) str_replace(',', '', $m[2]);
+                    if ($atkStr > $defStr * 2) {
+                        $tips[] = ['type' => 'warning', 'message' => "Your defense (" . number_format($defStr) . ") was overwhelmed by attack strength of " . number_format($atkStr) . ". You need at least double your current army."];
+                    }
+                }
+            }
+        }
+
+        // Won all recent defenses
+        if ($wins->isNotEmpty() && $losses->isEmpty()) {
+            $tips[] = ['type' => 'success', 'message' => "You've defended successfully in recent battles. Keep building your army to maintain the edge."];
+        }
+
+        return array_slice($tips, 0, 3);
     }
 
     /**

@@ -2380,12 +2380,12 @@ button.explore-btn {
     font-size: var(--font-size-small);
     color: var(--text-secondary);
 }
-.build-action-suggest {
+.build-action-suggest, .army-action-suggest {
     font-size: var(--font-size-small);
     color: var(--text-secondary);
     white-space: nowrap;
 }
-.build-suggest-chip {
+.build-suggest-chip, .army-suggest-chip {
     display: inline-block;
     background: linear-gradient(180deg, #3d3226 0%, #2a2218 100%);
     color: var(--border-accent);
@@ -2398,19 +2398,19 @@ button.explore-btn {
     cursor: pointer;
     transition: background 0.15s, box-shadow 0.15s;
 }
-.build-suggest-chip:hover {
+.build-suggest-chip:hover, .army-suggest-chip:hover {
     box-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
     background: linear-gradient(180deg, #4d4230 0%, #3d3226 100%);
 }
-.build-suggest-chip-disabled {
+.build-suggest-chip-disabled, .army-suggest-chip-disabled {
     opacity: 0.5;
     cursor: default;
 }
-.build-suggest-chip-disabled:hover {
+.build-suggest-chip-disabled:hover, .army-suggest-chip-disabled:hover {
     box-shadow: none;
     background: linear-gradient(180deg, #3d3226 0%, #2a2218 100%);
 }
-.build-suggest-reason {
+.build-suggest-reason, .army-suggest-reason {
     color: var(--text-muted);
     font-size: var(--font-size-xs);
     font-style: italic;

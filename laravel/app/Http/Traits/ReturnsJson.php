@@ -59,6 +59,11 @@ trait ReturnsJson
             + ($player->mage_tower * $buildings[15]['sq'])
             + ($player->winery * $buildings[16]['sq']);
 
+        // Compute game date from turn number
+        $month = ($player->turn % 12) + 1;
+        $year = intdiv($player->turn, 12) + 1000;
+        $gameDate = date('F', mktime(0, 0, 0, $month, 1)) . ' ' . $year;
+
         return [
             'score' => $player->score,
             'gold' => $player->gold,
@@ -79,6 +84,7 @@ trait ReturnsJson
             'free_fland' => $player->fland - $usedF,
             'free_pland' => $player->pland - $usedP,
             'turns_free' => $player->turns_free,
+            'game_date' => $gameDate,
         ];
     }
 }

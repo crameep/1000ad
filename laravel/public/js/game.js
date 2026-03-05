@@ -128,9 +128,13 @@
                     }
                 }
 
-                // Update turn count
+                // Update turn count and game date
                 if (json.state && json.state.turns_free !== undefined) {
                     TurnTimer.setTurns(json.state.turns_free);
+                }
+                if (json.state && json.state.game_date) {
+                    var dateEl = document.querySelector('.game-date');
+                    if (dateEl) dateEl.textContent = json.state.game_date;
                 }
 
                 // Trigger sound hook
