@@ -2342,6 +2342,7 @@ button.explore-btn {
 
 /* === Action panel — appears below grid when a card is selected === */
 .build-action-panel {
+    grid-column: 1 / -1;
     background: var(--bg-header);
     border: 1px solid var(--border-accent);
     border-radius: var(--radius-lg);

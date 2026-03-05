@@ -68,6 +68,39 @@
                 </div>
             </div>
         @endforeach
+
+        {{-- Action panel — lives inside grid, moves below selected card via JS --}}
+        <div class="build-action-panel" id="buildActionPanel" style="display:none;">
+            <div class="build-action-header">
+                <img src="" alt="" class="build-action-icon" id="actionIcon">
+                <div class="build-action-title">
+                    <span id="actionName"></span>
+                    <span class="build-action-have" id="actionHave"></span>
+                </div>
+            </div>
+            <div class="build-action-afford" id="buildAfford"></div>
+            <div class="build-action-row">
+                <form action="{{ route('game.build.submit') }}" method="POST" id="buildForm" class="build-action-form">
+                    @csrf
+                    <input type="hidden" name="building_no" id="buildBuildingNo" value="0">
+                    <label for="buildQty" class="build-qty-label">Qty:</label>
+                    <div class="build-qty-stepper">
+                        <button type="button" class="build-qty-btn" id="qtyMinus">&minus;</button>
+                        <input type="number" name="qty" id="buildQty" value="1" min="1" max="10000000" class="build-qty-input">
+                        <button type="button" class="build-qty-btn" id="qtyPlus">+</button>
+                    </div>
+                    <button type="button" class="build-max-btn" id="buildHalfBtn" title="Set to half of max">&frac12;</button>
+                    <button type="button" class="build-max-btn" id="buildMaxBtn" title="Set to max you can build">Max</button>
+                    <button type="submit" class="build-go-btn">Build</button>
+                </form>
+                <form action="{{ route('game.build.demolish') }}" method="POST" id="demolishForm" class="build-demolish-form">
+                    @csrf
+                    <input type="hidden" name="building_no" id="demolishBuildingNo" value="0">
+                    <input type="hidden" name="qty" id="demolishQty" value="1">
+                    <button type="submit" class="build-demolish-btn">Demolish</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="build-status-bar">
@@ -77,39 +110,6 @@
     </div>
 
     <div class="build-legend">W = Wood, I = Iron, G = Gold, P = Plains, F = Forest, M = Mountains</div>
-
-    {{-- Action panel — appears when a building is selected --}}
-    <div class="build-action-panel" id="buildActionPanel" style="display:none;">
-        <div class="build-action-header">
-            <img src="" alt="" class="build-action-icon" id="actionIcon">
-            <div class="build-action-title">
-                <span id="actionName"></span>
-                <span class="build-action-have" id="actionHave"></span>
-            </div>
-        </div>
-        <div class="build-action-afford" id="buildAfford"></div>
-        <div class="build-action-row">
-            <form action="{{ route('game.build.submit') }}" method="POST" id="buildForm" class="build-action-form">
-                @csrf
-                <input type="hidden" name="building_no" id="buildBuildingNo" value="0">
-                <label for="buildQty" class="build-qty-label">Qty:</label>
-                <div class="build-qty-stepper">
-                    <button type="button" class="build-qty-btn" id="qtyMinus">&minus;</button>
-                    <input type="number" name="qty" id="buildQty" value="1" min="1" max="10000000" class="build-qty-input">
-                    <button type="button" class="build-qty-btn" id="qtyPlus">+</button>
-                </div>
-                <button type="button" class="build-max-btn" id="buildHalfBtn" title="Set to half of max">&frac12;</button>
-                <button type="button" class="build-max-btn" id="buildMaxBtn" title="Set to max you can build">Max</button>
-                <button type="submit" class="build-go-btn">Build</button>
-            </form>
-            <form action="{{ route('game.build.demolish') }}" method="POST" id="demolishForm" class="build-demolish-form">
-                @csrf
-                <input type="hidden" name="building_no" id="demolishBuildingNo" value="0">
-                <input type="hidden" name="qty" id="demolishQty" value="1">
-                <button type="submit" class="build-demolish-btn">Demolish</button>
-            </form>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -192,8 +192,14 @@
             actionName.style.color = card.querySelector('.build-card-name').style.color;
             actionHave.textContent = '(Have: ' + parseInt(card.dataset.have, 10).toLocaleString() + ')';
 
-            // Show the panel
+            // Move panel right after selected card inside the grid, then show
+            card.insertAdjacentElement('afterend', panel);
             panel.style.display = '';
+
+            // Scroll panel into view smoothly
+            setTimeout(function() {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
 
             updateAfford(card);
         });
