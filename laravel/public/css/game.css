@@ -825,9 +825,153 @@ td.header, th {
     gap: 12px;
     flex-wrap: wrap;
 }
-.status-card {
+.status-panel {
     flex: 1;
-    min-width: 180px;
+    min-width: 120px;
+}
+
+/* Capacity bar inside status panels */
+.status-capacity {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.status-capacity .progress-ind {
+    gap: 4px;
+}
+.status-capacity .progress-ind-label {
+    display: none;
+}
+.status-capacity .progress-ind-pct {
+    font-size: 9px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+/* Resource / army rows */
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(58, 48, 40, 0.3);
+}
+.status-row:last-child {
+    border-bottom: none;
+}
+.status-row-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+.status-row-icon-placeholder {
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+.status-row-name {
+    flex: 1;
+    font-size: var(--font-size-small);
+    color: var(--text-primary);
+}
+.status-row-value {
+    font-weight: bold;
+    font-size: var(--font-size-small);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+}
+
+/* Total / footer rows */
+.status-row--total {
+    background: var(--bg-header);
+    margin: 6px -12px 0;
+    padding: 5px 12px;
+    border-bottom: 1px solid var(--border-accent);
+}
+.status-row--total .status-row-name {
+    font-weight: bold;
+    color: var(--border-accent);
+    font-family: var(--font-title);
+}
+.status-row--total .status-row-value {
+    color: var(--border-accent);
+}
+.status-row--footer {
+    margin: 0 -12px;
+    padding: 4px 12px;
+    border-bottom: none;
+}
+.status-row--footer .status-row-name {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Progress bar fill variants */
+.progress-ind-fill--army {
+    background: linear-gradient(90deg, #8a3a2a, #cc5533);
+}
+.progress-ind-fill--housing {
+    background: linear-gradient(90deg, #2a6a3a, #4aaa5a);
+}
+
+/* Monthly Summary grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.summary-card {
+    background: rgba(26, 21, 16, 0.5);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.summary-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.summary-card-title {
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: var(--font-size-small);
+    color: var(--border-accent);
+    flex: 1;
+}
+.summary-card-net {
+    font-weight: bold;
+    font-size: var(--font-size-small);
+    font-variant-numeric: tabular-nums;
+}
+.summary-card-body {
+    padding: 4px 10px;
+}
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: var(--font-size-small);
+    border-bottom: 1px solid rgba(58, 48, 40, 0.2);
+}
+.summary-line:last-child {
+    border-bottom: none;
+}
+.summary-line span:first-child {
+    color: var(--text-secondary);
+}
+.summary-line span:last-child {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+    text-align: right;
 }
 
 /* Tab bar (for messages) */
@@ -1262,8 +1406,24 @@ td.header, th {
     .status-grid {
         flex-direction: column;
     }
-    .status-card {
+    .status-panel {
         min-width: 100%;
+    }
+
+    /* Summary cards stack on mobile */
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .status-row--total {
+        margin: 6px -10px 0;
+        padding: 5px 10px;
+    }
+    .status-row--footer {
+        margin: 0 -10px;
+        padding: 4px 10px;
+    }
+    .summary-card-net {
+        font-size: var(--font-size-xs);
     }
 
     /* Form panels full width */

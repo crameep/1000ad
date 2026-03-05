@@ -225,6 +225,7 @@ class StatusController extends Controller
             + $maceIronConsumption + $buyIron + $catapultIron + $wallIronConsumption;
 
         return view('pages.status', compact(
+            'soldiers',
             'totalGoods', 'warehouseSpace', 'extraSpace',
             'totalArmy', 'maxArmy', 'armyFreeSpace',
             'houseSpace', 'peopleFreeSpace', 'uunitName',
