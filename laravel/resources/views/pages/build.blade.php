@@ -48,7 +48,7 @@
                         @if($b['allow_off'])
                             <span class="build-card-status-wrap" onclick="event.stopPropagation()">
                                 <span class="build-card-status-label">Prod:</span>
-                                <select class="build-card-status" data-column="{{ $b['db_column'] }}_status" autocomplete="off" title="Production rate — how much of this building's capacity to use">
+                                <select class="build-card-status" data-column="{{ $b['db_column'] }}_status" data-server-value="{{ $stats['status'] }}" autocomplete="off" title="Production rate — how much of this building's capacity to use">
                                     @for($s = 0; $s <= 10; $s++)
                                         @php $sIndex = $s * 10; @endphp
                                         <option value="{{ $sIndex }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }}%</option>
@@ -120,6 +120,7 @@
     // Economy data from controller (per-turn net production)
     var economy = @json($economy);
     var popDeficit = {{ $popDeficit }};
+    var peopleEatOneFood = {{ $peopleEatOneFood }};
 
     var panel = document.getElementById('buildActionPanel');
     var infoEl = document.getElementById('buildInfo');
@@ -208,6 +209,58 @@
         return Math.max(canBuild, 0);
     }
 
+    // Calculate how many buildings we can add before any resource goes into deficit.
+    // Each building adds workers who eat food. Resource producers add to their resource.
+    // Gold consumers (winery, mage tower) drain gold. Tool maker drains wood+iron.
+    function safeMax(bid, workersPerB, prodPerB, resKey) {
+        var foodPerWorker = peopleEatOneFood > 0 ? 1 / peopleEatOneFood : 0;
+        var foodCostPerBuilding = workersPerB * foodPerWorker;
+        var caps = [];
+
+        // Food cap: each building's workers eat food (unless it produces food)
+        var foodSurplus = economy.food || 0;
+        if (resKey === 'food' && prodPerB > 0) {
+            // Net food per building = production - worker consumption
+            var netFoodPerB = prodPerB - foodCostPerBuilding;
+            if (netFoodPerB < 0 && foodSurplus > 0) {
+                caps.push(Math.floor(foodSurplus / Math.abs(netFoodPerB)));
+            }
+            // If net positive, food isn't the constraint
+        } else if (foodCostPerBuilding > 0 && foodSurplus > 0) {
+            // Non-food building: workers only consume food
+            caps.push(Math.floor(foodSurplus / foodCostPerBuilding));
+        }
+
+        // Gold cap for gold-consuming buildings (winery=16, mage tower=15)
+        if (bid === 15 || bid === 16) {
+            var goldCost = buildingExtra[bid] ? buildingExtra[bid].goldNeed || 0 : 0;
+            var goldSurplus = economy.gold || 0;
+            if (goldCost > 0 && goldSurplus > 0) {
+                // Net gold drain per building = goldCost - 0 (these don't produce gold)
+                caps.push(Math.floor(goldSurplus / goldCost));
+            }
+        }
+
+        // Tool maker (bid=7) consumes wood + iron
+        if (bid === 7) {
+            var tmWood = buildingExtra[7] ? buildingExtra[7].woodNeed || 0 : 0;
+            var tmIron = buildingExtra[7] ? buildingExtra[7].ironNeed || 0 : 0;
+            if (tmWood > 0 && (economy.wood || 0) > 0) caps.push(Math.floor(economy.wood / tmWood));
+            if (tmIron > 0 && (economy.iron || 0) > 0) caps.push(Math.floor(economy.iron / tmIron));
+        }
+
+        // Stable (bid=14) consumes food
+        if (bid === 14) {
+            var stableFood = buildingExtra[14] ? buildingExtra[14].foodNeed || 0 : 0;
+            if (stableFood > 0 && foodSurplus > 0) {
+                // Total food cost per stable = worker food + stable food consumption
+                caps.push(Math.floor(foodSurplus / (foodCostPerBuilding + stableFood)));
+            }
+        }
+
+        return caps.length > 0 ? Math.min.apply(null, caps) : Infinity;
+    }
+
     function calcSuggestion(card) {
         var bid = parseInt(card.dataset.building, 10);
         var max = calcMaxBuild(card);
@@ -219,49 +272,62 @@
         // Scale suggestions with empire size: ~25% of current count, min 5
         var growth = Math.max(5, Math.ceil(have * 0.25));
 
-        // Housing buildings (house=4, town_center=11)
-        if (bid === 4 || bid === 11) {
-            var hQty = popDeficit <= 0 ? growth : Math.max(growth, Math.ceil(Math.abs(popDeficit) / 100));
-            var hReason = popDeficit <= 0 ? 'grow population' : 'housing needed';
-            return { qty: max > 0 ? Math.min(hQty, max) : hQty, reason: hReason };
-        }
-
-        // Resource-producing buildings — check economy deficits
+        // Resource key for this building's production
         var resKey = null;
         if (prodName.indexOf('food') >= 0) resKey = 'food';
         else if (prodName.indexOf('wood') >= 0) resKey = 'wood';
         else if (prodName.indexOf('iron') >= 0) resKey = 'iron';
         else if (prodName.indexOf('gold') >= 0) resKey = 'gold';
 
-        // Gold-consuming buildings (mage tower=15, winery=16) — suggest based on gold surplus
+        // Cap: max we can build without causing any deficit
+        var safe = safeMax(bid, workersPerB, prodPerB, resKey);
+
+        // Housing buildings (house=4, town_center=11) — no workers, no deficit risk
+        if (bid === 4 || bid === 11) {
+            var hQty = popDeficit <= 0 ? growth : Math.max(growth, Math.ceil(Math.abs(popDeficit) / 100));
+            var hReason = popDeficit <= 0 ? 'grow population' : 'housing needed';
+            return { qty: max > 0 ? Math.min(hQty, max) : hQty, reason: hReason };
+        }
+
+        // Gold-consuming buildings (mage tower=15, winery=16)
         if (bid === 15 || bid === 16) {
             var goldNet = economy.gold || 0;
-            var gQty = goldNet > 0 ? growth : Math.max(2, Math.ceil(growth * 0.5));
+            var gQty = goldNet > 0 ? Math.min(growth, safe) : Math.max(2, Math.ceil(growth * 0.5));
+            if (goldNet <= 0) gQty = Math.min(gQty, 2); // minimal when gold negative
             var gReason = goldNet > 0 ? 'gold surplus (+' + goldNet.toLocaleString() + '/turn)' : 'gold deficit (' + goldNet.toLocaleString() + '/turn)';
             return { qty: max > 0 ? Math.min(gQty, max) : gQty, reason: gReason };
         }
 
+        // Resource-producing buildings
         if (resKey && prodPerB > 0) {
             var net = economy[resKey] || 0;
             if (net < 0) {
-                // Deficit — cover the shortfall + 50% buffer for growth
+                // Deficit — suggest enough to fix it, but don't cause other deficits
                 var needed = Math.ceil(Math.abs(net) / prodPerB * 1.5);
                 needed = Math.max(needed, growth);
+                if (safe < Infinity && safe > 0) needed = Math.min(needed, safe);
                 return { qty: max > 0 ? Math.min(needed, max) : needed, reason: resKey + ' deficit (' + net.toLocaleString() + '/turn)' };
             } else {
-                // Surplus — grow proportionally
-                return { qty: max > 0 ? Math.min(growth, max) : growth, reason: resKey + ' surplus (+' + net.toLocaleString() + '/turn)' };
+                // Surplus — grow but respect deficit caps
+                var qty = growth;
+                if (safe < Infinity) qty = Math.min(qty, Math.max(1, safe));
+                var reason = resKey + ' surplus (+' + net.toLocaleString() + '/turn)';
+                if (safe < growth && safe < Infinity) reason += ', food-limited';
+                return { qty: max > 0 ? Math.min(qty, max) : qty, reason: reason };
             }
         }
 
-        // Worker-based: if we have free people, fill them
+        // Worker-based: fill free workforce, but cap by food
         if (freePeople > 0 && workersPerB > 0) {
             var fillWorkers = Math.floor(freePeople / workersPerB);
+            if (safe < Infinity) fillWorkers = Math.min(fillWorkers, safe);
             if (fillWorkers > 0) return { qty: max > 0 ? Math.min(fillWorkers, max) : fillWorkers, reason: 'fills free workforce' };
         }
 
-        // Default — scale with current count
-        return { qty: max > 0 ? Math.min(growth, max) : growth, reason: 'steady growth' };
+        // Default — scale with current count, respect food cap
+        var defQty = growth;
+        if (safe < Infinity) defQty = Math.min(defQty, Math.max(1, safe));
+        return { qty: max > 0 ? Math.min(defQty, max) : defQty, reason: 'steady growth' };
     }
 
     function updatePanel(card) {
@@ -368,11 +434,7 @@
     }
 
     // AJAX status updates — save immediately on dropdown change
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-    var statusUrl = '{{ route("game.build.status") }}';
-
     document.querySelectorAll('.build-card-status').forEach(function(sel) {
-        // Track saved value for revert on failure
         sel.dataset.savedValue = sel.value;
 
         sel.addEventListener('change', function() {
@@ -384,45 +446,40 @@
 
             // Instantly recalculate production stats on the card
             recalcCardStats(card, value);
-
-            // Brief visual feedback
             selectEl.style.borderColor = 'var(--border-accent)';
 
-            fetch(statusUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ column: column, value: value })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    selectEl.dataset.savedValue = value;
-                    selectEl.style.borderColor = 'var(--text-success)';
-                    setTimeout(function() { selectEl.style.borderColor = ''; }, 800);
-                } else {
-                    // Revert to last saved value
+            Game.Ajax.post('/game/build/status', { column: column, value: value }, { silent: true })
+                .then(function(data) {
+                    if (data.success) {
+                        selectEl.dataset.savedValue = value;
+                        selectEl.dataset.serverValue = value;
+                        selectEl.style.borderColor = 'var(--text-success)';
+                        setTimeout(function() { selectEl.style.borderColor = ''; }, 800);
+                    } else {
+                        selectEl.value = savedValue;
+                        recalcCardStats(card, parseInt(savedValue, 10));
+                        selectEl.style.borderColor = 'var(--text-error)';
+                        setTimeout(function() { selectEl.style.borderColor = ''; }, 3000);
+                    }
+                })
+                .catch(function() {
                     selectEl.value = savedValue;
                     recalcCardStats(card, parseInt(savedValue, 10));
                     selectEl.style.borderColor = 'var(--text-error)';
-                    setTimeout(function() { selectEl.style.borderColor = ''; }, 2000);
-                    if (window.Game && Game.toast) Game.toast('Failed to save status', 'error');
-                }
-            })
-            .catch(function() {
-                // Revert to last saved value
-                selectEl.value = savedValue;
-                recalcCardStats(card, parseInt(savedValue, 10));
-                selectEl.style.borderColor = 'var(--text-error)';
-                setTimeout(function() { selectEl.style.borderColor = ''; }, 2000);
-                if (window.Game && Game.toast) Game.toast('Failed to save status', 'error');
-            });
+                    setTimeout(function() { selectEl.style.borderColor = ''; }, 3000);
+                });
         });
     });
 })();
+
+// Fix Android Chrome form state restoration: force selects to server values
+// Chrome restores form values after DOMContentLoaded, so we use a delayed reset
+setTimeout(function() {
+    document.querySelectorAll('.build-card-status[data-server-value]').forEach(function(sel) {
+        var sv = sel.dataset.serverValue;
+        if (sel.value !== sv) { sel.value = sv; }
+    });
+}, 0);
 </script>
 
 {{-- Build Queue --}}

@@ -267,7 +267,8 @@ class BuildingController extends Controller
             'freePlains',
             'advisorTips',
             'economy',
-            'popDeficit'
+            'popDeficit',
+            'peopleEatOneFood'
         ));
     }
 
