@@ -2275,6 +2275,16 @@ button.explore-btn {
 .build-card-cost span {
     margin-right: 3px;
 }
+.build-card-status-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+.build-card-status-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
 .build-card-status {
     background: var(--bg-input);
     border: 1px solid var(--border-color);
@@ -2284,6 +2294,7 @@ button.explore-btn {
     padding: 1px 2px;
     cursor: pointer;
     flex-shrink: 0;
+    transition: border-color 0.3s;
 }
 
 /* Row 3: Production / Consumption / Workers */
@@ -2318,19 +2329,6 @@ button.explore-btn {
 .build-totals {
     font-size: var(--font-size-small);
     color: var(--text-secondary);
-}
-.build-status-btn {
-    background: var(--bg-button);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 4px 14px;
-    font-size: var(--font-size-small);
-    cursor: pointer;
-}
-.build-status-btn:hover {
-    background: var(--bg-button-hover);
-    border-color: var(--border-accent);
 }
 
 /* Legend */

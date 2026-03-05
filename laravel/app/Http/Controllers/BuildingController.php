@@ -108,44 +108,48 @@ class BuildingController extends Controller
             $workers = $bWorking * $b['workers'];
             $totalWorkers += $workers;
 
-            // Calculate production
+            // Calculate production (only when buildings are working)
             $production = '';
-            if ($i == 8) {
-                // Weaponsmith - special production
-                $bowProduction = round(($player->bow_weapon_smith ?? 0) * ($status / 100));
-                $swordProduction = round(($player->sword_weapon_smith ?? 0) * ($status / 100));
-                $maceProduction = round(($player->mace_weapon_smith ?? 0) * ($status / 100));
-                $production = number_format($swordProduction) . ' swords, '
-                    . number_format($bowProduction) . ' bows, '
-                    . number_format($maceProduction) . ' maces';
-            } elseif (!empty($b['production_name'])) {
-                $prod = $bWorking * ($b['production'] ?? 0);
-                $production = number_format($prod) . ' ' . $b['production_name'];
+            if ($bWorking > 0) {
+                if ($i == 8) {
+                    // Weaponsmith - special production
+                    $bowProduction = round(($player->bow_weapon_smith ?? 0) * ($status / 100));
+                    $swordProduction = round(($player->sword_weapon_smith ?? 0) * ($status / 100));
+                    $maceProduction = round(($player->mace_weapon_smith ?? 0) * ($status / 100));
+                    $production = number_format($swordProduction) . ' swords, '
+                        . number_format($bowProduction) . ' bows, '
+                        . number_format($maceProduction) . ' maces';
+                } elseif (!empty($b['production_name'])) {
+                    $prod = $bWorking * ($b['production'] ?? 0);
+                    $production = number_format($prod) . ' ' . $b['production_name'];
+                }
             }
 
-            // Calculate consumption
+            // Calculate consumption (only when buildings are working)
             $consumption = '';
-            if ($i == 7) {
-                // Tool maker
-                $consumption = number_format($bWorking * ($b['wood_need'] ?? 0)) . ' wood, '
-                    . number_format($bWorking * ($b['iron_need'] ?? 0)) . ' iron';
-            } elseif ($i == 8) {
-                // Weaponsmith
-                $bowProd = round(($player->bow_weapon_smith ?? 0) * ($status / 100));
-                $swordProd = round(($player->sword_weapon_smith ?? 0) * ($status / 100));
-                $maceProd = round(($player->mace_weapon_smith ?? 0) * ($status / 100));
-                $useWood = $bowProd * ($b['wood_need'] ?? 0) + $maceProd * ($b['mace_wood'] ?? 0);
-                $useIron = $swordProd * ($b['iron_need'] ?? 0) + $maceProd * ($b['mace_iron'] ?? 0);
-                $consumption = number_format($useWood) . ' wood, ' . number_format($useIron) . ' iron';
-            } elseif ($i == 14) {
-                // Stable
-                $consumption = number_format($bWorking * ($b['food_need'] ?? 0)) . ' food';
-            } elseif ($i == 15) {
-                // Mage Tower
-                $consumption = number_format($bWorking * ($b['gold_need'] ?? 0)) . ' gold';
-            } elseif ($i == 16) {
-                // Winery
-                $consumption = number_format($bWorking * ($b['gold_need'] ?? 0)) . ' gold';
+            if ($bWorking > 0) {
+                if ($i == 7) {
+                    // Tool maker
+                    $consumption = number_format($bWorking * ($b['wood_need'] ?? 0)) . ' wood, '
+                        . number_format($bWorking * ($b['iron_need'] ?? 0)) . ' iron';
+                } elseif ($i == 8) {
+                    // Weaponsmith
+                    $bowProd = round(($player->bow_weapon_smith ?? 0) * ($status / 100));
+                    $swordProd = round(($player->sword_weapon_smith ?? 0) * ($status / 100));
+                    $maceProd = round(($player->mace_weapon_smith ?? 0) * ($status / 100));
+                    $useWood = $bowProd * ($b['wood_need'] ?? 0) + $maceProd * ($b['mace_wood'] ?? 0);
+                    $useIron = $swordProd * ($b['iron_need'] ?? 0) + $maceProd * ($b['mace_iron'] ?? 0);
+                    $consumption = number_format($useWood) . ' wood, ' . number_format($useIron) . ' iron';
+                } elseif ($i == 14) {
+                    // Stable
+                    $consumption = number_format($bWorking * ($b['food_need'] ?? 0)) . ' food';
+                } elseif ($i == 15) {
+                    // Mage Tower
+                    $consumption = number_format($bWorking * ($b['gold_need'] ?? 0)) . ' gold';
+                } elseif ($i == 16) {
+                    // Winery
+                    $consumption = number_format($bWorking * ($b['gold_need'] ?? 0)) . ' gold';
+                }
             }
 
             $buildingStats[$i] = [
@@ -508,6 +512,36 @@ class BuildingController extends Controller
         $player = player();
         $buildings = session('buildings');
 
+        // Single-building AJAX update: { column: "farmer_status", value: 5 }
+        if ($request->has('column') && $request->has('value')) {
+            $column = $request->input('column');
+            $value = (int) $request->input('value');
+
+            // Validate the column is a real building status column with allow_off
+            $valid = false;
+            foreach ($buildings as $b) {
+                if ($b['allow_off'] && $b['db_column'] . '_status' === $column) {
+                    $valid = true;
+                    break;
+                }
+            }
+
+            if (!$valid) {
+                return $this->jsonError('Invalid building column.');
+            }
+            if ($value < 0 || $value > 100) {
+                return $this->jsonError('Invalid status value.');
+            }
+
+            $player->update([$column => $value]);
+
+            if ($request->expectsJson()) {
+                return $this->jsonSuccess($player, 'Building status updated.');
+            }
+            return redirect()->route('game.build');
+        }
+
+        // Bulk update (legacy form POST)
         $updates = [];
 
         foreach ($buildings as $i => $b) {

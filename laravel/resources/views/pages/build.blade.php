@@ -11,9 +11,6 @@
 
 {{-- Build Section — integrated cards with status, production, workers --}}
 <div class="build-section">
-    <form action="{{ route('game.build.status') }}" method="POST" id="statusForm">
-    @csrf
-
     <div class="build-card-grid">
         @foreach($displayOrder as $i)
             @php
@@ -29,7 +26,11 @@
                  data-gold="{{ $b['cost_gold'] }}"
                  data-sq="{{ $b['sq'] }}"
                  data-land="{{ $b['land'] }}"
-                 data-have="{{ $stats['have'] }}">
+                 data-have="{{ $stats['have'] }}"
+                 data-workers-per="{{ $b['workers'] }}"
+                 data-prod="{{ $b['production'] ?? 0 }}"
+                 data-prod-name="{{ $b['production_name'] ?? '' }}"
+                 data-allow-off="{{ $b['allow_off'] ? 1 : 0 }}">
                 <img src="{{ buildingIcon($b) }}" alt="{{ $b['name'] }}" class="build-card-icon"
                      onerror="this.style.display='none'" onload="this.style.display=''">
                 <div class="build-card-info">
@@ -45,27 +46,25 @@
                             <span>{{ $b['sq'] }}{{ $b['land'] }}</span>
                         </span>
                         @if($b['allow_off'])
-                            <select name="{{ $b['db_column'] }}_status" class="build-card-status" onclick="event.stopPropagation()">
-                                @for($s = 0; $s <= 10; $s++)
-                                    @php $sIndex = $s * 10; @endphp
-                                    <option value="{{ $s }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }}%</option>
-                                @endfor
-                            </select>
+                            <span class="build-card-status-wrap" onclick="event.stopPropagation()">
+                                <span class="build-card-status-label">Prod:</span>
+                                <select class="build-card-status" data-column="{{ $b['db_column'] }}_status" title="Production rate — how much of this building's capacity to use">
+                                    @for($s = 0; $s <= 10; $s++)
+                                        @php $sIndex = $s * 10; @endphp
+                                        <option value="{{ $sIndex }}" @if($sIndex == $stats['status']) selected @endif>{{ $sIndex }}%</option>
+                                    @endfor
+                                </select>
+                            </span>
                         @endif
                     </div>
-                    @if(!empty($stats['production']) || !empty($stats['consumption']) || $stats['workers'] > 0)
-                    <div class="build-card-stats">
-                        @if(!empty($stats['production']))
-                            <span class="build-card-prod">{!! $stats['production'] !!}</span>
-                        @endif
-                        @if(!empty($stats['consumption']))
-                            <span class="build-card-cons">{!! $stats['consumption'] !!}</span>
-                        @endif
-                        @if($stats['workers'] > 0)
-                            <span class="build-card-workers">{{ number_format($stats['workers']) }} workers</span>
-                        @endif
+                    @php
+                        $hasStats = !empty($stats['production']) || !empty($stats['consumption']) || $stats['workers'] > 0;
+                    @endphp
+                    <div class="build-card-stats" {!! $hasStats ? '' : 'style="display:none"' !!}>
+                        <span class="build-card-prod">{!! $stats['production'] ?? '' !!}</span>
+                        <span class="build-card-cons">{!! $stats['consumption'] ?? '' !!}</span>
+                        <span class="build-card-workers">{!! $stats['workers'] > 0 ? number_format($stats['workers']) . ' workers' : '' !!}</span>
                     </div>
-                    @endif
                 </div>
             </div>
         @endforeach
@@ -75,10 +74,7 @@
         <span class="build-totals">
             {{ number_format($totalBuildings) }} buildings &middot; {{ number_format($totalLand) }} land &middot; {{ number_format($totalWorkers) }} workers
         </span>
-        <input type="submit" value="Update Status" class="build-status-btn">
     </div>
-
-    </form>
 
     <div class="build-legend">W = Wood, I = Iron, G = Gold, P = Plains, F = Forest, M = Mountains</div>
 
@@ -224,6 +220,127 @@
     function updateAfford(card) {
         affordEl.textContent = 'You can build up to ' + calcMaxBuild(card).toLocaleString();
     }
+
+    // Building-specific data for consumption calculations
+    var buildingExtra = {
+        7:  { woodNeed: {{ $buildings[7]['wood_need'] ?? 0 }}, ironNeed: {{ $buildings[7]['iron_need'] ?? 0 }} },
+        8:  { bowWS: {{ $player->bow_weapon_smith ?? 0 }}, swordWS: {{ $player->sword_weapon_smith ?? 0 }}, maceWS: {{ $player->mace_weapon_smith ?? 0 }},
+              woodNeed: {{ $buildings[8]['wood_need'] ?? 0 }}, ironNeed: {{ $buildings[8]['iron_need'] ?? 0 }},
+              maceWood: {{ $buildings[8]['mace_wood'] ?? 0 }}, maceIron: {{ $buildings[8]['mace_iron'] ?? 0 }} },
+        14: { foodNeed: {{ $buildings[14]['food_need'] ?? 0 }} },
+        15: { goldNeed: {{ $buildings[15]['gold_need'] ?? 0 }} },
+        16: { goldNeed: {{ $buildings[16]['gold_need'] ?? 0 }} }
+    };
+
+    function recalcCardStats(card, statusPct) {
+        var bid = parseInt(card.dataset.building, 10);
+        var have = parseInt(card.dataset.have, 10);
+        var workersPerB = parseInt(card.dataset.workersPer, 10);
+        var prodPerB = parseInt(card.dataset.prod, 10);
+        var prodName = card.dataset.prodName;
+        var allowOff = card.dataset.allowOff === '1';
+
+        var bWorking = have;
+        if (allowOff) {
+            if (statusPct === 0) { bWorking = 0; }
+            else { bWorking = Math.round(have * (statusPct / 100)); }
+        }
+
+        var workers = bWorking * workersPerB;
+        var production = '';
+        var consumption = '';
+
+        // Production (skip if nothing working)
+        if (bWorking > 0) {
+            if (bid === 8) {
+                var ex = buildingExtra[8];
+                var bowP = Math.round(ex.bowWS * (statusPct / 100));
+                var swordP = Math.round(ex.swordWS * (statusPct / 100));
+                var maceP = Math.round(ex.maceWS * (statusPct / 100));
+                production = swordP.toLocaleString() + ' swords, ' + bowP.toLocaleString() + ' bows, ' + maceP.toLocaleString() + ' maces';
+            } else if (prodName) {
+                production = (bWorking * prodPerB).toLocaleString() + ' ' + prodName;
+            }
+        }
+
+        // Consumption (skip if nothing working)
+        if (bWorking > 0) {
+            if (bid === 7) {
+                var ex7 = buildingExtra[7];
+                consumption = (bWorking * ex7.woodNeed).toLocaleString() + ' wood, ' + (bWorking * ex7.ironNeed).toLocaleString() + ' iron';
+            } else if (bid === 8) {
+                var ex8 = buildingExtra[8];
+                var bowP2 = Math.round(ex8.bowWS * (statusPct / 100));
+                var swordP2 = Math.round(ex8.swordWS * (statusPct / 100));
+                var maceP2 = Math.round(ex8.maceWS * (statusPct / 100));
+                var useWood = bowP2 * ex8.woodNeed + maceP2 * ex8.maceWood;
+                var useIron = swordP2 * ex8.ironNeed + maceP2 * ex8.maceIron;
+                consumption = useWood.toLocaleString() + ' wood, ' + useIron.toLocaleString() + ' iron';
+            } else if (bid === 14) {
+                consumption = (bWorking * buildingExtra[14].foodNeed).toLocaleString() + ' food';
+            } else if (bid === 15) {
+                consumption = (bWorking * buildingExtra[15].goldNeed).toLocaleString() + ' gold';
+            } else if (bid === 16) {
+                consumption = (bWorking * buildingExtra[16].goldNeed).toLocaleString() + ' gold';
+            }
+        }
+
+        // Update the DOM
+        var statsDiv = card.querySelector('.build-card-stats');
+        var prodEl = card.querySelector('.build-card-prod');
+        var consEl = card.querySelector('.build-card-cons');
+        var wkEl = card.querySelector('.build-card-workers');
+
+        prodEl.textContent = production;
+        consEl.textContent = consumption;
+        wkEl.textContent = workers > 0 ? workers.toLocaleString() + ' workers' : '';
+
+        // Show/hide stats row
+        statsDiv.style.display = (production || consumption || workers > 0) ? '' : 'none';
+    }
+
+    // AJAX status updates — save immediately on dropdown change
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    var statusUrl = '{{ route("game.build.status") }}';
+
+    document.querySelectorAll('.build-card-status').forEach(function(sel) {
+        sel.addEventListener('change', function() {
+            var column = this.dataset.column;
+            var value = parseInt(this.value, 10);
+            var selectEl = this;
+            var card = selectEl.closest('.build-card');
+
+            // Instantly recalculate production stats on the card
+            recalcCardStats(card, value);
+
+            // Brief visual feedback
+            selectEl.style.borderColor = 'var(--border-accent)';
+
+            fetch(statusUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ column: column, value: value })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    selectEl.style.borderColor = 'var(--text-success)';
+                    setTimeout(function() { selectEl.style.borderColor = ''; }, 800);
+                } else {
+                    selectEl.style.borderColor = 'var(--text-error)';
+                    setTimeout(function() { selectEl.style.borderColor = ''; }, 1500);
+                }
+            })
+            .catch(function() {
+                selectEl.style.borderColor = 'var(--text-error)';
+                setTimeout(function() { selectEl.style.borderColor = ''; }, 1500);
+            });
+        });
+    });
 })();
 </script>
 
