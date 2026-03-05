@@ -524,7 +524,7 @@
 
         init() {
             var maxBtn = document.getElementById('explore-max');
-            var fiftyBtn = document.getElementById('explore-50');
+            var safeBtn = document.getElementById('explore-safe');
             var horseSelect = document.getElementById('explore-horses');
             var landSelect = document.getElementById('explore-land');
 
@@ -551,11 +551,71 @@
                     QuickExplore.send(9999);
                 });
             }
-            if (fiftyBtn) {
-                fiftyBtn.addEventListener('click', function () {
-                    QuickExplore.send(50);
+            if (safeBtn) {
+                safeBtn.addEventListener('click', function () {
+                    QuickExplore.sendSafe();
                 });
             }
+        },
+
+        /**
+         * Calculate a safe number of explorers that won't starve the empire.
+         * Considers current food, seasonal production, and upcoming cold months.
+         */
+        sendSafe() {
+            var bar = document.getElementById('quick-explore');
+            if (!bar) return;
+
+            var food = parseInt(bar.dataset.food, 10) || 0;
+            var month = parseInt(bar.dataset.month, 10) || 1;
+            var foodPerExplorer = parseInt(bar.dataset.foodPerExplorer, 10) || 1;
+            var netSummer = parseInt(bar.dataset.foodNetSummer, 10) || 0;
+            var netWinter = parseInt(bar.dataset.foodNetWinter, 10) || 0;
+
+            // Account for horse multiplier on trip length
+            var horseSelect = document.getElementById('explore-horses');
+            var withHorses = horseSelect ? parseInt(horseSelect.value, 10) : 0;
+            var tripLength = 6 + (withHorses >= 1 && withHorses <= 3 ? withHorses * 2 : 0);
+
+            // Project food over the trip to find the minimum point
+            var projectedFood = food;
+            var minFood = food;
+            var m = month;
+            for (var i = 0; i < tripLength; i++) {
+                m = (m % 12) + 1;
+                var isCold = (m >= 11 || m <= 3);
+                projectedFood += isCold ? netWinter : netSummer;
+                if (projectedFood < minFood) minFood = projectedFood;
+            }
+
+            // Safety buffer: 3 turns of worst-case consumption
+            var worstNet = Math.min(netSummer, netWinter);
+            var safetyBuffer = worstNet < 0 ? Math.abs(worstNet) * 3 : 0;
+
+            // Available food = current food minus what we need to survive the trip
+            // Use the minimum projected point to gauge how tight things get
+            var foodDeficit = food - minFood; // how much food drops during the trip
+            var availableFood = food - foodDeficit - safetyBuffer;
+            if (availableFood < 0) availableFood = 0;
+
+            var safeQty = Math.floor(availableFood / Math.max(1, foodPerExplorer));
+
+            // Game requires minimum 4 explorers
+            if (safeQty < 4) {
+                Toast.show('Not safe to explore right now \u2014 food reserves too low for the upcoming months.', 'warning', 5000);
+                return;
+            }
+
+            // Cap by people/capacity limits (pre-computed server-side)
+            var maxSend = parseInt(bar.dataset.maxSend, 10) || 0;
+            safeQty = Math.min(safeQty, maxSend);
+
+            if (safeQty < 4) {
+                Toast.show('Not safe to explore right now \u2014 food reserves too low for the upcoming months.', 'warning', 5000);
+                return;
+            }
+
+            this.send(safeQty);
         },
 
         async send(qty) {

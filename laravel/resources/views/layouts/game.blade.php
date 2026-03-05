@@ -123,10 +123,59 @@
     </div>
 
     {{-- Quick explore bar --}}
-    <div class="quick-explore-bar" id="quick-explore">
+    @php
+        // Food economy for safe explore calculation (mirrors StatusController logic)
+        $hunterB = $buildings[2];
+        $farmerB = $buildings[3];
+        $stableB = $buildings[14];
+
+        $hunterProd = round($player->hunter * ($player->hunter_status / 100)) * $hunterB['production'];
+        $hunterProd += round($hunterProd * ($player->research5 / 100));
+
+        $farmerProd = round($player->farmer * ($player->farmer_status / 100)) * $farmerB['production'];
+        $farmerProd += round($farmerProd * ($player->research5 / 100));
+
+        $stableCons = round($player->stable * ($player->stable_status / 100)) * $stableB['food_need'];
+
+        $numSoldiersWeight = $player->swordsman + $player->archers + $player->horseman * 2
+            + $player->macemen + round($player->trained_peasants * 0.1)
+            + $player->thieves * 3 + $player->uunit * 2;
+        $soldierCons = $numSoldiersWeight > 0 ? (int)ceil($numSoldiersWeight / $constants['soldiers_eat_one_food']) : 0;
+
+        $peopleCons = round($player->people / $constants['people_eat_one_food']);
+        switch ($player->food_ratio) {
+            case 1: $peopleCons = round($peopleCons * 1.5); break;
+            case 2: $peopleCons = round($peopleCons * 2.5); break;
+            case 3: $peopleCons = round($peopleCons * 4); break;
+            case -1: $peopleCons = round($peopleCons * 0.75); break;
+            case -2: $peopleCons = round($peopleCons * 0.45); break;
+            case -3: $peopleCons = round($peopleCons * 0.25); break;
+        }
+
+        $foodNetSummer = $hunterProd + $farmerProd - $stableCons - $soldierCons - $peopleCons;
+        $foodNetWinter = $hunterProd - $stableCons - $soldierCons - $peopleCons;
+
+        $totalLand = $player->mland + $player->fland + $player->pland;
+        $foodPerExplorer = $buildings[11]['food_per_explorer'] + (int)ceil($totalLand / $constants['extra_food_per_land']);
+        $currentMonth = ($player->turn % 12) + 1;
+    @endphp
+    @php
+        $maxExplorers = $player->town_center * $buildings[11]['max_explorers'];
+        $activeExplorers = \App\Models\ExploreQueue::where('player_id', $player->id)->where('turn', '>', 0)->sum('people');
+        $canSendExplorers = max(0, $maxExplorers - $activeExplorers);
+        $safePeopleCap = min($canSendExplorers, $player->people - 1);
+        if ($safePeopleCap < 0) $safePeopleCap = 0;
+    @endphp
+    <div class="quick-explore-bar" id="quick-explore"
+         data-food="{{ $player->food }}"
+         data-month="{{ $currentMonth }}"
+         data-food-per-explorer="{{ $foodPerExplorer }}"
+         data-food-net-summer="{{ $foodNetSummer }}"
+         data-food-net-winter="{{ $foodNetWinter }}"
+         data-max-send="{{ $safePeopleCap }}">
         <span class="explore-label">&#129517;</span>
         <button type="button" class="turn-btn explore-btn" id="explore-max">Explore Max</button>
-        <button type="button" class="turn-btn explore-btn" id="explore-50">Explore 50</button>
+        <button type="button" class="turn-btn explore-btn" id="explore-safe">Safe Explore</button>
         <select class="explore-select" id="explore-land" title="Land type to seek">
             <option value="0">All Land</option>
             <option value="1">Mountains</option>
