@@ -484,83 +484,140 @@ setTimeout(function() {
 
 {{-- Build Queue --}}
 @if($buildQueue->count() > 0)
-<br>
-<b>Your Building Queue:</b>
-<table class="game-table">
-<tr>
-    <td class="header">Building</td>
-    <td class="header">No.</td>
-    <td class="header">Time Needed</td>
-    <td class="header">Cancel?</td>
-    <td class="header">Move</td>
-</tr>
-@foreach($buildQueue as $bq)
-    @php
-        $b = $buildings[$bq->building_no] ?? null;
-        $turnsNeeded = $numBuilders > 0 ? ceil($bq->time_needed / $numBuilders) : $bq->time_needed;
-    @endphp
-    @if($b)
-    <tr>
-        <td><x-game-icon :src="buildingIcon($b)" :alt="$b['name']" :size="32" /> {{ $b['name'] }} @if($bq->mission == 1)(Demolish)@endif</td>
-        <td>{{ $bq->qty }}</td>
-        <td>{{ $turnsNeeded }} turns ({{ $bq->time_needed }} builders)</td>
-        <td>
-            <form action="{{ route('game.build.cancel') }}" method="POST" class="inline-form">
-                @csrf
-                <input type="hidden" name="q_id" value="{{ $bq->id }}">
-                <a href="#" onclick="this.closest('form').submit(); return false;">Cancel</a>
-            </form>
-        </td>
-        <td>
-            <form action="{{ route('game.build.move-top') }}" method="POST" class="inline-form">
-                @csrf
-                <input type="hidden" name="q_id" value="{{ $bq->id }}">
-                <a href="#" onclick="this.closest('form').submit(); return false;">To Top</a>
-            </form>
-            |
-            <form action="{{ route('game.build.move-bottom') }}" method="POST" class="inline-form">
-                @csrf
-                <input type="hidden" name="q_id" value="{{ $bq->id }}">
-                <a href="#" onclick="this.closest('form').submit(); return false;">To Bottom</a>
-            </form>
-        </td>
-    </tr>
-    @endif
-@endforeach
-@if($buildQueue->count() > 1)
-<tr>
-    <td colspan="5" align="center">
-        <form action="{{ route('game.build.cancel-all') }}" method="POST" class="inline-form">
-            @csrf
-            <a href="#" onclick="this.closest('form').submit(); return false;">Cancel All</a>
-        </form>
-    </td>
-</tr>
-@endif
-</table>
+<div class="bq-section" id="buildQueueSection">
+    <div class="bq-header">
+        <span class="bq-title">Building Queue</span>
+        @if($buildQueue->count() > 1)
+            <button type="button" class="bq-cancel-all" id="bqCancelAll" title="Cancel all">Cancel All</button>
+        @endif
+    </div>
+    <div class="bq-list" id="buildQueueList">
+        @foreach($buildQueue as $idx => $bq)
+            @php
+                $b = $buildings[$bq->building_no] ?? null;
+                $turnsNeeded = $numBuilders > 0 ? ceil($bq->time_needed / $numBuilders) : $bq->time_needed;
+            @endphp
+            @if($b)
+            <div class="bq-item" data-qid="{{ $bq->id }}">
+                <div class="bq-item-rank">{{ $idx + 1 }}</div>
+                <img src="{{ buildingIcon($b) }}" alt="{{ $b['name'] }}" class="bq-item-icon" onerror="this.style.display='none'">
+                <div class="bq-item-info">
+                    <div class="bq-item-name">{{ $b['name'] }} @if($bq->mission == 1)<span class="bq-demolish-tag">Demolish</span>@endif</div>
+                    <div class="bq-item-detail">x{{ $bq->qty }} &middot; {{ $turnsNeeded }} turn{{ $turnsNeeded != 1 ? 's' : '' }}</div>
+                </div>
+                <div class="bq-item-actions">
+                    @if($buildQueue->count() > 1)
+                    <button type="button" class="bq-btn bq-btn-move" data-action="top" title="Move to top">&#9650;</button>
+                    <button type="button" class="bq-btn bq-btn-move" data-action="bottom" title="Move to bottom">&#9660;</button>
+                    @endif
+                    <button type="button" class="bq-btn bq-btn-cancel" data-action="cancel" title="Cancel">&times;</button>
+                </div>
+            </div>
+            @endif
+        @endforeach
+    </div>
+</div>
+<script>
+(function() {
+    var queueSection = document.getElementById('buildQueueSection');
+    if (!queueSection) return;
+
+    queueSection.addEventListener('click', function(e) {
+        var btn = e.target.closest('.bq-btn');
+        if (!btn) return;
+
+        var item = btn.closest('.bq-item');
+        var qid = item ? item.dataset.qid : null;
+        var action = btn.dataset.action;
+        if (!qid || !action) return;
+
+        var urls = { cancel: '/game/build/cancel', top: '/game/build/move-top', bottom: '/game/build/move-bottom' };
+        var url = urls[action];
+        if (!url) return;
+
+        // Visual feedback
+        if (action === 'cancel') {
+            item.style.opacity = '0.4';
+        } else {
+            btn.style.color = 'var(--border-accent)';
+        }
+
+        Game.Ajax.post(url, { q_id: qid }, { silent: action !== 'cancel' })
+            .then(function(data) {
+                if (data.success) {
+                    if (action === 'cancel') {
+                        item.style.transition = 'opacity 0.2s, max-height 0.3s';
+                        item.style.maxHeight = item.offsetHeight + 'px';
+                        requestAnimationFrame(function() {
+                            item.style.opacity = '0';
+                            item.style.maxHeight = '0';
+                            item.style.overflow = 'hidden';
+                            item.style.padding = '0';
+                            item.style.margin = '0';
+                        });
+                        setTimeout(function() {
+                            item.remove();
+                            renumberQueue();
+                            // Hide section if empty
+                            if (!document.querySelectorAll('.bq-item').length) {
+                                queueSection.style.display = 'none';
+                            }
+                        }, 350);
+                    } else {
+                        // Reorder: reload the page to reflect new order
+                        window.location.reload();
+                    }
+                }
+            })
+            .catch(function() {
+                item.style.opacity = '1';
+                btn.style.color = '';
+            });
+    });
+
+    // Cancel All
+    var cancelAllBtn = document.getElementById('bqCancelAll');
+    if (cancelAllBtn) {
+        cancelAllBtn.addEventListener('click', function() {
+            var items = document.querySelectorAll('.bq-item');
+            items.forEach(function(item) { item.style.opacity = '0.4'; });
+
+            Game.Ajax.post('/game/build/cancel-all', {})
+                .then(function(data) {
+                    if (data.success) {
+                        queueSection.style.display = 'none';
+                    }
+                })
+                .catch(function() {
+                    items.forEach(function(item) { item.style.opacity = '1'; });
+                });
+        });
+    }
+
+    function renumberQueue() {
+        document.querySelectorAll('.bq-item .bq-item-rank').forEach(function(el, i) {
+            el.textContent = i + 1;
+        });
+    }
+})();
+</script>
 @endif
 
 {{-- Population Summary --}}
-<table class="game-table">
-<tr><td colspan="2" class="header"><b>Population:</b></td></tr>
-<tr><td align="right">Total:</td><td>{{ number_format($player->people) }}</td></tr>
-<tr><td align="right">Working:</td><td>{{ number_format($totalWorkers) }}</td></tr>
-<tr><td align="right">Builders:</td><td>{{ number_format($numBuilders) }}</td></tr>
-@if($free < 0)
-    <tr>
-        <td colspan="2">
-            <span class="text-error">
-                You do not have enough people for your production.<br>
-                You need additional {{ number_format(abs($free)) }} people.
+<div class="bq-pop-summary">
+    <div class="bq-pop-title">Population</div>
+    <div class="bq-pop-grid">
+        <span class="bq-pop-label">Total:</span><span>{{ number_format($player->people) }}</span>
+        <span class="bq-pop-label">Working:</span><span>{{ number_format($totalWorkers) }}</span>
+        <span class="bq-pop-label">Builders:</span><span>{{ number_format($numBuilders) }}</span>
+        @if($free < 0)
+            <span class="bq-pop-label text-error" style="grid-column: 1 / -1">
+                You need {{ number_format(abs($free)) }} more people for your buildings.
             </span>
-        </td>
-    </tr>
-@else
-    <tr><td align="right">Not Working:</td><td>{{ number_format($free) }}</td></tr>
-@endif
-<tr>
-    <td align="right">Extra House Space:</td>
-    <td>{{ number_format($freeSpace) }}</td>
-</tr>
-</table>
+        @else
+            <span class="bq-pop-label">Idle:</span><span>{{ number_format($free) }}</span>
+        @endif
+        <span class="bq-pop-label">House Space:</span><span>{{ number_format($freeSpace) }}</span>
+    </div>
+</div>
 @endsection
