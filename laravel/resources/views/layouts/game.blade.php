@@ -172,7 +172,8 @@
          data-food-per-explorer="{{ $foodPerExplorer }}"
          data-food-net-summer="{{ $foodNetSummer }}"
          data-food-net-winter="{{ $foodNetWinter }}"
-         data-max-send="{{ $safePeopleCap }}">
+         data-max-send="{{ $safePeopleCap }}"
+         data-horses="{{ $player->horses }}">
         <span class="explore-label">&#129517;</span>
         <button type="button" class="turn-btn explore-btn" id="explore-max">Explore Max</button>
         <button type="button" class="turn-btn explore-btn" id="explore-safe">Safe Explore</button>

@@ -610,8 +610,15 @@
             var maxSend = parseInt(bar.dataset.maxSend, 10) || 0;
             safeQty = Math.min(safeQty, maxSend);
 
+            // Cap by horse availability
+            if (withHorses >= 1 && withHorses <= 3) {
+                var horses = parseInt(bar.dataset.horses, 10) || 0;
+                var horseLimit = Math.floor(horses / withHorses);
+                safeQty = Math.min(safeQty, horseLimit);
+            }
+
             if (safeQty < 4) {
-                Toast.show('Not safe to explore right now \u2014 food reserves too low for the upcoming months.', 'warning', 5000);
+                Toast.show('Not enough resources to safely explore right now.', 'warning', 5000);
                 return;
             }
 
