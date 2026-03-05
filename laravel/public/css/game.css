@@ -418,6 +418,47 @@ td.header, th {
     margin: 0 2px;
 }
 
+/* Land panel */
+.land-panel {
+    margin-bottom: 8px;
+}
+.land-row {
+    display: flex;
+    gap: 2px;
+}
+.land-total-cell {
+    background-color: var(--land-total-bg);
+    padding: 3px 6px;
+    white-space: nowrap;
+    border-radius: var(--radius);
+    font-size: var(--font-size-small);
+}
+.land-free-cell {
+    background-color: var(--land-free-bg);
+    padding: 3px 6px;
+    white-space: nowrap;
+    border-radius: var(--radius);
+    font-size: var(--font-size-small);
+}
+.land-label {
+    font-weight: bold;
+    min-width: 42px;
+}
+.land-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+    vertical-align: middle;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+.land-free-cell .land-icon {
+    opacity: 0.7;
+    width: 14px;
+    height: 14px;
+}
+
 /* === 10. Menu === */
 .menu-list {
     list-style: none;

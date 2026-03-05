@@ -1,4 +1,4 @@
-{{-- Unified resource strip --}}
+{{-- Resource strip --}}
 <div class="resource-bar">
     {{-- Core stats --}}
     <span class="res-cell" title="Score">
@@ -12,22 +12,6 @@
     <span class="res-cell" title="Gold">
         <span class="res-symbol text-gold">&#x1FA99;</span>
         <span data-resource="gold">{{ number_format($player->gold) }}</span>
-    </span>
-
-    <span class="res-divider"></span>
-
-    {{-- Land (total / free) --}}
-    <span class="res-cell" title="Mountain (total / free)">
-        <img class="res-icon" src="{{ landIcon('mountain') }}" alt="Mountain">
-        <span data-resource="mland">{{ number_format($player->mland) }}</span>/<span data-resource="free_mland">{{ number_format($freeM) }}</span>
-    </span>
-    <span class="res-cell" title="Forest (total / free)">
-        <img class="res-icon" src="{{ landIcon('forest') }}" alt="Forest">
-        <span data-resource="fland">{{ number_format($player->fland) }}</span>/<span data-resource="free_fland">{{ number_format($freeF) }}</span>
-    </span>
-    <span class="res-cell" title="Plains (total / free)">
-        <img class="res-icon" src="{{ landIcon('plains') }}" alt="Plains">
-        <span data-resource="pland">{{ number_format($player->pland) }}</span>/<span data-resource="free_pland">{{ number_format($freeP) }}</span>
     </span>
 
     <span class="res-divider"></span>
@@ -76,4 +60,20 @@
             <a href="#" onclick="this.closest('form').submit(); return false;"><b>END TURN</b></a>
         </form>
     </noscript>
+</div>
+
+{{-- Land panel (Total / Free) --}}
+<div class="land-panel">
+    <div class="land-row" style="margin-bottom:2px;">
+        <span class="land-total-cell land-label"><b>Total:</b></span>
+        <span class="land-total-cell"><img class="land-icon" src="{{ landIcon('mountain') }}" alt="M"><span data-resource="mland">{{ number_format($player->mland) }}</span></span>
+        <span class="land-total-cell"><img class="land-icon" src="{{ landIcon('forest') }}" alt="F"><span data-resource="fland">{{ number_format($player->fland) }}</span></span>
+        <span class="land-total-cell"><img class="land-icon" src="{{ landIcon('plains') }}" alt="P"><span data-resource="pland">{{ number_format($player->pland) }}</span></span>
+    </div>
+    <div class="land-row">
+        <span class="land-free-cell land-label"><b>Free:</b></span>
+        <span class="land-free-cell"><img class="land-icon" src="{{ landIcon('mountain') }}" alt="M"><span data-resource="free_mland">{{ number_format($freeM) }}</span></span>
+        <span class="land-free-cell"><img class="land-icon" src="{{ landIcon('forest') }}" alt="F"><span data-resource="free_fland">{{ number_format($freeF) }}</span></span>
+        <span class="land-free-cell"><img class="land-icon" src="{{ landIcon('plains') }}" alt="P"><span data-resource="free_pland">{{ number_format($freeP) }}</span></span>
+    </div>
 </div>
