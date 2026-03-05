@@ -45,7 +45,7 @@ class ArmyController extends Controller
         $townCenterB = $buildings[11];
 
         // Calculate capacity
-        $maxTrain = $player->fort * ($fortB['max_train'] ?? 2) + $player->town_center * ($fortB['max_train'] ?? 2);
+        $maxTrain = $player->fort * ($fortB['max_train'] ?? 2) + $player->town_center * ($townCenterB['max_train'] ?? 2);
         $maxSoldiers = $player->town_center * ($townCenterB['max_units'] ?? 10) + $player->fort * ($fortB['max_units'] ?? 15);
 
         // Compute attacking quantities from AttackQueue
@@ -105,16 +105,16 @@ class ArmyController extends Controller
         $attackPower = round($attackPower + $attackPower * ($player->research1 / 100));
         $defensePower = round($defensePower + $defensePower * ($player->research2 / 100));
 
-        // Catapult power
-        $cAttackPower = $player->catapults * $soldiers[5]['attack_pt'];
+        // Catapult power (include attacking catapults)
+        $cAttackPower = ($player->catapults + $attackQty[5]) * $soldiers[5]['attack_pt'];
         $cAttackPower = round($cAttackPower + $cAttackPower * ($player->research11 / 100));
-        $cDefensePower = $player->catapults * $soldiers[5]['defense_pt'];
+        $cDefensePower = ($player->catapults + $attackQty[5]) * $soldiers[5]['defense_pt'];
         $cDefensePower = round($cDefensePower + $cDefensePower * ($player->research11 / 100));
 
-        // Thief power
-        $tAttackPower = $player->thieves * $soldiers[8]['attack_pt'];
+        // Thief power (include attacking thieves)
+        $tAttackPower = ($player->thieves + $attackQty[8]) * $soldiers[8]['attack_pt'];
         $tAttackPower = round($tAttackPower + $tAttackPower * ($player->research3 / 100));
-        $tDefensePower = $player->thieves * $soldiers[8]['defense_pt'];
+        $tDefensePower = ($player->thieves + $attackQty[8]) * $soldiers[8]['defense_pt'];
         $tDefensePower = round($tDefensePower + $tDefensePower * ($player->research3 / 100));
 
         // Get training queue
@@ -129,8 +129,8 @@ class ArmyController extends Controller
             $trainQty[$tq->soldier_type] = ($trainQty[$tq->soldier_type] ?? 0) + $tq->qty;
         }
 
-        $canTrain = $maxTrain - $numTrain;          // training capacity remaining
-        $canHold = $maxSoldiers - $totalUnits - $numTrain;  // fort space remaining
+        $canTrain = max(0, $maxTrain - $numTrain);          // training capacity remaining
+        $canHold = max(0, $maxSoldiers - $totalUnits - $numTrain);  // fort space remaining
 
         // Build soldier display data
         $soldierDisplay = [1, 2, 3, 5, 6, 7, 8, 9]; // skip 4 (tower)
@@ -154,17 +154,15 @@ class ArmyController extends Controller
             $s = $soldiers[$i];
             $have = ($player->{$s['db_name']} ?? 0) + $attackQty[$i];
 
-            // Calculate food upkeep
-            $foodUsed = $have;
-            if ($i == 3) {
-                $foodUsed = $have * 2;       // horseman
-            } elseif ($i == 7) {
-                $foodUsed = round($have * 0.1); // trained peasants
-            } elseif ($i == 8) {
-                $foodUsed = $have * 3;       // thieves
-            } elseif ($i == 9) {
-                $foodUsed = $have * 2;       // unique unit
-            }
+            // Calculate food upkeep (matches TurnService formula: weight / soldiers_eat_one_food)
+            $soldiersEatOneFood = session('constants')['soldiers_eat_one_food'] ?? 3;
+            $foodWeight = $have;  // default: 1 per unit
+            if ($i == 3) $foodWeight = $have * 2;              // horseman
+            elseif ($i == 5) $foodWeight = 0;                  // catapults don't eat
+            elseif ($i == 7) $foodWeight = round($have * 0.1); // trained peasants
+            elseif ($i == 8) $foodWeight = $have * 3;          // thieves
+            elseif ($i == 9) $foodWeight = $have * 2;          // unique unit
+            $foodUsed = $soldiersEatOneFood > 0 ? (int) ceil($foodWeight / $soldiersEatOneFood) : 0;
             $totalFood += $foodUsed;
 
             $goldCost = $have * $s['gold_per_turn'];
@@ -327,7 +325,18 @@ class ArmyController extends Controller
         $buildings = session('buildings');
 
         $fortB = $buildings[9];
-        $maxTrain = $player->fort * ($fortB['max_train'] ?? 2) + $player->town_center * ($fortB['max_train'] ?? 2);
+        $townCenterB = $buildings[11];
+        $maxTrain = $player->fort * ($fortB['max_train'] ?? 2) + $player->town_center * ($townCenterB['max_train'] ?? 2);
+
+        // Calculate fort/TC capacity
+        $maxSoldiers = $player->town_center * ($townCenterB['max_units'] ?? 10) + $player->fort * ($fortB['max_units'] ?? 15);
+        $totalUnits = $player->swordsman + $player->archers + $player->horseman
+            + $player->macemen + $player->trained_peasants
+            + $player->thieves + $player->catapults + $player->uunit;
+        $attackingTotal = (int) AttackQueue::where('player_id', $player->id)
+            ->selectRaw('COALESCE(SUM(swordsman+archers+horseman+catapults+macemen+trained_peasants+thieves+uunit),0) as total')
+            ->value('total');
+        $totalUnits += $attackingTotal;
 
         // Read quantities for each soldier type
         $quantities = [];
@@ -351,11 +360,34 @@ class ArmyController extends Controller
         // Check how many are currently training
         $currentTraining = TrainQueue::where('player_id', $player->id)->sum('qty');
         $newTrain = $currentTraining + $totalQty;
+        $canHold = $maxSoldiers - $totalUnits - $currentTraining;
+
+        // Per-type counts for TC-capped units (attacking + training + owned)
+        $aqTypes = AttackQueue::where('player_id', $player->id)
+            ->selectRaw('COALESCE(SUM(catapults),0) as c, COALESCE(SUM(thieves),0) as t, COALESCE(SUM(uunit),0) as u')
+            ->first();
+        $tqTypes = TrainQueue::where('player_id', $player->id)
+            ->selectRaw('COALESCE(SUM(CASE WHEN soldier_type=5 THEN qty ELSE 0 END),0) as c, COALESCE(SUM(CASE WHEN soldier_type=8 THEN qty ELSE 0 END),0) as t, COALESCE(SUM(CASE WHEN soldier_type=9 THEN qty ELSE 0 END),0) as u')
+            ->first();
+        $totalCatapults = $player->catapults + (int) $aqTypes->c + (int) $tqTypes->c;
+        $totalThieves = $player->thieves + (int) $aqTypes->t + (int) $tqTypes->t;
+        $totalUunits = $player->uunit + (int) $aqTypes->u + (int) $tqTypes->u;
 
         $error = '';
 
-        if ($newTrain > $maxTrain) {
-            $error = "You can only train " . number_format($maxTrain) . " soldiers.<br>({$fortB['max_train']} soldiers per fort or town center.)";
+        // Civ restrictions first (clearest error messages)
+        if ($player->civ == 6 && $quantities[3] > 0) {
+            $error = 'Incas cannot train horseman.';
+        } elseif ($newTrain > $maxTrain) {
+            $error = "You can only train " . number_format($maxTrain) . " soldiers at a time.";
+        } elseif ($totalQty > $canHold) {
+            $error = "Not enough fort/town center space. You can hold " . number_format(max(0, $canHold)) . " more soldiers.";
+        } elseif ($quantities[5] > 0 && ($totalCatapults + $quantities[5]) > $player->town_center) {
+            $error = 'Catapults are limited to ' . $player->town_center . ' (one per town center).';
+        } elseif ($quantities[8] > 0 && ($totalThieves + $quantities[8]) > $player->town_center) {
+            $error = 'Thieves are limited to ' . $player->town_center . ' (one per town center).';
+        } elseif ($quantities[9] > 0 && ($totalUunits + $quantities[9]) > $player->town_center) {
+            $error = $soldiers[9]['name'] . ' are limited to ' . $player->town_center . ' (one per town center).';
         } elseif ($player->people < $totalQty) {
             $error = 'You do not have enough people.';
         } elseif ($player->bows < $needBows) {
@@ -372,8 +404,6 @@ class ArmyController extends Controller
             $error = "You do not have enough maces to train {$quantities[6]} macemen.";
         } elseif ($player->gold < $needGold) {
             $error = 'You do not have enough gold for training.';
-        } elseif ($player->civ == 6 && $quantities[3] > 0) {
-            $error = 'Incas cannot train horseman.';
         }
 
         if (!empty($error)) {
@@ -581,6 +611,7 @@ class ArmyController extends Controller
         $getSwords = intdiv($getSwords, 2);
         $getBows = intdiv($getBows, 2);
         $getMaces = intdiv($getMaces, 2);
+        $getHorses = intdiv($getHorses, 2);
 
         $player->update([
             'archers' => $player->archers - $qty[1],
@@ -601,7 +632,8 @@ class ArmyController extends Controller
         ]);
 
         $msg = "You have disbanded {$qty[1]} archers, {$qty[2]} swordsman, {$qty[3]} horsemen, "
-            . "{$qty[5]} catapults, {$qty[6]} macemen, {$qty[7]} trained peasants, {$qty[8]} thieves."
+            . "{$qty[5]} catapults, {$qty[6]} macemen, {$qty[7]} trained peasants, {$qty[8]} thieves, "
+            . "{$qty[9]} {$soldiers[9]['name']}."
             . "<br>You have received {$getIron} iron, {$getWood} wood, {$getSwords} swords, "
             . "{$getBows} bows, {$getHorses} horses and {$getMaces} maces.";
 

@@ -788,7 +788,8 @@ class TurnService
 
         foreach ($trainedItems as $t) {
             $totalArmy = $newP->archers + $newP->swordsman + $newP->horseman
-                + $newP->catapults + $newP->macemen + $newP->thieves + $newP->trained_peasants;
+                + $newP->catapults + $newP->macemen + $newP->thieves + $newP->trained_peasants
+                + $newP->uunit;
             $done = true;
             $trainQty = $t->qty;
 

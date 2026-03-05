@@ -268,6 +268,7 @@ class GameDataService
             'cost_gold' => 2500,
             'allow_off' => false,
             'max_units' => 10,
+            'max_train' => 2,
             'people' => 100,
             'supplies' => 1000,
             'max_explorers' => 6,
