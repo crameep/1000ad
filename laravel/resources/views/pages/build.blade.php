@@ -216,9 +216,12 @@
         var prodPerB = parseInt(card.dataset.prod, 10);
         var prodName = (card.dataset.prodName || '').toLowerCase();
 
+        // Scale suggestions with empire size: ~25% of current count, min 5
+        var growth = Math.max(5, Math.ceil(have * 0.25));
+
         // Housing buildings (house=4, town_center=11)
         if (bid === 4 || bid === 11) {
-            var hQty = popDeficit <= 0 ? 5 : Math.ceil(Math.abs(popDeficit) / 100);
+            var hQty = popDeficit <= 0 ? growth : Math.max(growth, Math.ceil(Math.abs(popDeficit) / 100));
             var hReason = popDeficit <= 0 ? 'grow population' : 'housing needed';
             return { qty: max > 0 ? Math.min(hQty, max) : hQty, reason: hReason };
         }
@@ -233,7 +236,7 @@
         // Gold-consuming buildings (mage tower=15, winery=16) — suggest based on gold surplus
         if (bid === 15 || bid === 16) {
             var goldNet = economy.gold || 0;
-            var gQty = goldNet > 0 ? 5 : 2;
+            var gQty = goldNet > 0 ? growth : Math.max(2, Math.ceil(growth * 0.5));
             var gReason = goldNet > 0 ? 'gold surplus (+' + goldNet.toLocaleString() + '/turn)' : 'gold deficit (' + goldNet.toLocaleString() + '/turn)';
             return { qty: max > 0 ? Math.min(gQty, max) : gQty, reason: gReason };
         }
@@ -241,13 +244,13 @@
         if (resKey && prodPerB > 0) {
             var net = economy[resKey] || 0;
             if (net < 0) {
-                // Deficit — suggest enough to cover it
-                var needed = Math.ceil(Math.abs(net) / prodPerB);
+                // Deficit — cover the shortfall + 50% buffer for growth
+                var needed = Math.ceil(Math.abs(net) / prodPerB * 1.5);
+                needed = Math.max(needed, growth);
                 return { qty: max > 0 ? Math.min(needed, max) : needed, reason: resKey + ' deficit (' + net.toLocaleString() + '/turn)' };
             } else {
-                // Surplus — suggest modest growth
-                var sQty = 10;
-                return { qty: max > 0 ? Math.min(sQty, max) : sQty, reason: resKey + ' surplus (+' + net.toLocaleString() + '/turn)' };
+                // Surplus — grow proportionally
+                return { qty: max > 0 ? Math.min(growth, max) : growth, reason: resKey + ' surplus (+' + net.toLocaleString() + '/turn)' };
             }
         }
 
@@ -257,8 +260,8 @@
             if (fillWorkers > 0) return { qty: max > 0 ? Math.min(fillWorkers, max) : fillWorkers, reason: 'fills free workforce' };
         }
 
-        // Default — steady growth
-        return { qty: max > 0 ? Math.min(5, max) : 5, reason: 'steady growth' };
+        // Default — scale with current count
+        return { qty: max > 0 ? Math.min(growth, max) : growth, reason: 'steady growth' };
     }
 
     function updatePanel(card) {
