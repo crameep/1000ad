@@ -9,12 +9,9 @@
 
 <x-advisor-panel :tips="$advisorTips" />
 
-<br>
-<br>
-
 {{-- Exploration queue table --}}
 @if($explorations->isEmpty())
-    <span class="text-body">You do not have any explorers sent.<br></span>
+    <div class="info-text">You do not have any explorers sent.</div>
 @else
     <table class="game-table">
     <tr>
@@ -25,54 +22,52 @@
     </tr>
     @foreach($explorations as $e)
     <tr>
-        <td valign="top">
+        <td class="vtop">
             @if($e->turn == 0)
                 <span class="text-error">DONE</span>
             @else
                 {{ number_format($e->people) }}
             @endif
         </td>
-        <td valign="top">
+        <td class="vtop">
             @if($e->seek_land == 0)All
             @elseif($e->seek_land == 1)Mountains
             @elseif($e->seek_land == 2)Forest
             @elseif($e->seek_land == 3)Plains
             @endif
         </td>
-        <td valign="top">
+        <td class="vtop">
             {{ $e->turn }}
             @if($e->turns_used == 0 && $e->created_on && $e->created_on->gt($cancelTime))
-                <br>
+                <div>
                 <form action="{{ route('game.explore.send') }}" method="POST" class="inline-form">
                     @csrf
                     <input type="hidden" name="eflag" value="cancelExplore">
                     <input type="hidden" name="eID" value="{{ $e->id }}">
                     <a href="#" onclick="this.closest('form').submit(); return false;">Cancel Explorers</a>
                 </form>
+                </div>
             @endif
         </td>
-        <td valign="top">
-            @if($e->seek_land == 0 || $e->seek_land == 1){{ number_format($e->mland ?? 0) }} Mountains<br>@endif
-            @if($e->seek_land == 0 || $e->seek_land == 2){{ number_format($e->fland ?? 0) }} Forest<br>@endif
-            @if($e->seek_land == 0 || $e->seek_land == 3){{ number_format($e->pland ?? 0) }} Plains<br>@endif
+        <td class="vtop">
+            @if($e->seek_land == 0 || $e->seek_land == 1)<div>{{ number_format($e->mland ?? 0) }} Mountains</div>@endif
+            @if($e->seek_land == 0 || $e->seek_land == 2)<div>{{ number_format($e->fland ?? 0) }} Forest</div>@endif
+            @if($e->seek_land == 0 || $e->seek_land == 3)<div>{{ number_format($e->pland ?? 0) }} Plains</div>@endif
         </td>
     </tr>
     @endforeach
     </table>
 @endif
 
-<br>
-
 {{-- Explorer stats --}}
-You have {{ $totalExplorers }} explorers looking for land.<br>
-You can have a maximum of {{ $maxExplorers }} explorers.<br>
-Your food reserves allow you to send {{ $sendExplorers }} explorers.<br>
-You can send {{ $canSend }} more explorers.<br>
-You need {{ $foodPerExplorer }} food for each explorer.<br>
-You have {{ number_format($player->horses) }} horses.<br>
-
-<br>
-<br>
+<div class="stat-list">
+    <div>You have {{ $totalExplorers }} explorers looking for land.</div>
+    <div>You can have a maximum of {{ $maxExplorers }} explorers.</div>
+    <div>Your food reserves allow you to send {{ $sendExplorers }} explorers.</div>
+    <div>You can send {{ $canSend }} more explorers.</div>
+    <div>You need {{ $foodPerExplorer }} food for each explorer.</div>
+    <div>You have {{ number_format($player->horses) }} horses.</div>
+</div>
 
 {{-- Send explorers form --}}
 <div class="form-panel">
@@ -100,5 +95,4 @@ You have {{ number_format($player->horses) }} horses.<br>
 </div>
 </div>
 
-<br>
 @endsection

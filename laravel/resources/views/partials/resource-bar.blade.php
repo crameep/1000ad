@@ -87,10 +87,11 @@
         </div>
         <span class="progress-ind-pct">{{ $wallPercent }}%</span>
     </div>
-    <div class="progress-ind" title="Research: {{ number_format($researchPoints) }} / {{ number_format($researchNextLevel) }} — {{ $currentResearchName }}">
-        <span class="progress-ind-label">Research</span>
+    <div class="progress-ind" title="Research: {{ $currentResearchName }} Lv.{{ $currentResearchLevel }} — {{ number_format($researchPoints) }} / {{ number_format($researchNextLevel) }} points ({{ $researchPercent }}%)">
+        <span class="progress-ind-label">{{ $currentResearchName }}&nbsp;{{ $currentResearchLevel }}</span>
         <div class="progress-ind-track progress-ind-track--research">
-            <div class="progress-ind-fill progress-ind-fill--research" style="width: {{ $researchPercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--research-level" style="width: {{ $researchLevelPercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--research-progress" style="width: {{ $researchProgressPercent }}%"></div>
         </div>
         <span class="progress-ind-pct">{{ $researchPercent }}%</span>
     </div>

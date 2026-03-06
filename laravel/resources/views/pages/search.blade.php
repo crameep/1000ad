@@ -6,34 +6,31 @@
     <h2>Search</h2>
 </div>
 
-<br><br>
-
-<div class="form-panel" style="max-width:300px;">
+<div class="form-panel">
 <form action="{{ route('game.search.submit') }}" method="POST">
     @csrf
-    <div class="bg-header text-center"><span>Search Players where:</span></div>
-    <div class="form-panel-body">
+    <div class="form-header">Search Players where:</div>
+    <div class="form-body">
         <input type="radio" name="searchType" @checked($searchType === 'playerNumber' || $searchType === '') value="playerNumber">Player Number<br>
         <input type="radio" name="searchType" @checked($searchType === 'playerName') value="playerName">Player Name<br>
         <input type="radio" name="searchType" @checked($searchType === 'allianceName') value="allianceName">Alliance Name<br>
         <input type="radio" name="searchType" @checked($searchType === 'online') value="online">Player Online<br>
         &nbsp;&nbsp;&nbsp;&nbsp;is <input type="text" name="searchString" value="{{ $searchString }}" size="20">
     </div>
-    <div class="bg-header text-center"><input type="submit" value="Search" style="width:80px;"></div>
+    <div class="form-footer"><input type="submit" value="Search"></div>
 </form>
 </div>
 
 @if($results !== null)
-<br><br>
 
 @if($results->isEmpty())
     <span class="text-danger">No players found.</span>
 @else
-    <table class="game-table" style="max-width:400px;">
+    <table class="game-table">
     <tr>
-        <td colspan="2" class="header" align="center">Search Results ({{ $results->count() }}):</td>
+        <td colspan="2" class="header text-center">Search Results ({{ $results->count() }}):</td>
     </tr>
-    <tr><td align="center">
+    <tr><td class="text-center">
     @foreach($results as $member)
         {{ $member->name }} (#{{ $member->id }}) <br>
         {{ $empireNames[$member->civ] ?? 'Unknown' }}<br>
@@ -50,10 +47,9 @@
     @endforeach
     </td></tr>
     @if($results->count() >= 100)
-    <tr><td align="center"><span class="text-danger">More than 100 results found.<br>Displaying first 100 results.</span></td></tr>
+    <tr><td class="text-center"><span class="text-danger">More than 100 results found.<br>Displaying first 100 results.</span></td></tr>
     @endif
     </table>
-    <br>
 @endif
 @endif
 @endsection

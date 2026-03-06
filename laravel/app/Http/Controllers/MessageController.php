@@ -58,7 +58,10 @@ class MessageController extends Controller
                         ->where('message_type', 0)
                         ->where('viewed', 0)
                         ->update(['viewed' => 1]);
+                }
 
+                // Always clear the flag when visiting inbox
+                if ($player->has_new_messages) {
                     $player->update(['has_new_messages' => 0]);
                 }
 

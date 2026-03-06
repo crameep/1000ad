@@ -12,7 +12,7 @@
 <br>
 
 {{-- Player message --}}
-<div style="font-size:12px;">
+<div class="text-small">
     {!! $player->message !!}
 </div>
 
@@ -21,7 +21,7 @@
     <hr>
     <div>
         {!! $item->message !!}<br>
-        <span style="font-size:10px;">
+        <span class="text-sm">
             <form action="{{ route('game.main.delete-news', $item->id) }}" method="POST" class="inline-form">
                 @csrf
                 <a href="#" onclick="this.closest('form').submit(); return false;">Delete Message</a>
@@ -34,7 +34,7 @@
 <br>
 
 @if($news->count() > 1)
-    <span style="font-size:10px;">
+    <span class="text-sm">
         <form action="{{ route('game.main.delete-all-news') }}" method="POST" class="inline-form">
             @csrf
             <a href="#" onclick="this.closest('form').submit(); return false;">Delete All News</a>

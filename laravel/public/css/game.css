@@ -490,23 +490,31 @@ td.header, th {
     overflow: hidden;
     border: 1px solid var(--border-subtle);
     min-width: 40px;
+    display: flex;
 }
 .progress-ind-fill {
     height: 100%;
-    border-radius: 3px;
     transition: width 0.4s ease;
 }
 /* Wall — stone / blue-grey */
 .progress-ind-fill--wall {
     background: linear-gradient(90deg, #5a7a9a, #8ab4d4);
+    border-radius: 3px;
 }
-/* Research — purple / arcane */
-.progress-ind-fill--research {
-    background: linear-gradient(90deg, #7b4fbf, #b07ae8);
+/* Research — two-tone: dark=completed levels, light=progress to next */
+.progress-ind-fill--research-level {
+    background: linear-gradient(90deg, #6a3fbf, #8b5fd8);
+    border-radius: 3px 0 0 3px;
+}
+.progress-ind-fill--research-progress {
+    background: linear-gradient(90deg, #50c8a0, #70e8c0);
+    border-radius: 0 3px 3px 0;
+    min-width: 3px;
 }
 /* Warehouse — amber / gold */
 .progress-ind-fill--warehouse {
     background: linear-gradient(90deg, #b8862a, #e8c44c);
+    border-radius: 3px;
 }
 .progress-ind-pct {
     font-size: 10px;
@@ -1954,6 +1962,21 @@ button.explore-btn {
 .tr-good { color: var(--text-success); }
 .tr-summary { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border-subtle); }
 
+/* Wall page */
+.wall-protection { font-size: 2rem; font-weight: bold; color: var(--border-accent); text-align: center; }
+.wall-progress-label { text-align: center; color: var(--text-muted); font-size: var(--font-size-small); margin-top: 4px; }
+.wall-badge-full { display: inline-block; background: var(--text-success); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.wall-input-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.wall-input-row label { color: var(--text-secondary); }
+.wall-input-group { display: flex; align-items: center; gap: 4px; }
+.wall-summary { color: var(--text-secondary); margin-bottom: 8px; }
+.wall-summary strong { color: var(--text-primary); }
+.wall-cost-section { margin: 6px 0; }
+.wall-cost-label { color: var(--text-muted); font-size: var(--font-size-small); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.wall-cost-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.wall-cost-item { display: flex; align-items: center; gap: 4px; }
+.wall-cost-item img { width: 16px; height: 16px; }
+
 /* === Tooltips (Pure CSS) === */
 [data-tooltip] {
     position: relative;
@@ -3391,3 +3414,40 @@ button.explore-btn {
 .army-card-cost span {
     margin-right: 3px;
 }
+
+/* ======================================== */
+/* Modernization utility classes            */
+/* ======================================== */
+
+/* Table row striping for scores tables */
+.game-table tr.row-even { background-color: #1a1a2e; }
+.game-table tr.row-odd { background-color: #16213e; }
+
+/* Info text blocks (replaces raw text with <br>) */
+.info-text { color: var(--text-body); margin-bottom: 8px; line-height: 1.5; }
+.info-text + .info-text { margin-top: 0; }
+
+/* Message card styling */
+.msg-card { border: 1px solid var(--border-subtle); margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
+.msg-card-header { background: var(--bg-header); padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+.msg-card-body { padding: 8px; }
+.msg-card-actions { display: flex; gap: 12px; padding: 4px 8px; font-size: var(--font-size-small); border-top: 1px solid var(--border-subtle); flex-wrap: wrap; }
+.msg-new-badge { color: aqua; font-weight: bold; }
+
+/* Caravan display */
+.caravan-item { padding: 8px; border-bottom: 1px solid var(--border-subtle); }
+.caravan-item:last-child { border-bottom: none; }
+
+/* Form field spacing (replaces <br> between fields) */
+.form-field { margin-bottom: 8px; }
+.form-field label { display: inline-block; min-width: 120px; }
+
+/* Explore stats list */
+.stat-list { line-height: 1.8; margin-bottom: 8px; }
+
+/* Battle search form */
+.battle-search { margin-top: 8px; }
+.battle-search label, .battle-search .search-row { display: block; margin-bottom: 6px; }
+
+/* Table cell vertical alignment */
+.game-table td.vtop { vertical-align: top; }

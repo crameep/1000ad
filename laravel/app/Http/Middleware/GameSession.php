@@ -217,6 +217,26 @@ class GameSession
         ];
         $currentResearchName = $researchNames[$player->current_research] ?? 'None';
 
+        // Research two-tone bar: current level + progress to next
+        $currentResearchLevel = 0;
+        if ($player->current_research > 0) {
+            $currentResearchLevel = $player->{"research{$player->current_research}"};
+        }
+
+        // Reference max: 100 baseline, adjusts up if any research exceeds it
+        $highestResearchLevel = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $highestResearchLevel = max($highestResearchLevel, $player->{"research{$i}"});
+        }
+        $researchRefMax = max(100, $highestResearchLevel);
+
+        $researchLevelPercent = min(100, round(($currentResearchLevel / $researchRefMax) * 100));
+        // Progress segment fills remaining bar space proportional to completion
+        $remainingPercent = 100 - $researchLevelPercent;
+        $researchProgressPercent = ($currentResearchLevel < $researchRefMax && $remainingPercent > 0)
+            ? round($remainingPercent * ($researchPercent / 100), 1)
+            : 0;
+
         // Warehouse
         $totalGoods = $player->wood + $player->iron + $player->food + $player->tools
             + $player->swords + $player->bows + $player->horses + $player->maces + $player->wine;
@@ -258,6 +278,9 @@ class GameSession
             'researchPoints' => $player->research_points,
             'researchNextLevel' => $nextLevelPoints,
             'currentResearchName' => $currentResearchName,
+            'currentResearchLevel' => $currentResearchLevel,
+            'researchLevelPercent' => $researchLevelPercent,
+            'researchProgressPercent' => $researchProgressPercent,
             'warehousePercent' => $warehousePercent,
             'warehouseCurrent' => $totalGoods,
             'warehouseMax' => $warehouseSpace,

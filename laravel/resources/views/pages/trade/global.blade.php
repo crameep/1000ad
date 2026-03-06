@@ -14,31 +14,31 @@
 
     <x-advisor-panel :tips="$advisorTips" />
 
-    You can send goods to the public market.<br>
-    You need market places to send goods.<br>
+    <div class="info-text">
+    You can send goods to the public market.
+    You need market places to send goods.
     There is 5% fee after you sell the goods.
-    <br>
-    Your markets allow you to send {{ number_format($maxTrades) }} goods each month,<br>
+    </div>
+    <div class="info-text">
+    Your markets allow you to send {{ number_format($maxTrades) }} goods each month,
     @if($tradesRemaining == 0)<span class="text-danger">@endif
     out of which {{ number_format($tradesRemaining) }} are still available.
     @if($tradesRemaining == 0)</span>@endif
-    <br>
-    <br>
+    </div>
+
     [<a href="{{ route('game.market', ['type' => 'buy']) }}">Switch to Buy Mode</a>]
-    <br>
-    <br>
 
     <div class="table-scroll">
     <table class="game-table">
     <form action="{{ route('game.market.sell') }}" method="POST">
         @csrf
         <tr>
-            <td class="bg-header">&nbsp;</td>
-            <td class="bg-header">You Have</td>
-            <td class="bg-header">Sell Amount</td>
-            <td class="bg-header">Price <span class="text-small">(per unit)</span></td>
-            <td class="bg-header">Min Price</td>
-            <td class="bg-header">Max Price</td>
+            <td class="header">&nbsp;</td>
+            <td class="header">You Have</td>
+            <td class="header">Sell Amount</td>
+            <td class="header">Price <span class="text-small">(per unit)</span></td>
+            <td class="header">Min Price</td>
+            <td class="header">Max Price</td>
         </tr>
         @php
             $goods = [
@@ -55,49 +55,44 @@
         @foreach($goods as $key => $info)
             <tr>
                 <td>{{ $info['label'] }}</td>
-                <td align="right">{{ number_format($info['qty']) }}</td>
+                <td class="text-right">{{ number_format($info['qty']) }}</td>
                 <td><input type="text" name="sell_{{ $key }}" size="8"></td>
                 <td><input type="text" name="price_{{ $key }}" size="8"></td>
-                <td align="right">{{ number_format($tradePrices[$key]['min']) }}</td>
-                <td align="right">{{ number_format($tradePrices[$key]['max']) }}</td>
+                <td class="text-right">{{ number_format($tradePrices[$key]['min']) }}</td>
+                <td class="text-right">{{ number_format($tradePrices[$key]['max']) }}</td>
             </tr>
         @endforeach
         <tr>
-            <td class="bg-header" colspan="4" align="right"><input type="submit" value="    Sell    "></td>
-            <td class="bg-header" colspan="2">&nbsp;</td>
+            <td class="header text-right" colspan="4"><input type="submit" value="    Sell    "></td>
+            <td class="header" colspan="2">&nbsp;</td>
         </tr>
     </form>
     </table>
     </div>
 
-    <br><br>
-
     {{-- Dispatched Caravans --}}
     @if($caravans->count() > 0)
-        <table class="game-table">
-        <tr>
-            <td class="bg-header">Dispatched Caravans:</td>
-        </tr>
+        <div class="panel">
+        <div class="panel-header">Dispatched Caravans</div>
+        <div class="panel-body">
         @foreach($caravans as $caravan)
-            <tr>
-                <td>
+            <div class="caravan-item">
                 @if($caravan->turns_remaining > 0)
-                    Caravans departed with:<br>
+                    <div>Caravans departed with:</div>
                     @foreach(['wood','food','iron','gold','tools','swords','bows','horses'] as $good)
                         @if($caravan->{$good} > 0)
-                            {{ number_format($caravan->{$good}) }} {{ $good }}<br>
+                            <div>{{ number_format($caravan->{$good}) }} {{ $good }}</div>
                         @endif
                     @endforeach
-                    will reach their destination in {{ $caravan->turns_remaining }} turns.
+                    <div>will reach their destination in {{ $caravan->turns_remaining }} turns.</div>
                 @else
-                    You have:<br>
+                    <div>You have:</div>
                     @foreach(['wood','food','iron','tools','maces','swords','bows','horses'] as $good)
                         @if($caravan->{$good} > 0)
-                            {{ number_format($caravan->{$good}) }} {{ $good }} for {{ number_format($caravan->{"{$good}_price"}) }} gold each<br>
+                            <div>{{ number_format($caravan->{$good}) }} {{ $good }} for {{ number_format($caravan->{"{$good}_price"}) }} gold each</div>
                         @endif
                     @endforeach
-                    placed on the public market.
-                    <br>
+                    <div>placed on the public market.</div>
                     <span class="text-small">
                     <form action="{{ route('game.market.sell') }}" method="POST" class="inline-form">
                         @csrf
@@ -108,10 +103,10 @@
                     There is a 10% withdrawal fee.
                     </form>
                 @endif
-                </td>
-            </tr>
+            </div>
         @endforeach
-        </table>
+        </div>
+        </div>
     @endif
 
 @else
@@ -125,8 +120,9 @@
 
     <x-advisor-panel :tips="$advisorTips" />
 
+    <div class="info-text">
     [<a href="{{ route('game.market', ['type' => 'sell']) }}">Switch to Sell Mode</a>]
-    <br><br>
+    </div>
 
     Buy:
     @foreach($goodTypes as $good)
@@ -135,9 +131,9 @@
     @endforeach
 
     @foreach($goodTypes as $good)
-        <br><br>
+        <div class="info-text">
         <a name="BUY{{ strtoupper($good) }}"><b>Buy {{ ucfirst($good) }}</b> (You have {{ number_format($player->{$good}) }})</a>
-        <br>
+        </div>
 
         @if($marketOffers[$good]->count() == 0)
             <span class="text-danger">There is no {{ $good }} available to buy.</span>
@@ -148,10 +144,10 @@
                 @csrf
                 <input type="hidden" name="good" value="{{ $good }}">
                 <tr>
-                    <td class="bg-header">Available</td>
-                    <td class="bg-header">You can buy</td>
-                    <td class="bg-header">Price <span class="text-small">(Per Unit)</span></td>
-                    <td class="bg-header">Buy Qty.</td>
+                    <td class="header">Available</td>
+                    <td class="header">You can buy</td>
+                    <td class="header">Price <span class="text-small">(Per Unit)</span></td>
+                    <td class="header">Buy Qty.</td>
                 </tr>
                 @foreach($marketOffers[$good] as $offer)
                     <tr>
@@ -162,7 +158,7 @@
                     </tr>
                 @endforeach
                 <tr>
-                    <td class="bg-header" colspan="4" align="right">
+                    <td class="header text-right" colspan="4">
                         <input type="submit" value="Buy {{ ucfirst($good) }}">
                     </td>
                 </tr>
@@ -174,14 +170,11 @@
 
     {{-- Incoming Caravans --}}
     @if($incomingCaravans->count() > 0)
-        <br><br>
-        <table class="game-table">
-        <tr>
-            <td class="bg-header">Incoming Caravans:</td>
-        </tr>
+        <div class="panel">
+        <div class="panel-header">Incoming Caravans</div>
+        <div class="panel-body">
         @foreach($incomingCaravans as $caravan)
-            <tr>
-                <td>
+            <div class="caravan-item">
                 Transport with
                 {{ number_format($caravan->wood) }} wood,
                 {{ number_format($caravan->food) }} food,
@@ -193,10 +186,10 @@
                 {{ number_format($caravan->bows) }} bows and
                 {{ number_format($caravan->horses) }} horses
                 will reach your empire in {{ $caravan->turns_remaining }} turns.
-                </td>
-            </tr>
+            </div>
         @endforeach
-        </table>
+        </div>
+        </div>
     @endif
 @endif
 

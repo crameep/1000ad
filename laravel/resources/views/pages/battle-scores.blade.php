@@ -31,7 +31,7 @@
     </tr>
 
     @forelse($topPlayers as $index => $p)
-    <tr style="background-color: {{ $index % 2 === 0 ? '#1a1a2e' : '#16213e' }};">
+    <tr class="{{ $index % 2 === 0 ? 'row-even' : 'row-odd' }}">
         <td class="small">{{ $index + 1 }}</td>
         <td class="small">
             <a href="{{ route('game.search.submit', ['searchType' => 'empireNo', 'empireNo' => $p->id]) }}">

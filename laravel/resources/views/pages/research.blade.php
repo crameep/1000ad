@@ -9,20 +9,10 @@
 
 <x-advisor-panel :tips="$advisorTips" />
 
-<br>
-
 @if(!$hasMageTowers)
-    <span class="text-error">
-    <b>Build mage towers to start research.</b>
-    </span>
-    <br>
-    <br>
+    <div class="info-text text-error"><b>Build mage towers to start research.</b></div>
 @else
-    <span class="text-body">
-    You have a total of {{ $totalResearchLevels }} research levels.<br>
-    </span>
-    <br>
-    <br>
+    <div class="info-text">You have a total of {{ $totalResearchLevels }} research levels.</div>
 
     {{-- Current research selection --}}
     <div class="form-panel">
@@ -39,27 +29,24 @@
         </select>
 
         @if($player->current_research > 0)
-            <br>
+            <div>
             {{ number_format($player->research_points) }} out of {{ number_format($nextLevelPoints) }}
             ({{ number_format($percent, 2) }}% complete)
-            <br>
-            <span class="text-small">
-            You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
-            <br>and using {{ number_format($goldCost) }} gold every month.
+            </div>
+            <div class="text-small">
+            <div>You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
+            and using {{ number_format($goldCost) }} gold every month.</div>
             @if($researchProduced > 0)
-                <br>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.
+                <div>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.</div>
             @endif
-            </span>
+            </div>
         @endif
     </div>
     <div class="form-footer">
         <input type="submit" value="Change Research">
     </div>
-    </form>
     </div>
-
-    <br>
-    <br>
+    </form>
 @endif
 
 {{-- Research levels table --}}
@@ -73,12 +60,12 @@
 
 @foreach($researchGroups as $groupName => $researchIds)
     <tr>
-        <td colspan="10"><b>{{ $groupName }}</b></td>
+        <td colspan="3"><b>{{ $groupName }}</b></td>
     </tr>
     @foreach($researchIds as $id)
         <tr>
             <td>{{ $researchNames[$id] }}</td>
-            <td align="center">{{ $player->{"research{$id}"} }}</td>
+            <td class="text-center">{{ $player->{"research{$id}"} }}</td>
             <td>{{ $researchDescriptions[$id] }}</td>
         </tr>
     @endforeach

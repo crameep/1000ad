@@ -11,13 +11,14 @@
 <div class="form-panel">
 <form action="{{ route('game.account.login') }}" method="POST">
     @csrf
-<div class="bg-header" style="padding:4px;">Change Login Name</div>
-<div style="padding:4px;">
-    <span class="text-small">Changing your login name does not change your Empire name</span><br><br>
-    <label>Login Name:</label>
-    <input type="text" name="newLogin" size="30" maxlength="30" value="{{ $player->login_name }}">
-    <br><br>
-    <div class="text-center"><input type="submit" value="Change Login"></div>
+<div class="form-header">Change Login Name</div>
+<div class="form-body">
+    <div class="form-field"><span class="text-small">Changing your login name does not change your Empire name</span></div>
+    <div class="form-field">
+        <label>Login Name:</label>
+        <input type="text" name="newLogin" size="30" maxlength="30" value="{{ $player->login_name }}">
+    </div>
+    <div class="form-footer"><input type="submit" value="Change Login"></div>
 </div>
 </form>
 </div>
@@ -28,16 +29,21 @@
 <div class="form-panel">
 <form action="{{ route('game.account.password') }}" method="POST">
     @csrf
-<div class="bg-header" style="padding:4px;">Change Password</div>
-<div style="padding:4px;">
-    <label>Current Password:</label>
-    <input type="password" name="curPassword" size="20" maxlength="30"><br>
-    <label>New Password:</label>
-    <input type="password" name="newPassword" size="20" maxlength="30"><br>
-    <label>New Password (verify):</label>
-    <input type="password" name="newPassword2" size="20" maxlength="30">
-    <br><br>
-    <div class="text-center"><input type="submit" value="Change Password"></div>
+<div class="form-header">Change Password</div>
+<div class="form-body">
+    <div class="form-field">
+        <label>Current Password:</label>
+        <input type="password" name="curPassword" size="20" maxlength="30">
+    </div>
+    <div class="form-field">
+        <label>New Password:</label>
+        <input type="password" name="newPassword" size="20" maxlength="30">
+    </div>
+    <div class="form-field">
+        <label>New Password (verify):</label>
+        <input type="password" name="newPassword2" size="20" maxlength="30">
+    </div>
+    <div class="form-footer"><input type="submit" value="Change Password"></div>
 </div>
 </form>
 </div>
@@ -61,14 +67,17 @@ function confirmDelete(form) {
 <div class="form-panel">
 <form action="{{ route('game.account.delete') }}" method="POST" onsubmit="return confirmDelete(this)">
     @csrf
-<div class="bg-header" style="padding:4px;">Delete My Empire</div>
-<div style="padding:4px;">
-    <label>Login Name:</label>
-    <input type="text" name="lName" size="20" maxlength="30"><br>
-    <label>Current Password:</label>
-    <input type="password" name="curPassword" size="20" maxlength="30">
-    <br><br>
-    <div class="text-center"><input type="submit" value="Delete Empire"></div>
+<div class="form-header">Delete My Empire</div>
+<div class="form-body">
+    <div class="form-field">
+        <label>Login Name:</label>
+        <input type="text" name="lName" size="20" maxlength="30">
+    </div>
+    <div class="form-field">
+        <label>Current Password:</label>
+        <input type="password" name="curPassword" size="20" maxlength="30">
+    </div>
+    <div class="form-footer"><input type="submit" value="Delete Empire"></div>
 </div>
 </form>
 </div>

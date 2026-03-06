@@ -11,12 +11,12 @@
     {{-- ============================================ --}}
     {{-- NO ALLIANCE: Show Join / Create forms --}}
     {{-- ============================================ --}}
-    <br>
-    <div class="form-panel" style="max-width:250px;">
+    <div class="form-panel">
     <form action="{{ route('game.alliance.join') }}" method="POST">
         @csrf
-        <div class="form-panel-header">Join Alliance</div>
-        <div class="form-panel-body">
+        <div class="form-header">Join Alliance</div>
+        <div class="form-body">
+            <div class="form-field">
             Alliance Tag:
             <select name="join_alliance_id">
                 <option value="0">--- Select One ---</option>
@@ -24,50 +24,51 @@
                     <option value="{{ $a->id }}">{{ $a->tag }}</option>
                 @endforeach
             </select>
-            <br>
+            </div>
+            <div class="form-field">
             Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
+            </div>
             <div class="text-center">
-            <input type="submit" value="Join" style="width:100px">
+            <input type="submit" value="Join">
             </div>
         </div>
     </form>
     </div>
 
-    <br><br>
-
-    <div class="form-panel" style="max-width:250px;">
+    <div class="form-panel">
     <form action="{{ route('game.alliance.create') }}" method="POST">
         @csrf
-        <div class="form-panel-header">Create New Alliance</div>
-        <div class="form-panel-body">
+        <div class="form-header">Create New Alliance</div>
+        <div class="form-body">
+            <div class="form-field">
             Alliance Tag:
             <input type="text" name="tag" size="20" maxlength="15">
-            <br>
+            </div>
+            <div class="form-field">
             Password: &nbsp;&nbsp; <input type="text" name="password" size="20" maxlength="20">
+            </div>
             <div class="text-center">
-            <input type="submit" value="Create Alliance" style="width:100px">
+            <input type="submit" value="Create Alliance">
             </div>
         </div>
     </form>
     </div>
-    <br>
 
 @else
     {{-- ============================================ --}}
     {{-- HAS ALLIANCE --}}
     {{-- ============================================ --}}
-    <div class="text-center"><span class="text-lg"><b>Alliance: {{ $alliance->tag }}</b></span></div>
-    <br>
+    <div class="text-center text-lg"><b>Alliance: {{ $alliance->tag }}</b></div>
 
     @if($isLeader)
         {{-- ============================================ --}}
         {{-- LEADER VIEW: Editable relations --}}
         {{-- ============================================ --}}
-        <div class="form-panel" style="max-width:400px;">
-        <div class="form-panel-header text-center">Alliance Relations</div>
+        <div class="form-panel">
+        <div class="form-header">Alliance Relations</div>
         <form action="{{ route('game.alliance.relations') }}" method="POST">
             @csrf
-            <div class="form-panel-body">
+            <div class="form-body">
                 <div style="display:flex; gap:1rem;">
                     <div style="flex:1;" class="text-center"><b>Allies:</b><br>
                         @for($i = 1; $i <= 5; $i++)
@@ -119,36 +120,30 @@
         </form>
         </div>
 
-        <br>
-
         {{-- Alliance News (editable) --}}
-        <div class="form-panel" style="max-width:400px;">
+        <div class="form-panel">
         <form action="{{ route('game.alliance.news') }}" method="POST">
             @csrf
-            <div class="form-panel-header text-center">Alliance News:</div>
-            <div class="form-panel-body">
+            <div class="form-header">Alliance News:</div>
+            <div class="form-body">
                 <textarea name="news" rows="5" cols="45" class="w-full">{{ $alliance->news }}</textarea>
                 <div class="text-center"><input type="submit" value="Update News"></div>
             </div>
         </form>
         </div>
 
-        <br>
-
         {{-- Leader Options: Change Password --}}
-        <div class="form-panel" style="max-width:400px;">
+        <div class="form-panel">
         <form action="{{ route('game.alliance.password') }}" method="POST">
             @csrf
-            <div class="form-panel-header text-center">Leader Options:</div>
-            <div class="form-panel-body">
+            <div class="form-header">Leader Options:</div>
+            <div class="form-body">
                 Change alliance password to
                 <input type="text" value="{{ $alliance->passwd }}" name="password" size="10" maxlength="20">
                 <input type="submit" value="Change">
             </div>
         </form>
         </div>
-
-        <br>
 
         {{-- Disband Alliance --}}
         <form action="{{ route('game.alliance.disband') }}" method="POST" onsubmit="return confirm('Are you sure you want to disband this alliance?')">
@@ -160,9 +155,9 @@
         {{-- ============================================ --}}
         {{-- MEMBER VIEW: Read-only relations --}}
         {{-- ============================================ --}}
-        <div class="form-panel" style="max-width:400px;">
-        <div class="form-panel-header text-center">Alliance Relations</div>
-        <div class="form-panel-body">
+        <div class="form-panel">
+        <div class="form-header">Alliance Relations</div>
+        <div class="form-body">
             <div style="display:flex; gap:1rem;">
                 <div style="flex:1;"><b>Allies:</b><br>
                     @forelse($allyTags as $tag)
@@ -200,12 +195,10 @@
         </div>
         </div>
 
-        <br>
-
         {{-- Alliance News (read-only) --}}
-        <div class="form-panel" style="max-width:400px;">
-        <div class="form-panel-header text-center">Alliance News:</div>
-        <div class="form-panel-body">
+        <div class="form-panel">
+        <div class="form-header">Alliance News:</div>
+        <div class="form-body">
             @if(trim($alliance->news) === '')
                 No Alliance News
             @else
@@ -213,8 +206,6 @@
             @endif
         </div>
         </div>
-
-        <br><br>
 
         {{-- Leave Alliance --}}
         <form action="{{ route('game.alliance.leave') }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this alliance?')">
@@ -226,31 +217,31 @@
     {{-- ============================================ --}}
     {{-- MEMBER LIST (shown for both leader and member) --}}
     {{-- ============================================ --}}
-    <br>
-    <table class="game-table" style="max-width:400px;">
+    <table class="game-table">
     <tr>
-        <td colspan="2" class="header" align="center">Alliance Members:</td>
+        <td colspan="2" class="header text-center">Alliance Members:</td>
     </tr>
-    <tr><td align="center">
+    <tr><td class="text-center">
         @foreach($members as $member)
+            <div>
             @if($member->alliance_member_type == 1)<b><u>@endif
             {{ $member->name }} (#{{ $member->id }})
             @if($member->alliance_member_type == 1)</u></b>@endif
 
             @if($member->id == $alliance->leader_id)
-                <span class="text-danger"><b>&nbsp;&nbsp;&nbsp;Alliance Leader</b></span>
+                <span class="text-error"><b>&nbsp;&nbsp;&nbsp;Alliance Leader</b></span>
             @endif
-            <br>
+            </div>
 
-            Rank: {{ $member->rank }}<br>
-            Score: {{ number_format($member->score) }}<br>
-            Land: {{ number_format($member->total_land) }}<br>
+            <div>Rank: {{ $member->rank }}</div>
+            <div>Score: {{ number_format($member->score) }}</div>
+            <div>Land: {{ number_format($member->total_land) }}</div>
 
             @if($player->alliance_member_type == 1 || $player->id == $alliance->leader_id)
-                Army: {{ number_format($member->total_army) }}<br>
+                <div>Army: {{ number_format($member->total_army) }}</div>
                 <span class="text-warning text-sm">
                 @if(!$member->last_load)
-                    <span class="text-danger">Never Played</span>
+                    <span class="text-error">Never Played</span>
                 @else
                     @php
                         $totalMinutes = (int) $member->last_load->diffInMinutes(now());
@@ -258,18 +249,17 @@
                         $minutes = $totalMinutes - ($hours * 60);
                     @endphp
                     @if($hours == 0 && $minutes <= 10)
-                        <span class="text-danger">* Online Now</span>
+                        <span class="text-error">* Online Now</span>
                     @else
                         Last played: @if($hours > 0){{ $hours }} hours and @endif {{ $minutes }} minutes ago.
                     @endif
-                    <br>
                 @endif
                 </span>
 
                 @if($member->id != $player->id && $player->id == $alliance->leader_id)
                     <span class="text-sm">
-                    <a href="{{ route('game.search') }}?empireNo={{ $member->id }}&searchType=empireNo">View Army</a>
-                    <br>
+                    <div><a href="{{ route('game.search') }}?empireNo={{ $member->id }}&searchType=empireNo">View Army</a></div>
+                    <div>
                     <form action="{{ route('game.alliance.toggle-status', $member->id) }}" method="POST" class="inline-form">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">
@@ -280,17 +270,19 @@
                             @endif
                         </a>
                     </form>
-                    <br>
+                    </div>
+                    <div>
                     <form action="{{ route('game.alliance.remove', $member->id) }}" method="POST" class="inline-form" onsubmit="return confirm('Remove {{ e($member->name) }} from the alliance?')">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">Remove From Alliance</a>
                     </form>
-                    <br>
+                    </div>
+                    <div>
                     <form action="{{ route('game.alliance.give-leadership', $member->id) }}" method="POST" class="inline-form" onsubmit="return confirm('Give leadership to {{ e($member->name) }}?')">
                         @csrf
                         <a href="#" onclick="this.closest('form').submit(); return false;">Give Leadership</a>
                     </form>
-                    <br>
+                    </div>
                     </span>
                 @endif
             @endif
@@ -301,6 +293,5 @@
         @endforeach
     </td></tr>
     </table>
-    <br>
 @endif
 @endsection

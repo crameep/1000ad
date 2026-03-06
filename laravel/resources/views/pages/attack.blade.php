@@ -10,27 +10,21 @@
 <x-advisor-panel :tips="$advisorTips" />
 
 @if($underProtection)
-    <br>
-    <span>
+    <div class="info-text">
     Cannot attack under protection.
-    <br>
     (You are under protection for the first 6 years of game)
-    </span>
+    </div>
 @else
 
 {{-- Active attacks table --}}
 @if($attacks->isEmpty())
-    <br>
-    <span>Your armies are not attacking anyone.</span><br>
+    <div class="info-text">Your armies are not attacking anyone.</div>
 @else
-    <br>
-    <span>
-    The following armies are active:<br>
-    </span>
+    <div class="info-text">The following armies are active:</div>
     <div class="table-scroll">
     <table class="game-table">
     <tr>
-        <td nowrap class="header">Empire Attacked</td>
+        <td class="header">Empire Attacked</td>
         <td class="header">Attack Type</td>
         <td class="header">Your Army</td>
         <td class="header">Status</td>
@@ -38,14 +32,14 @@
     </tr>
     @foreach($attacks as $attack)
     <tr>
-        <td valign="top">
+        <td class="vtop">
             {{ $attack->empire_attacked }} (#{{ $attack->attack_player_id }})
             @if($attack->dscore < $player->score / 2 && !$deathmatchMode)
                 <br><span class="text-small text-error">Warning!!! attacking<br>empires smaller<br>than 1/2 of your<br>size will result <br>in revolt.</span>
             @endif
         </td>
-        <td valign="top">{{ $attack->type_label }}</td>
-        <td valign="top"><span class="text-small">
+        <td class="vtop">{{ $attack->type_label }}</td>
+        <td class="vtop"><span class="text-small">
             @if($attack->attack_type >= 0 && $attack->attack_type < 10)
                 @if($attack->uunit > 0){{ number_format($attack->uunit) }} {{ $uniqueUnitName }}<br>@endif
                 @if($attack->trained_peasants > 0){{ number_format($attack->trained_peasants) }} Trained Peasants<br>@endif
@@ -64,8 +58,8 @@
                 <br><b>Attack Strength: {{ number_format(round($attack->attack_power)) }}%</b>
             @endif
         </span></td>
-        <td valign="top">{{ $attack->status_label }}</td>
-        <td valign="top">
+        <td class="vtop">{{ $attack->status_label }}</td>
+        <td class="vtop">
             @if($attack->status == 0 || $attack->status == 1 || $attack->status == 2)
                 <form action="{{ route('game.attack.launch') }}" method="POST" class="inline-form">
                     @csrf
@@ -78,13 +72,10 @@
             @endif
         </td>
     </tr>
-    <tr><td colspan="10" bgcolor="darkslategray" height="5"></td></tr>
     @endforeach
     </table>
     </div>
 @endif
-
-<br>
 
 {{-- Army Attack Form --}}
 <div class="form-panel">
@@ -148,16 +139,14 @@
                     <div class="unit-count">You have {{ number_format($player->trained_peasants) }}</div>
                 </div>
             </div>
-            also send:<br>
+            <div>also send:</div>
             <input type="text" name="sendwine" value="0" maxlength="10" size="8"> wine (you have {{ number_format($player->wine) }})
-            <br><input type="checkbox" name="sendmaxwine" value="1"> Send max wine?
+            <div><input type="checkbox" name="sendmaxwine" value="1"> Send max wine?</div>
             <div><input type="checkbox" name="sendAll" value="1"> Send All Army</div>
             <div class="form-footer"><input type="submit" value="Attack"></div>
         </form>
     </div>
 </div>
-
-<br>
 
 {{-- Catapult Attack Form --}}
 <div class="form-panel">
@@ -185,8 +174,6 @@
         </form>
     </div>
 </div>
-
-<br>
 
 {{-- Thief Attack Form --}}
 <div class="form-panel">

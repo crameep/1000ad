@@ -17,11 +17,11 @@
     @csrf
 <div class="form-header">Weapon Production</div>
 <div class="form-body">
-You have {{ $player->weapon_smith }} weaponsmiths and <br>
-<input type="text" name="bowProduction" size="4" maxlength="8" value="{{ $player->bow_weapon_smith }}"> of them are producing bows and<br>
-<input type="text" name="swordProduction" size="4" maxlength="8" value="{{ $player->sword_weapon_smith }}"> of them are producing swords<br>
-<input type="text" name="maceProduction" size="4" maxlength="8" value="{{ $player->mace_weapon_smith }}"> of them are producing maces<br>
-and {{ $freeWeaponsmiths }} are idle.
+<div>You have {{ $player->weapon_smith }} weaponsmiths and</div>
+<div class="form-field"><input type="text" name="bowProduction" size="4" maxlength="8" value="{{ $player->bow_weapon_smith }}"> of them are producing bows and</div>
+<div class="form-field"><input type="text" name="swordProduction" size="4" maxlength="8" value="{{ $player->sword_weapon_smith }}"> of them are producing swords</div>
+<div class="form-field"><input type="text" name="maceProduction" size="4" maxlength="8" value="{{ $player->mace_weapon_smith }}"> of them are producing maces</div>
+<div>and {{ $freeWeaponsmiths }} are idle.</div>
 <hr>
 Your weaponsmiths are using {{ number_format($woodUsed) }} wood and {{ number_format($ironUsed) }} iron for production every month.
 </div>
@@ -57,9 +57,9 @@ Your weaponsmiths are using {{ number_format($woodUsed) }} wood and {{ number_fo
     @csrf
 <div class="form-header">Land</div>
 <div class="form-body">
-    Change <input type="text" name="mLandChange" size="5" maxlength="10" value="0"> mountain land to forest <br>(100 gold for each land)<br><br>
+    <div class="form-field">Change <input type="text" name="mLandChange" size="5" maxlength="10" value="0"> mountain land to forest <span class="text-sm">(100 gold for each land)</span></div>
 
-    Change <input type="text" name="fLandChange" size="5" maxlength="10" value="0"> forest land to plains <br>(25 gold for each land)<br><br>
+    <div class="form-field">Change <input type="text" name="fLandChange" size="5" maxlength="10" value="0"> forest land to plains <span class="text-sm">(25 gold for each land)</span></div>
 </div>
 <div class="form-footer"><input type="submit" value="Change"></div>
 </form>

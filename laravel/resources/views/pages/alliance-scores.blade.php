@@ -30,7 +30,7 @@
     </tr>
 
     @forelse($alliances as $index => $a)
-    <tr style="background-color: {{ $index % 2 === 0 ? '#1a1a2e' : '#16213e' }};">
+    <tr class="{{ $index % 2 === 0 ? 'row-even' : 'row-odd' }}">
         <td class="small">{{ $index + 1 }}</td>
         <td class="small"><b>{{ $a->tag }}</b></td>
         <td class="small">{{ $a->members }}</td>

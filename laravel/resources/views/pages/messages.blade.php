@@ -19,38 +19,30 @@
 
 {{-- INBOX --}}
 @if($messageFolder === 'inbox')
-<br>
-<table class="game-table">
-<tr>
-    <td class="bg-header"><a name="NEWMESSAGE">Send New Message</a></td>
-</tr>
+
+<div class="form-panel">
 <form action="{{ route('game.messages.send') }}" method="POST" name="rForm" onsubmit="return checkForm(this)">
     @csrf
-<tr>
-    <td>Message To (Empire #):
-    <input type="text" size="15" name="toPlayerID" value="{{ $menuPlayerID }}">
-    @if($player->alliance_id > 0 && $allianceMembers->isNotEmpty())
-    <select name="ql" onchange="quickLookup(this)">
-        <option value="">--- Quick Lookup ---</option>
-        <option value="{{ $allianceList }}">All Alliance Members</option>
-        @foreach($allianceMembers as $member)
-            <option value="{{ $member->id }}">{{ $member->name }} (#{{ $member->id }})</option>
-        @endforeach
-        <option value="">--------------------------------</option>
-    </select>
-    @endif
-    <br>
-    <span class="text-sm">(You can separate multiple numbers with commas)</span>
-    </td>
-</tr>
-<tr>
-    <td><textarea name="pmessage" rows="6" cols="70" class="w-full"></textarea></td>
-</tr>
-<tr>
-    <td align="center"><input type="submit" value="Send" style="width:100px;"></td>
-</tr>
+    <div class="form-header"><a name="NEWMESSAGE">Send New Message</a></div>
+    <div class="form-body">
+        Message To (Empire #):
+        <input type="text" size="15" name="toPlayerID" value="{{ $menuPlayerID }}">
+        @if($player->alliance_id > 0 && $allianceMembers->isNotEmpty())
+        <select name="ql" onchange="quickLookup(this)">
+            <option value="">--- Quick Lookup ---</option>
+            <option value="{{ $allianceList }}">All Alliance Members</option>
+            @foreach($allianceMembers as $member)
+                <option value="{{ $member->id }}">{{ $member->name }} (#{{ $member->id }})</option>
+            @endforeach
+            <option value="">--------------------------------</option>
+        </select>
+        @endif
+        <div class="text-sm">(You can separate multiple numbers with commas)</div>
+        <textarea name="pmessage" rows="6" cols="70" class="w-full"></textarea>
+    </div>
+    <div class="form-footer"><input type="submit" value="Send"></div>
 </form>
-</table>
+</div>
 
 <script>
 function quickLookup(s) {
@@ -80,45 +72,25 @@ function replay(pid, mid) {
 @endif
 </script>
 
-<br><br>
-
 @if($messages->isEmpty())
-    <span class="text-danger">You do not have any messages.</span>
+    <span class="text-error">You do not have any messages.</span>
 @else
-    <table class="game-table w-full">
     @foreach($messages as $idx => $msg)
-    <tr>
-        <td class="bg-header">
-            @if(!$msg->viewed)<span style="color:aqua;"><b>NEW!</b></span>&nbsp;&nbsp;@endif
-            Message from {{ $msg->from_player_name }} ({{ $msg->from_player_id }})
-            sent on {{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}
-        </td>
-    </tr>
-    <tr>
-        <td>
-            {!! nl2br(e($msg->message)) !!}
-            <br>
-            <span class="text-sm">
-                <a href="#NEWMESSAGE" onclick="replay({{ $msg->from_player_id }}, {{ $idx }})">Reply</a> |
-                <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">
-                    @csrf
-                    <a href="#" onclick="this.closest('form').submit(); return false;">Delete This Message</a>
-                </form> |
-                <form action="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save']) }}" method="POST" class="inline-form">
-                    @csrf
-                    <input type="hidden" name="messageID" value="{{ $msg->id }}">
-                    <a href="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save_message', 'messageID' => $msg->id]) }}">Save This Message</a>
-                </form> |
-                <form action="{{ route('game.messages.block', $msg->from_player_id) }}" method="POST" class="inline-form">
-                    @csrf
-                    <a href="#" onclick="this.closest('form').submit(); return false;">Block Messages from {{ $msg->from_player_id }}</a>
-                </form>
-            </span>
-        </td>
-    </tr>
-    <tr><td height="5" class="bg-header"></td></tr>
+    <div class="msg-card">
+        <div class="msg-card-header">
+            @if(!$msg->viewed)<span class="msg-new-badge">NEW!</span>@endif
+            <span>Message from {{ $msg->from_player_name }} ({{ $msg->from_player_id }})</span>
+            <span class="text-sm">{{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}</span>
+        </div>
+        <div class="msg-card-body">{!! nl2br(e($msg->message)) !!}</div>
+        <div class="msg-card-actions">
+            <a href="#NEWMESSAGE" onclick="replay({{ $msg->from_player_id }}, {{ $idx }})">Reply</a>
+            <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">@csrf <a href="#" onclick="this.closest('form').submit(); return false;">Delete</a></form>
+            <form action="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save']) }}" method="POST" class="inline-form">@csrf <input type="hidden" name="messageID" value="{{ $msg->id }}"><a href="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save_message', 'messageID' => $msg->id]) }}">Save</a></form>
+            <form action="{{ route('game.messages.block', $msg->from_player_id) }}" method="POST" class="inline-form">@csrf <a href="#" onclick="this.closest('form').submit(); return false;">Block {{ $msg->from_player_id }}</a></form>
+        </div>
+    </div>
     @endforeach
-    </table>
 
     <form action="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'delete_all']) }}" method="POST" class="inline-form">
         @csrf
@@ -129,34 +101,26 @@ function replay(pid, mid) {
 
 {{-- SAVED --}}
 @elseif($messageFolder === 'saved')
-<br>
+
 @if($messages->isEmpty())
-    <span class="text-danger">You do not have any saved messages.</span>
+    <span class="text-error">You do not have any saved messages.</span>
 @else
-    <table class="game-table w-full">
     @foreach($messages as $msg)
-    <tr>
-        <td class="bg-header">
-            Message from {{ $msg->from_player_name }} ({{ $msg->from_player_id }})
-            sent on {{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}
-        </td>
-    </tr>
-    <tr>
-        <td>
-            {!! nl2br(e($msg->message)) !!}
-            <br>
-            <span class="text-sm">
-                <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">
-                    @csrf
-                    <input type="hidden" name="messageFolder" value="saved">
-                    <a href="#" onclick="this.closest('form').submit(); return false;">Delete This Message</a>
-                </form>
-            </span>
-        </td>
-    </tr>
-    <tr><td height="5" class="bg-header"></td></tr>
+    <div class="msg-card">
+        <div class="msg-card-header">
+            <span>Message from {{ $msg->from_player_name }} ({{ $msg->from_player_id }})</span>
+            <span class="text-sm">{{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}</span>
+        </div>
+        <div class="msg-card-body">{!! nl2br(e($msg->message)) !!}</div>
+        <div class="msg-card-actions">
+            <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">
+                @csrf
+                <input type="hidden" name="messageFolder" value="saved">
+                <a href="#" onclick="this.closest('form').submit(); return false;">Delete</a>
+            </form>
+        </div>
+    </div>
     @endforeach
-    </table>
 
     <form action="{{ route('game.messages', ['messageFolder' => 'saved', 'eflag' => 'delete_all_saved']) }}" method="POST" class="inline-form">
         @csrf
@@ -164,14 +128,12 @@ function replay(pid, mid) {
         <a href="#" onclick="this.closest('form').submit(); return false;">Delete All Saved Messages</a>
     </form>
 @endif
-<br><br>
 
 {{-- SENT --}}
 @elseif($messageFolder === 'sent')
 @if($messages->isEmpty())
-    <span class="text-danger">You do not have any sent messages.</span>
+    <span class="text-error">You do not have any sent messages.</span>
 @else
-    <br>
     <table class="game-table">
     <tr>
         <td class="header">Sent To</td>
@@ -194,9 +156,8 @@ function replay(pid, mid) {
 {{-- DELETED --}}
 @elseif($messageFolder === 'deleted')
 @if($messages->isEmpty())
-    <span class="text-danger">You do not have any deleted messages.</span>
+    <span class="text-error">You do not have any deleted messages.</span>
 @else
-    <br>
     <table class="game-table">
     <tr>
         <td class="header">Received From</td>
@@ -216,32 +177,23 @@ function replay(pid, mid) {
 
 {{-- VIEW MESSAGE --}}
 @elseif($messageFolder === 'viewMessage')
-<br>
+
 @if(!isset($message) || !$message)
-    <span class="text-danger">Invalid Message.</span>
+    <span class="text-error">Invalid Message.</span>
 @else
-    <table class="game-table w-full">
-    <tr>
-        <td class="bg-header">
+    <div class="msg-card">
+        <div class="msg-card-header">
             Message to {{ $message->to_player_name }} ({{ $message->to_player_id }})
             sent on {{ $message->created_on->format('m/d/Y') }} at {{ $message->created_on->format('h:i A') }}
-        </td>
-    </tr>
-    <tr>
-        <td>
-            {!! nl2br(e($message->message)) !!}
-            <br>
-        </td>
-    </tr>
-    <tr><td height="5" class="bg-header"></td></tr>
-    </table>
+        </div>
+        <div class="msg-card-body">{!! nl2br(e($message->message)) !!}</div>
+    </div>
     <a href="{{ route('game.messages', ['messageFolder' => 'sent']) }}">Back...</a>
 @endif
 
 {{-- OPTIONS --}}
 @elseif($messageFolder === 'options')
     <b>You do not wish to receive messages from the following empires:</b>
-    <br>
     @forelse($blockedPlayers as $block)
         <li>{{ $block->name }} ({{ $block->player_id }}) -
             <form action="{{ route('game.messages', ['messageFolder' => 'options', 'eflag' => 'unblock']) }}" method="POST" class="inline-form">
@@ -251,15 +203,14 @@ function replay(pid, mid) {
             </form>
         </li>
     @empty
-        None<br>
+        None
     @endforelse
-    <br><br>
 
     <form action="{{ route('game.messages.block', 0) }}" method="POST" id="blockForm">
         @csrf
-        <div class="form-panel" style="max-width:250px;">
-            <div class="bg-header text-center"><b>Block Messages From Player</b></div>
-            <div class="form-panel-body">
+        <div class="form-panel">
+            <div class="form-header">Block Messages From Player</div>
+            <div class="form-body">
                 Player #:
                 <input type="text" name="blockID" value="0" size="3" id="blockInput">
                 <input type="submit" value="Block" onclick="this.form.action='{{ route('game.messages.block', '') }}/' + document.getElementById('blockInput').value; return true;">
