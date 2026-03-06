@@ -26,7 +26,7 @@
     --text-muted: #786850;
     --text-link: #c9a84c;
     --text-link-hover: #f0d060;
-    --text-error: #cc3333;
+    --text-error: #e85454;
     --text-warning: #e8c84c;
     --text-success: #5a9a3a;
 
@@ -617,14 +617,6 @@ td.header, th {
     margin: 8px 0;
 }
 
-/* === 13. Score Colors (applied to <tr>, inherited by <td>) === */
-.score-self td { color: var(--color-score-self); }
-.score-protected td { color: var(--color-score-protected); }
-.score-alliance td { color: var(--color-score-alliance); }
-.score-ally td { color: var(--color-score-ally); }
-.score-enemy td { color: var(--color-score-enemy); }
-.score-default td { color: var(--text-primary); }
-
 /* === 14. Context Menu === */
 .context-menu,
 #pMenu {
@@ -1012,16 +1004,112 @@ td.header, th {
     border-bottom: 2px solid var(--border-accent);
 }
 
-/* Scores info row */
-.scores-info {
+/* === Scores Page === */
+.scores-summary {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    margin-bottom: 6px;
+    font-size: var(--font-size-base);
 }
-.scores-text { flex: 1; }
-.scores-legend { flex-shrink: 0; }
+.scores-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.scores-summary-sep {
+    color: var(--text-muted);
+}
+.scores-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.legend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.online-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #5aff5a;
+    margin-right: 3px;
+    flex-shrink: 0;
+}
+/* Scores table */
+.scores-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-small);
+}
+.scores-table thead th {
+    background: var(--bg-header);
+    color: var(--border-accent);
+    font-weight: bold;
+    font-family: var(--font-title);
+    font-size: var(--font-size-small);
+    padding: 6px 8px;
+    border-bottom: 2px solid var(--border-accent);
+}
+.scores-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.scores-table tbody tr:nth-child(even) td {
+    background-color: rgba(26,21,16,.5);
+}
+.scores-table tbody tr:hover td {
+    background-color: var(--bg-hover);
+}
+.scores-clickable {
+    cursor: pointer;
+}
+.scores-rank {
+    white-space: nowrap;
+    min-width: 36px;
+}
+.scores-divider td {
+    height: 8px;
+    background: var(--bg-header);
+    border-bottom: 2px solid var(--border-accent);
+    padding: 0;
+}
+.scores-stripe td {
+    height: 2px;
+    background: var(--border-subtle);
+    padding: 0;
+}
+/* Score color classes */
+.score-self td { color: var(--color-score-self); }
+.score-protected td { color: var(--color-score-protected); }
+.score-alliance td { color: var(--color-score-alliance); }
+.score-ally td { color: var(--color-score-ally); }
+.score-enemy td { color: var(--color-score-enemy); }
+.score-default td { color: var(--text-primary); }
+/* Context menu */
+.context-menu-hr {
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+    margin: 2px 0;
+}
 
 /* Footer */
 .game-footer {
@@ -1353,6 +1441,13 @@ td.header, th {
     .progress-ind-pct {
         font-size: 9px;
         min-width: 24px;
+    }
+
+    /* Scores summary stacks on mobile */
+    .scores-summary {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
     }
 
     /* Trade cards stack on mobile */
@@ -1850,6 +1945,14 @@ button.explore-btn {
     border-top: 1px solid var(--border-color);
     line-height: 1.5;
 }
+
+/* Turn report line styles */
+.tr-header { color: var(--border-accent); font-weight: bold; text-align: center; padding: 4px 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 2px; }
+.tr-line { padding: 1px 0; }
+.tr-error { color: var(--text-error); }
+.tr-warn { color: var(--text-warning); }
+.tr-good { color: var(--text-success); }
+.tr-summary { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border-subtle); }
 
 /* === Tooltips (Pure CSS) === */
 [data-tooltip] {

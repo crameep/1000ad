@@ -89,7 +89,7 @@ class TurnService
         $year = intval($tempTurn / 12) + 1000;
         $monthName = date('F', mktime(0, 0, 0, $month, 1));
 
-        $message = "<font color=yellow><b>------------------------------ {$monthName} {$year} ------------------------------</b></font><br>";
+        $message = '<div class="tr-header">' . $monthName . ' ' . $year . '</div>';
 
         // Current date for messages
         $theDate = now()->format('m/d/Y h:i A');
@@ -113,7 +113,7 @@ class TurnService
             ->get();
 
         foreach ($arrivedTransfers as $tq) {
-            $message .= "<font color=yellow>A transport with {$tq->wood} wood, {$tq->food} food, {$tq->iron} iron, {$tq->tools} tools, {$tq->maces} maces, {$tq->swords} swords, {$tq->bows} bows and {$tq->horses} horses arrived from public market.</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">A transport with {$tq->wood} wood, {$tq->food} food, {$tq->iron} iron, {$tq->tools} tools, {$tq->maces} maces, {$tq->swords} swords, {$tq->bows} bows and {$tq->horses} horses arrived from public market.</div>";
             $newP->wood += $tq->wood;
             $newP->food += $tq->food;
             $newP->iron += $tq->iron;
@@ -133,7 +133,7 @@ class TurnService
             $numBuilders = round($newP->people / 2);
         }
         if ($numBuilders > $newP->tools) {
-            $message .= "<font color=red>You do not have enough tools for all of your builders</font><br>";
+            $message .= '<div class="tr-line tr-error">You do not have enough tools for all of your builders</div>';
             $numBuilders = $newP->tools;
         }
 
@@ -184,7 +184,7 @@ class TurnService
             $peopleNeed = $canProduce * $hunterB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $hunterB['workers']);
-                $message .= "<font color=Red>Not enough people to work at hunters.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at hunters.</div>';
             }
             $rPeople -= $canProduce * $hunterB['workers'];
             $getFood = $canProduce * $hunterB['production'];
@@ -199,7 +199,7 @@ class TurnService
                 $peopleNeed = $canProduce * $farmerB['workers'];
                 if ($rPeople < $peopleNeed) {
                     $canProduce = intval($rPeople / $farmerB['workers']);
-                    $message .= "<font color=Red>Not enough people to work on farms.<br></font>";
+                    $message .= '<div class="tr-line tr-error">Not enough people to work on farms.</div>';
                 }
                 $rPeople -= $canProduce * $farmerB['workers'];
                 $getFood = $canProduce * $farmerB['production'];
@@ -215,7 +215,7 @@ class TurnService
             $peopleNeed = $canProduce * $woodCutterB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $woodCutterB['workers']);
-                $message .= "<font color=Red>Not enough people to work at woodcutters.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at woodcutters.</div>';
             }
             $rPeople -= $canProduce * $woodCutterB['workers'];
             $getWood = $canProduce * $woodCutterB['production'];
@@ -230,7 +230,7 @@ class TurnService
         if ($month >= 11 || $month <= 2) {
             $rWood -= $burnWood;
             $cWood += $burnWood;
-            $message .= "{$burnWood} wood was used for heat<br>";
+            $message .= "<div class=\"tr-line\">{$burnWood} wood was used for heat</div>";
             if ($rWood < 0) {
                 $peopleWithNoHeat = (int) ceil((abs($rWood) * $constants['people_burn_one_wood']) / 8);
                 if ($peopleWithNoHeat > $newP->people) {
@@ -238,7 +238,7 @@ class TurnService
                 }
                 $peopleFreeze = mt_rand(max(1, intval($peopleWithNoHeat / 2)), max(1, $peopleWithNoHeat));
                 $newP->people -= $peopleFreeze;
-                $message .= "<font color=red>{$peopleFreeze} people froze to death due to the lack of wood for heat</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">{$peopleFreeze} people froze to death due to the lack of wood for heat</div>";
                 $rWood = 0;
             }
         }
@@ -252,10 +252,10 @@ class TurnService
             $eatFood = (int) ceil($numSoldiers / $constants['soldiers_eat_one_food']);
             $cFood += $eatFood;
             $rFood -= $eatFood;
-            $message .= "Your soldiers ate {$eatFood} food<br>";
+            $message .= "<div class=\"tr-line\">Your soldiers ate {$eatFood} food</div>";
             if ($rFood < 0) {
                 $sDie = (int) ceil((abs($rFood) * $constants['soldiers_eat_one_food']) / 15);
-                $message .= "<font color=red>some soldiers died due to the lack of food</font><br>";
+                $message .= '<div class="tr-line tr-error">some soldiers died due to the lack of food</div>';
                 $newP->swordsman -= $sDie;
                 $newP->archers -= $sDie;
                 $newP->horseman -= $sDie;
@@ -280,7 +280,7 @@ class TurnService
             $peopleNeed = $canProduce * $goldMineB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $goldMineB['workers']);
-                $message .= "<font color=Red>Not enough people to work at gold mines.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at gold mines.</div>';
             }
             $rPeople -= $canProduce * $goldMineB['workers'];
             $getGold = $goldMineB['production'] * $canProduce;
@@ -295,7 +295,7 @@ class TurnService
             $peopleNeed = $canProduce * $ironMineB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $ironMineB['workers']);
-                $message .= "<font color=Red>Not enough people to work at iron mines.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at iron mines.</div>';
             }
             $rPeople -= $canProduce * $ironMineB['workers'];
             $getIron = $ironMineB['production'] * $canProduce;
@@ -310,17 +310,17 @@ class TurnService
             $peopleNeed = $canProduce * $toolMakerB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $toolMakerB['workers']);
-                $message .= "<font color=Red>Not enough people to work at tool makers.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at tool makers.</div>';
             }
             $woodNeed = $canProduce * $toolMakerB['wood_need'];
             if ($rWood < $woodNeed) {
                 $canProduce = intval($rWood / $toolMakerB['wood_need']);
-                $message .= "<font color=Red>Not enough wood to produce all tools.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough wood to produce all tools.</div>';
             }
             $ironNeed = $canProduce * $toolMakerB['iron_need'];
             if ($rIron < $ironNeed) {
                 $canProduce = intval($rIron / $toolMakerB['iron_need']);
-                $message .= "<font color=Red>Not enough iron to produce all tools.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough iron to produce all tools.</div>';
             }
             $rPeople -= $canProduce * $toolMakerB['workers'];
             $cWood += $canProduce * $toolMakerB['wood_need'];
@@ -346,12 +346,12 @@ class TurnService
             $peopleNeed = $canProduce * $weaponSmithB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $weaponSmithB['workers']);
-                $message .= "<font color=Red>Not enough people to produce swords.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to produce swords.</div>';
             }
             $ironNeed = $canProduce * $weaponSmithB['iron_need'];
             if ($rIron < $ironNeed) {
                 $canProduce = intval($rIron / $weaponSmithB['iron_need']);
-                $message .= "<font color=Red>Not enough iron to produce all swords.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough iron to produce all swords.</div>';
             }
             $rPeople -= $canProduce * $weaponSmithB['workers'];
             $cIron += $canProduce * $weaponSmithB['iron_need'];
@@ -365,12 +365,12 @@ class TurnService
             $peopleNeed = $canProduce * $weaponSmithB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $weaponSmithB['workers']);
-                $message .= "<font color=Red>Not enough people to produce bows.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to produce bows.</div>';
             }
             $woodNeed = $canProduce * $weaponSmithB['wood_need'];
             if ($rWood < $woodNeed) {
                 $canProduce = intval($rWood / $weaponSmithB['wood_need']);
-                $message .= "<font color=Red>Not enough wood to produce all bows.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough wood to produce all bows.</div>';
             }
             $rPeople -= $canProduce * $weaponSmithB['workers'];
             $cWood += $canProduce * $weaponSmithB['wood_need'];
@@ -384,17 +384,17 @@ class TurnService
             $peopleNeed = $canProduce * $weaponSmithB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $weaponSmithB['workers']);
-                $message .= "<font color=Red>Not enough people to produce maces.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to produce maces.</div>';
             }
             $woodNeed = $canProduce * $weaponSmithB['mace_wood'];
             if ($rWood < $woodNeed) {
                 $canProduce = intval($rWood / $weaponSmithB['mace_wood']);
-                $message .= "<font color=Red>Not enough wood to produce all maces.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough wood to produce all maces.</div>';
             }
             $ironNeed = $canProduce * $weaponSmithB['mace_iron'];
             if ($rIron < $ironNeed) {
                 $canProduce = intval($rIron / $weaponSmithB['mace_iron']);
-                $message .= "<font color=Red>Not enough iron to produce all maces.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough iron to produce all maces.</div>';
             }
             $rPeople -= $canProduce * $weaponSmithB['workers'];
             $cWood += $canProduce * $weaponSmithB['mace_wood'];
@@ -412,12 +412,12 @@ class TurnService
             $peopleNeed = $canProduce * $stableB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $stableB['workers']);
-                $message .= "<font color=Red>Not enough people to work at stables.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at stables.</div>';
             }
             $foodNeed = $canProduce * $stableB['food_need'];
             if ($rFood < $foodNeed) {
                 $canProduce = intval($rFood / $stableB['food_need']);
-                $message .= "<font color=Red>Not enough food to produce all horses.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough food to produce all horses.</div>';
             }
             $rPeople -= $canProduce * $stableB['workers'];
             $cFood += $canProduce * $stableB['food_need'];
@@ -432,12 +432,12 @@ class TurnService
             $peopleNeed = $canProduce * $wineryB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $wineryB['workers']);
-                $message .= "<font color=Red>Not enough people to work at winery.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at winery.</div>';
             }
             $goldNeed = $canProduce * $wineryB['gold_need'];
             if ($rGold < $goldNeed) {
                 $canProduce = intval($rGold / $wineryB['gold_need']);
-                $message .= "<font color=Red>Not enough gold to produce wine.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough gold to produce wine.</div>';
             }
             // Note: original CF code used mageTowerB.workers here (likely a bug), porting faithfully
             $rPeople -= $canProduce * $mageTowerB['workers'];
@@ -454,12 +454,12 @@ class TurnService
             $peopleNeed = $canProduce * $mageTowerB['workers'];
             if ($rPeople < $peopleNeed) {
                 $canProduce = intval($rPeople / $mageTowerB['workers']);
-                $message .= "<font color=Red>Not enough people to work at magetowers.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough people to work at magetowers.</div>';
             }
             $goldNeed = $canProduce * $mageTowerB['gold_need'];
             if ($rGold < $goldNeed) {
                 $canProduce = intval($rGold / $mageTowerB['gold_need']);
-                $message .= "<font color=Red>Not enough gold to do all research.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough gold to do all research.</div>';
             }
             $rPeople -= $canProduce * $mageTowerB['workers'];
             $cGold += $canProduce * $mageTowerB['gold_need'];
@@ -483,14 +483,14 @@ class TurnService
                 $totalResearches++;
 
                 if ($newP->current_research == 4 && $newP->research4 >= 50) {
-                    $message .= "<font color=red>You can only have up 50 research levels for military loss<br></font>";
+                    $message .= '<div class="tr-line tr-error">You can only have up 50 research levels for military loss</div>';
                     $newP->research_points = $needResearchPoints;
                     break;
                 } else {
                     $researchField = 'research' . $newP->current_research;
                     $newP->$researchField = $newP->$researchField + 1;
                     $researchName = $researchNames[$newP->current_research] ?? 'Unknown';
-                    $message .= "<font color=yellow>Finished research of {$researchName}<br></font>";
+                    $message .= "<div class=\"tr-line tr-warn\">Finished research of {$researchName}</div>";
                     $needResearchPoints = round($totalResearches * $totalResearches * sqrt($totalResearches) + 10);
                 }
             }
@@ -507,7 +507,7 @@ class TurnService
         if ($dRange <= 25 && $newP->wall > 10) {
             $decay = round($newP->wall * ($dRange / 2000));
             if ($decay > 0) {
-                $message .= "<font color=red>" . number_format($decay) . " units of wall detoriated</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">" . number_format($decay) . " units of wall detoriated</div>";
                 $newP->wall -= $decay;
             }
         }
@@ -529,22 +529,22 @@ class TurnService
             $goldNeed = $canProduce * $wallUseGold;
             if ($rGold < $goldNeed) {
                 $canProduce = intval($rGold / $wallUseGold);
-                $message .= "<font color=Red>Not enough gold for constuction of the great wall.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough gold for constuction of the great wall.</div>';
             }
             $woodNeed = $canProduce * $wallUseWood;
             if ($rWood < $woodNeed) {
                 $canProduce = intval($rWood / $wallUseWood);
-                $message .= "<font color=Red>Not enough wood for constuction of the great wall.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough wood for constuction of the great wall.</div>';
             }
             $ironNeed = $canProduce * $wallUseIron;
             if ($rIron < $ironNeed) {
                 $canProduce = intval($rIron / $wallUseIron);
-                $message .= "<font color=Red>Not enough iron for constuction of the great wall.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough iron for constuction of the great wall.</div>';
             }
             $wineNeed = $canProduce * $wallUseWine;
             if ($rWine < $wineNeed) {
                 $canProduce = intval($rWine / $wallUseWine);
-                $message .= "<font color=Red>Not enough wine for constuction of the great wall.<br></font>";
+                $message .= '<div class="tr-line tr-error">Not enough wine for constuction of the great wall.</div>';
             }
 
             if ($canProduce > 0) {
@@ -557,7 +557,7 @@ class TurnService
                 $cWine += $canProduce * $wallUseWine;
                 $rWine -= $canProduce * $wallUseWine;
                 $newP->wall += $canProduce;
-                $message .= "<font color=yellow>Constructed {$canProduce} units of wall.<br></font>";
+                $message .= "<div class=\"tr-line tr-warn\">Constructed {$canProduce} units of wall.</div>";
                 $numBuilders -= ($canProduce * 10);
             }
         }
@@ -577,7 +577,7 @@ class TurnService
             case -3: $foodEaten = round($foodEaten * 0.25); break;
         }
 
-        $message .= "Your people ate {$foodEaten} food<br>";
+        $message .= "<div class=\"tr-line\">Your people ate {$foodEaten} food</div>";
         $rFood -= $foodEaten;
         $cFood += $foodEaten;
 
@@ -599,7 +599,7 @@ class TurnService
             if ($peopleDie > $newP->people * 0.1) {
                 $peopleDie = round($newP->people * 0.1);
             }
-            $message .= "<font color=red>{$peopleDie} people died due to lack of food</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">{$peopleDie} people died due to lack of food</div>";
             $newP->people -= $peopleDie;
             if ($newP->people < $newP->town_center + $newP->house) {
                 $newP->people = $newP->town_center + $newP->house;
@@ -616,7 +616,7 @@ class TurnService
         if ($growth > 0 && $houseSpace > $newP->people) {
             // People can only grow if they get enough food and have housing
             $peopleCome = round(($growth / 10000) * $player->people);
-            $message .= "Your population increased by {$peopleCome}<br>";
+            $message .= "<div class=\"tr-line\">Your population increased by {$peopleCome}</div>";
             $rPeople += $peopleCome;
             $newP->people += $peopleCome;
             if ($newP->people > $houseSpace) {
@@ -625,17 +625,17 @@ class TurnService
         } elseif ($growth < 0) {
             // Negative food ratio causes people to leave
             $peopleLeave = abs(round(($growth / 10000) * $player->people));
-            $message .= "Due to poor food rationing your population decreased by {$peopleLeave} people<br>";
+            $message .= "<div class=\"tr-line\">Due to poor food rationing your population decreased by {$peopleLeave} people</div>";
             $newP->people -= $peopleLeave;
         } elseif ($growth > 0 && $houseSpace == $newP->people) {
-            $message .= "Lack of housing prevents further growth of population.<br>";
+            $message .= '<div class="tr-line">Lack of housing prevents further growth of population.</div>';
         }
 
         // Check if enough housing
         if ($newP->people > $houseSpace) {
             $peopleLeave = (int) ceil(($newP->people - $houseSpace) / 2);
             $newP->people -= $peopleLeave;
-            $message .= "<font color=red>Due to lack of housing {$peopleLeave} people emigrated from your empire</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">Due to lack of housing {$peopleLeave} people emigrated from your empire</div>";
         }
 
         // =====================================================================
@@ -681,7 +681,7 @@ class TurnService
             }
 
             if ($hasLand <= 0 && $b->mission == 0) {
-                $message .= "<font color=red>You do not have any free {$building['land']} land to build {$building['name']}</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">You do not have any free {$building['land']} land to build {$building['name']}</div>";
                 $timeRemaining = -1;
             } else {
                 $buildMovesSave = $buildMoves;
@@ -708,13 +708,13 @@ class TurnService
                     $buildMoves += $qtyRemaining * $bNeedTime;
                     $timeRemaining = $qtyRemaining * $bNeedTime;
                     $landTaken = $qtyBuild * $building['sq'];
-                    $message .= "<font color=red>Not enough land (" . ($qtyRemaining * $building['sq']) . " {$building['land']}) to process construction of {$building['name']}</font><br>";
+                    $message .= "<div class=\"tr-line tr-error\">Not enough land (" . ($qtyRemaining * $building['sq']) . " {$building['land']}) to process construction of {$building['name']}</div>";
                 }
 
                 $dbCol = $building['db_column'];
                 if ($qtyBuild > 0 && $b->mission == 0) {
                     // Built some buildings
-                    $message .= "<font color=yellow>Finished construction of {$qtyBuild} {$building['name']}s</font><br>";
+                    $message .= "<div class=\"tr-line tr-warn\">Finished construction of {$qtyBuild} {$building['name']}s</div>";
                     if ($building['land'] === 'M') {
                         $mUsed += $landTaken;
                     } elseif ($building['land'] === 'F') {
@@ -735,7 +735,7 @@ class TurnService
                     $newP->$dbCol = $hasBuildings;
                 } elseif ($qtyBuild > 0 && $b->mission == 1) {
                     // Demolished some buildings
-                    $message .= "<font color=yellow>Demolished {$qtyBuild} {$building['name']}s</font><br>";
+                    $message .= "<div class=\"tr-line tr-warn\">Demolished {$qtyBuild} {$building['name']}s</div>";
                     if ($building['land'] === 'M') {
                         $mUsed -= $landTaken;
                     } elseif ($building['land'] === 'F') {
@@ -795,14 +795,14 @@ class TurnService
 
             if ($t->turns_remaining < 0) {
                 // Disbanded due to lack of forts
-                $message .= "<font color=red>{$trainQty} training army units were disbanded because of lack of forts</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">{$trainQty} training army units were disbanded because of lack of forts</div>";
                 $newP->people += $trainQty;
             } else {
                 if ($totalArmy + $t->qty > $maxSoldiers) {
                     $done = false;
                     $trainQty = $maxSoldiers - $totalArmy;
                     if ($trainQty < 0) $trainQty = 0;
-                    $message .= "<font color=red>Not enough forts to finish training army</font><br>";
+                    $message .= '<div class="tr-line tr-error">Not enough forts to finish training army</div>';
                 }
 
                 switch ($t->soldier_type) {
@@ -852,21 +852,21 @@ class TurnService
 
         // Training completion messages
         if ($pSwordsman > 0)
-            $message .= "<font color=yellow>{$pSwordsman} swordsman have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pSwordsman} swordsman have finished their training and are ready to serve you</div>";
         if ($pArchers > 0)
-            $message .= "<font color=yellow>{$pArchers} archers have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pArchers} archers have finished their training and are ready to serve you</div>";
         if ($pHorseman > 0)
-            $message .= "<font color=yellow>{$pHorseman} horsemen have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pHorseman} horsemen have finished their training and are ready to serve you</div>";
         if ($pMacemen > 0)
-            $message .= "<font color=yellow>{$pMacemen} macemen have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pMacemen} macemen have finished their training and are ready to serve you</div>";
         if ($pCatapults > 0)
-            $message .= "<font color=yellow>{$pCatapults} catapults have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pCatapults} catapults have finished their training and are ready to serve you</div>";
         if ($pTrainedPeasants > 0)
-            $message .= "<font color=yellow>{$pTrainedPeasants} trained peasants have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pTrainedPeasants} trained peasants have finished their training and are ready to serve you</div>";
         if ($pThieves > 0)
-            $message .= "<font color=yellow>{$pThieves} thieves have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pThieves} thieves have finished their training and are ready to serve you</div>";
         if ($pUunit > 0)
-            $message .= "<font color=yellow>{$pUunit} {$uunitA['name']} have finished their training and are ready to serve you</font><br>";
+            $message .= "<div class=\"tr-line tr-warn\">{$pUunit} {$uunitA['name']} have finished their training and are ready to serve you</div>";
 
         // =====================================================================
         // I. Tool wear (months 5 and 10)
@@ -875,7 +875,7 @@ class TurnService
             $toolsUsedPct = mt_rand(10, 20);
             $toolsUsed = round($numBuilders * $toolsUsedPct / 100);
             if ($toolsUsed > 0) {
-                $message .= "{$toolsUsed} tools wore out<br>";
+                $message .= "<div class=\"tr-line\">{$toolsUsed} tools wore out</div>";
                 if ($rTools >= $toolsUsed) {
                     $rTools -= $toolsUsed;
                 } else {
@@ -885,37 +885,39 @@ class TurnService
         }
 
         // Resource production/consumption summary
+        $message .= '<div class="tr-summary">';
         if ($pWood != 0 || $cWood != 0) {
-            $c = ($pWood - $cWood < 0) ? 'red' : 'yellow';
             $net = $pWood - $cWood;
+            $cls = $net < 0 ? 'tr-error' : 'tr-good';
             $netFormatted = ($net >= 0 ? '+' : '') . number_format($net);
-            $message .= "Produced {$pWood} wood and used {$cWood} wood (<font color={$c}>{$netFormatted}</font>)<br>";
+            $message .= '<div class="tr-line">Produced ' . $pWood . ' wood and used ' . $cWood . ' wood (<span class="' . $cls . '">' . $netFormatted . '</span>)</div>';
         }
         if ($pFood != 0 || $cFood != 0) {
-            $c = ($pFood - $cFood < 0) ? 'red' : 'yellow';
             $net = $pFood - $cFood;
+            $cls = $net < 0 ? 'tr-error' : 'tr-good';
             $netFormatted = ($net >= 0 ? '+' : '') . number_format($net);
-            $message .= "Produced {$pFood} food and used {$cFood} food (<font color={$c}>{$netFormatted}</font>)<br>";
+            $message .= '<div class="tr-line">Produced ' . $pFood . ' food and used ' . $cFood . ' food (<span class="' . $cls . '">' . $netFormatted . '</span>)</div>';
         }
         if ($pIron != 0 || $cIron != 0) {
-            $c = ($pIron - $cIron < 0) ? 'red' : 'yellow';
             $net = $pIron - $cIron;
+            $cls = $net < 0 ? 'tr-error' : 'tr-good';
             $netFormatted = ($net >= 0 ? '+' : '') . number_format($net);
-            $message .= "Produced {$pIron} iron and used {$cIron} iron (<font color={$c}>{$netFormatted}</font>)<br>";
+            $message .= '<div class="tr-line">Produced ' . $pIron . ' iron and used ' . $cIron . ' iron (<span class="' . $cls . '">' . $netFormatted . '</span>)</div>';
         }
         if ($pGold != 0 || $cGold != 0) {
-            $c = ($pGold - $cGold < 0) ? 'red' : 'yellow';
             $net = $pGold - $cGold;
+            $cls = $net < 0 ? 'tr-error' : 'tr-good';
             $netFormatted = ($net >= 0 ? '+' : '') . number_format($net);
-            $message .= "Produced {$pGold} gold and used {$cGold} gold (<font color={$c}>{$netFormatted}</font>)<br>";
+            $message .= '<div class="tr-line">Produced ' . $pGold . ' gold and used ' . $cGold . ' gold (<span class="' . $cls . '">' . $netFormatted . '</span>)</div>';
         }
         if ($pWine != 0 || $cWine != 0) {
-            $c = ($pWine - $cWine < 0) ? 'red' : 'yellow';
             $net = $pWine - $cWine;
+            $cls = $net < 0 ? 'tr-error' : 'tr-good';
             $netFormatted = ($net >= 0 ? '+' : '') . number_format($net);
-            $message .= "Produced {$pWine} wine and used {$cWine} wine (<font color={$c}>{$netFormatted}</font>)<br>";
+            $message .= '<div class="tr-line">Produced ' . $pWine . ' wine and used ' . $cWine . ' wine (<span class="' . $cls . '">' . $netFormatted . '</span>)</div>';
         }
-        $message .= "Produced {$pTools} tools, {$pSwords} swords, {$pBows} bows, {$pMaces} maces and {$pHorses} horses<br>";
+        $message .= '<div class="tr-line">Produced ' . $pTools . ' tools, ' . $pSwords . ' swords, ' . $pBows . ' bows, ' . $pMaces . ' maces and ' . $pHorses . ' horses</div>';
+        $message .= '</div>';
 
         // =====================================================================
         // J. Explorer processing
@@ -976,14 +978,14 @@ class TurnService
                 $newP->pland += $p;
 
                 if ($m != 0 || $f != 0 || $p != 0) {
-                    $message .= "<font color=yellow>Your explorers have discovered {$m} mountain land, {$f} forest land and {$p} plain land</font><br>";
+                    $message .= "<div class=\"tr-line tr-warn\">Your explorers have discovered {$m} mountain land, {$f} forest land and {$p} plain land</div>";
                 } else {
-                    $message .= "Your explorers did not discover any land this turn<br>";
+                    $message .= '<div class="tr-line">Your explorers did not discover any land this turn</div>';
                 }
 
                 $newTurn = $e->turn - 1;
                 if ($newTurn == 0) {
-                    $message .= "<font color=yellow>Your explorers ended their mission discovering total " . ($e->mland + $m) . " mountain land, " . ($e->fland + $f) . " forest land and " . ($e->pland + $p) . " plain land</font><br>";
+                    $message .= "<div class=\"tr-line tr-warn\">Your explorers ended their mission discovering total " . ($e->mland + $m) . " mountain land, " . ($e->fland + $f) . " forest land and " . ($e->pland + $p) . " plain land</div>";
                 }
 
                 ExploreQueue::where('id', $e->id)->update([
@@ -1039,7 +1041,7 @@ class TurnService
                 $newP->catapults += $attack->catapults;
                 $newP->uunit += $attack->uunit;
                 AttackQueue::where('id', $attack->id)->delete();
-                $message .= "<font color=yellow>Your army has returned to the empire</font><br>";
+                $message .= '<div class="tr-line tr-warn">Your army has returned to the empire</div>';
             }
         }
 
@@ -1072,7 +1074,7 @@ class TurnService
             $newP->catapults -= $runC;
             $newP->uunit -= $runU;
             $numSoldiersAll -= ($runS + $runA + $runH + $runM + $runP + $runT + $runC + $runU);
-            $message .= "<font color=red>Due to the lack of place to live some of your soldiers run away ({$runU} {$uunitA['name']}, {$runS} swordsman, {$runA} archers, {$runH} horseman, {$runM} macemen, {$runP} trained peasants, {$runC} catapults and {$runT} thieves)</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">Due to the lack of place to live some of your soldiers run away ({$runU} {$uunitA['name']}, {$runS} swordsman, {$runA} archers, {$runH} horseman, {$runM} macemen, {$runP} trained peasants, {$runC} catapults and {$runT} thieves)</div>";
         }
 
         // Pay soldiers gold
@@ -1108,7 +1110,7 @@ class TurnService
                 $newP->trained_peasants -= $runP;
                 $newP->thieves -= $runT;
                 $newP->uunit -= $runU;
-                $message .= "<font color=red>Because you did not have enough gold to pay your soldiers some of them run away ({$runU} {$uunitA['name']}, {$runS} swordsman, {$runA} archers, {$runH} horseman, {$runM} macemen, {$runP} trained peasants and {$runT} thieves)</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">Because you did not have enough gold to pay your soldiers some of them run away ({$runU} {$uunitA['name']}, {$runS} swordsman, {$runA} archers, {$runH} horseman, {$runM} macemen, {$runP} trained peasants and {$runT} thieves)</div>";
             }
 
             $this->shouldStopProcessing = true;
@@ -1118,7 +1120,7 @@ class TurnService
         } else {
             $rGold -= $payGold;
             $cGold += $payGold;
-            $message .= "Your soldiers have been paid " . number_format($payGold) . " gold<br>";
+            $message .= '<div class="tr-line">Your soldiers have been paid ' . number_format($payGold) . ' gold</div>';
         }
 
         // Thieves need town centers (1 per town center max)
@@ -1126,7 +1128,7 @@ class TurnService
             $runT = $newP->thieves - $newP->town_center;
             $newP->thieves -= $runT;
             $numSoldiersAll -= $runT;
-            $message .= "<font color=red>You do not have enough town centers for your thieves. {$runT} thieves run away</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">You do not have enough town centers for your thieves. {$runT} thieves run away</div>";
         }
 
         // Unique units need town centers (1 per town center max)
@@ -1134,7 +1136,7 @@ class TurnService
             $runU = $newP->uunit - $newP->town_center;
             $newP->uunit -= $runU;
             $numSoldiersAll -= $runU;
-            $message .= "<font color=red>You do not have enough town centers for your {$uunitA['name']}s. {$runU} {$uunitA['name']}s run away</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">You do not have enough town centers for your {$uunitA['name']}s. {$runU} {$uunitA['name']}s run away</div>";
         }
 
         // Catapults need town centers (1 per town center max)
@@ -1142,7 +1144,7 @@ class TurnService
             $runC = $newP->catapults - $newP->town_center;
             $newP->catapults -= $runC;
             $numSoldiersAll -= $runC;
-            $message .= "<font color=red>You do not have enough town centers for your catapults. {$runC} catapults run away</font><br>";
+            $message .= "<div class=\"tr-line tr-error\">You do not have enough town centers for your catapults. {$runC} catapults run away</div>";
         }
 
         // Catapult upkeep: wood and iron
@@ -1152,7 +1154,7 @@ class TurnService
             if ($runC > $newP->catapults) {
                 $runC = $newP->catapults;
             }
-            $message .= "<font color=red>You did not have enough wood to upkeep your catapults. {$runC} of them were destroyed<br></font>";
+            $message .= "<div class=\"tr-line tr-error\">You did not have enough wood to upkeep your catapults. {$runC} of them were destroyed</div>";
             $newP->catapults -= $runC;
         } else {
             $rWood -= $needWood;
@@ -1164,14 +1166,14 @@ class TurnService
             if ($runC > $newP->catapults) {
                 $runC = $newP->catapults;
             }
-            $message .= "<font color=red>You did not have enough iron to upkeep your catapults. {$runC} of them were destroyed<br></font>";
+            $message .= "<div class=\"tr-line tr-error\">You did not have enough iron to upkeep your catapults. {$runC} of them were destroyed</div>";
             $newP->catapults -= $runC;
         } else {
             $rIron -= $needIron;
         }
 
         if ($needWood > 0 && $needIron > 0) {
-            $message .= "{$needWood} wood and {$needIron} iron was used to upkeep catapults<br>";
+            $message .= "<div class=\"tr-line\">{$needWood} wood and {$needIron} iron was used to upkeep catapults</div>";
         }
 
         // =====================================================================
@@ -1210,7 +1212,7 @@ class TurnService
             if ($newP->gold >= $useGold) {
                 $newP->wood += $newP->auto_buy_wood;
                 $newP->gold -= $useGold;
-                $message .= "Bought {$newP->auto_buy_wood} wood for {$useGold}<br>";
+                $message .= "<div class=\"tr-line\">Bought {$newP->auto_buy_wood} wood for {$useGold}</div>";
             }
         }
         if ($newP->auto_buy_food > 0) {
@@ -1219,7 +1221,7 @@ class TurnService
             if ($newP->gold >= $useGold) {
                 $newP->food += $newP->auto_buy_food;
                 $newP->gold -= $useGold;
-                $message .= "Bought {$newP->auto_buy_food} food for {$useGold}<br>";
+                $message .= "<div class=\"tr-line\">Bought {$newP->auto_buy_food} food for {$useGold}</div>";
             }
         }
         if ($newP->auto_buy_iron > 0) {
@@ -1228,7 +1230,7 @@ class TurnService
             if ($newP->gold >= $useGold) {
                 $newP->iron += $newP->auto_buy_iron;
                 $newP->gold -= $useGold;
-                $message .= "Bought {$newP->auto_buy_iron} iron for {$useGold}<br>";
+                $message .= "<div class=\"tr-line\">Bought {$newP->auto_buy_iron} iron for {$useGold}</div>";
             }
         }
         if ($newP->auto_buy_tools > 0) {
@@ -1238,7 +1240,7 @@ class TurnService
                 $newP->tools += $newP->auto_buy_tools;
                 $newP->gold -= $useGold;
             }
-            $message .= "Bought {$newP->auto_buy_tools} tools for {$useGold}<br>";
+            $message .= "<div class=\"tr-line\">Bought {$newP->auto_buy_tools} tools for {$useGold}</div>";
         }
 
         // Auto sell
@@ -1248,7 +1250,7 @@ class TurnService
                 $getGold = $woodSellPrice * $newP->auto_sell_wood;
                 $newP->wood -= $newP->auto_sell_wood;
                 $newP->gold += $getGold;
-                $message .= "Sold {$newP->auto_sell_wood} wood for {$getGold}<br>";
+                $message .= "<div class=\"tr-line\">Sold {$newP->auto_sell_wood} wood for {$getGold}</div>";
             }
         }
         if ($newP->auto_sell_food > 0) {
@@ -1257,7 +1259,7 @@ class TurnService
                 $getGold = $foodSellPrice * $newP->auto_sell_food;
                 $newP->food -= $newP->auto_sell_food;
                 $newP->gold += $getGold;
-                $message .= "Sold {$newP->auto_sell_food} food for {$getGold}<br>";
+                $message .= "<div class=\"tr-line\">Sold {$newP->auto_sell_food} food for {$getGold}</div>";
             }
         }
         if ($newP->auto_sell_iron > 0) {
@@ -1266,7 +1268,7 @@ class TurnService
                 $getGold = $ironSellPrice * $newP->auto_sell_iron;
                 $newP->iron -= $newP->auto_sell_iron;
                 $newP->gold += $getGold;
-                $message .= "Sold {$newP->auto_sell_iron} iron for {$getGold}<br>";
+                $message .= "<div class=\"tr-line\">Sold {$newP->auto_sell_iron} iron for {$getGold}</div>";
             }
         }
         if ($newP->auto_sell_tools > 0) {
@@ -1275,7 +1277,7 @@ class TurnService
                 $getGold = $toolsSellPrice * $newP->auto_sell_tools;
                 $newP->tools -= $newP->auto_sell_tools;
                 $newP->gold += $getGold;
-                $message .= "Sold {$newP->auto_sell_tools} tools for {$getGold}<br>";
+                $message .= "<div class=\"tr-line\">Sold {$newP->auto_sell_tools} tools for {$getGold}</div>";
             }
         }
 
@@ -1308,7 +1310,7 @@ class TurnService
             if ($stealWine > 0) { $stolen .= "{$comma} {$stealWine} wine"; $comma = ','; }
 
             if ($stolen !== '') {
-                $message .= "<font color=red>Because your warehouses could not fit all your good some of them were stolen ({$stolen})</font><br>";
+                $message .= "<div class=\"tr-line tr-error\">Because your warehouses could not fit all your good some of them were stolen ({$stolen})</div>";
                 $this->shouldStopProcessing = true;
             }
 
@@ -1435,10 +1437,10 @@ class TurnService
     public function endMultipleTurns(Player $player, int $turns): string
     {
         if ($turns <= 0) {
-            return 'Cannot end less than 0 turns.<br>';
+            return '<div class="tr-line">Cannot end less than 0 turns.</div>';
         }
         if ($turns > 12) {
-            return 'Due to the processing time of ending each turn, this operation is limited to 12 turns at a time.<br>';
+            return '<div class="tr-line">Due to the processing time of ending each turn, this operation is limited to 12 turns at a time.</div>';
         }
 
         $bigMessage = '';
@@ -1454,7 +1456,7 @@ class TurnService
 
             // Check if player has free turns
             if ($player->turns_free <= 0) {
-                $bigMessage .= 'No more turns left...<br>';
+                $bigMessage .= '<div class="tr-line">No more turns left...</div>';
                 break;
             }
 

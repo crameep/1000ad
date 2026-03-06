@@ -17,29 +17,27 @@
 
     $isOnline = $p->last_load && abs(now()->diffInMinutes($p->last_load)) < 10;
 @endphp
-<tr class="{{ $colorClass }}">
-    <td class="text-right text-small" style="cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">
-        @if($isOnline)*@endif{{ $rowNum }}
+<tr class="{{ $colorClass }} scores-clickable" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">
+    <td class="text-center scores-rank">
+        @if($isOnline)<span class="online-dot"></span>@endif{{ $rowNum }}
     </td>
-    <td class="text-small" style="cursor:pointer;" onclick="showMenu('{{ $p->id }}', '{{ addslashes($p->name) }}', event)">{{ $p->name }} ({{ $p->id }})</td>
-    <td class="text-small">{{ $empireNames[$p->civ] ?? 'Unknown' }}</td>
+    <td>{{ $p->name }} ({{ $p->id }})</td>
+    <td class="hide-mobile">{{ $empireNames[$p->civ] ?? 'Unknown' }}</td>
     @if(!$deathmatchMode && $allianceMaxMembers > 0)
-    <td class="text-center text-small">
+    <td class="text-center hide-mobile">
         @if($p->tag)
             @if($p->id == $p->leader_id)[{{ $p->tag }}]@else{{ $p->tag }}@endif
-        @else
-            &nbsp;
         @endif
     </td>
     @endif
     @if($p->total_land <= 0)
-    <td class="text-center text-small text-error" colspan="5"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></td>
+    <td class="text-center text-error" colspan="3"><b>DEAD by {{ $p->killed_by_name }} ({{ $p->killed_by }})</b></td>
     @else
-    <td class="text-right text-small">{{ number_format($p->research_levels) }}</td>
-    <td class="text-right text-small">{{ number_format($p->total_land) }}</td>
-    <td class="text-right text-small">{{ number_format($p->score) }}</td>
+    <td class="text-right hide-mobile">{{ number_format($p->research_levels) }}</td>
+    <td class="text-right">{{ number_format($p->total_land) }}</td>
+    <td class="text-right">{{ number_format($p->score) }}</td>
     @endif
 </tr>
 @if($rowNum % 5 === 0)
-<tr><td colspan="9" class="bg-header" style="height:4px; padding:0;"></td></tr>
+<tr class="scores-stripe"><td colspan="7"></td></tr>
 @endif
