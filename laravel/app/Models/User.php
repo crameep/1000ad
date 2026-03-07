@@ -71,4 +71,12 @@ class User extends Authenticatable
     {
         return (bool) $this->is_admin;
     }
+
+    /**
+     * Whether this user has a Stripe Connect account linked.
+     */
+    public function hasStripeConnect(): bool
+    {
+        return !empty($this->stripe_connect_account_id);
+    }
 }

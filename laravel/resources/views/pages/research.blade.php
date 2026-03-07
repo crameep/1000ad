@@ -16,37 +16,37 @@
 
     {{-- Current research selection --}}
     <div class="form-panel">
-    <div class="form-header">Current Research:</div>
-    <div class="form-body">
     <form action="{{ route('game.research.change') }}" method="POST">
         @csrf
-        Set current research:
-        <select name="newCurrentResearch">
-            <option value="0">--- None ---</option>
-            @foreach($researchNames as $id => $name)
-                <option value="{{ $id }}" @if($id == $player->current_research) selected @endif>{{ $name }}</option>
-            @endforeach
-        </select>
+        <div class="form-header">Current Research:</div>
+        <div class="form-body">
+            Set current research:
+            <select name="newCurrentResearch">
+                <option value="0">--- None ---</option>
+                @foreach($researchNames as $id => $name)
+                    <option value="{{ $id }}" @if($id == $player->current_research) selected @endif>{{ $name }}</option>
+                @endforeach
+            </select>
 
-        @if($player->current_research > 0)
-            <div>
-            {{ number_format($player->research_points) }} out of {{ number_format($nextLevelPoints) }}
-            ({{ number_format($percent, 2) }}% complete)
-            </div>
-            <div class="text-small">
-            <div>You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
-            and using {{ number_format($goldCost) }} gold every month.</div>
-            @if($researchProduced > 0)
-                <div>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.</div>
+            @if($player->current_research > 0)
+                <div>
+                {{ number_format($player->research_points) }} out of {{ number_format($nextLevelPoints) }}
+                ({{ number_format($percent, 2) }}% complete)
+                </div>
+                <div class="text-small">
+                <div>You have {{ number_format($activeMageTowers) }} mage towers active producing {{ number_format($researchProduced) }} research points
+                and using {{ number_format($goldCost) }} gold every month.</div>
+                @if($researchProduced > 0)
+                    <div>It takes your mage towers {{ number_format($turnsToNextLevel, 2) }} months to advance research level.</div>
+                @endif
+                </div>
             @endif
-            </div>
-        @endif
-    </div>
-    <div class="form-footer">
-        <input type="submit" value="Change Research">
-    </div>
-    </div>
+        </div>
+        <div class="form-footer">
+            <input type="submit" value="Change Research">
+        </div>
     </form>
+    </div>
 @endif
 
 {{-- Research levels table --}}

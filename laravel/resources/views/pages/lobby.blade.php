@@ -2,6 +2,67 @@
 
 @section('content')
 
+{{-- Prize Pools & Revenue Split --}}
+@if($totalRevenue > 0 || $userPayouts->isNotEmpty())
+<div class="panel">
+    <div class="panel-header">Prize Pools</div>
+    <div class="panel-body">
+        @if($totalRevenue > 0)
+            <div class="lobby-pool-cards">
+                <div class="lobby-pool-card">
+                    <div class="lobby-pool-amount">${{ number_format($tournamentPool / 100, 2) }}</div>
+                    <div class="lobby-pool-label">Tournament Pool</div>
+                    <div class="lobby-pool-note">50% of all proceeds</div>
+                </div>
+                <div class="lobby-pool-card">
+                    <div class="lobby-pool-amount lobby-pool-amount-secondary">${{ number_format($totalRevenue * 0.25 / 100, 2) }}</div>
+                    <div class="lobby-pool-label">Game Prizes</div>
+                    <div class="lobby-pool-note">25% split across games</div>
+                </div>
+                <div class="lobby-pool-card">
+                    <div class="lobby-pool-amount lobby-pool-amount-muted">${{ number_format($totalRevenue * 0.25 / 100, 2) }}</div>
+                    <div class="lobby-pool-label">Server Costs</div>
+                    <div class="lobby-pool-note">25% for hosting</div>
+                </div>
+            </div>
+        @endif
+        @if($userPayouts->isNotEmpty())
+            <div class="lobby-earnings-section">
+                <div class="lobby-earnings-summary">
+                    <div class="lobby-earnings-total">
+                        <span class="lobby-earnings-amount">${{ number_format($totalEarnings / 100, 2) }}</span>
+                        <span class="lobby-earnings-label">Your Earnings</span>
+                    </div>
+                    @php $pendingCount = $userPayouts->where('status', 'pending')->count(); @endphp
+                    @if($pendingCount > 0)
+                        <div class="lobby-earnings-pending">
+                            {{ $pendingCount }} pending {{ Str::plural('payout', $pendingCount) }}
+                        </div>
+                    @endif
+                </div>
+                <div class="lobby-earnings-breakdown">
+                    @foreach($userPayouts as $payout)
+                        <div class="lobby-earnings-row">
+                            <span>{{ $payout->game->name ?? 'Unknown Game' }} &mdash; {{ ordinal($payout->place) }} Place</span>
+                            <span>
+                                ${{ number_format($payout->amount_cents / 100, 2) }}
+                                @if($payout->status === 'paid')
+                                    <span class="text-success">Paid</span>
+                                @elseif($payout->status === 'pending')
+                                    <span class="text-warning">Pending</span>
+                                @else
+                                    <span class="text-muted">{{ ucfirst($payout->status) }}</span>
+                                @endif
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+@endif
+
 {{-- Your Active Games --}}
 <div class="panel">
     <div class="panel-header">Your Active Games</div>
@@ -19,6 +80,8 @@
                         $slotsUsed = $entry['slotsUsed'] ?? 1;
                         $slotsTotal = $entry['slotsTotal'] ?? 1;
                         $maxAllowed = $entry['maxAllowed'] ?? 1;
+                        $prizePool = $entry['prizePool'] ?? 0;
+                        $prizeTiers = $entry['prizeTiers'] ?? [];
                     @endphp
                     <div class="lobby-game-card">
                         <div class="lobby-game-header">
@@ -58,6 +121,21 @@
                                     &bull; <span class="text-warning">{{ ucfirst($game->status) }}</span>
                                 @endif
                             </div>
+                            @if($prizePool > 0 || !empty($prizeTiers))
+                                <div class="lobby-prize-pool">
+                                    @if($prizePool > 0)
+                                        <span class="lobby-prize-pool-label">Game Prize Pool:</span>
+                                        <span class="lobby-prize-pool-amount">${{ number_format($prizePool / 100, 2) }}</span>
+                                    @endif
+                                    @if(!empty($prizeTiers))
+                                        <span class="lobby-prize-tiers">
+                                            @foreach(collect($prizeTiers)->sortBy('place')->take(3) as $tier)
+                                                {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount_cents'] / 100, 2) }}@if(!$loop->last) &bull; @endif
+                                            @endforeach
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                         @if($maxAllowed > 1 && $slotsUsed < $slotsTotal && $canCreateMore)
                             <div class="lobby-game-actions">
@@ -157,6 +235,21 @@
                                     No end date
                                 @endif
                             </div>
+                            @if($game->prize_pool > 0 || !empty($game->prize_tiers_data))
+                                <div class="lobby-prize-pool">
+                                    @if($game->prize_pool > 0)
+                                        <span class="lobby-prize-pool-label">Game Prize Pool:</span>
+                                        <span class="lobby-prize-pool-amount">${{ number_format($game->prize_pool / 100, 2) }}</span>
+                                    @endif
+                                    @if(!empty($game->prize_tiers_data))
+                                        <span class="lobby-prize-tiers">
+                                            @foreach(collect($game->prize_tiers_data)->sortBy('place')->take(3) as $tier)
+                                                {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount_cents'] / 100, 2) }}@if(!$loop->last) &bull; @endif
+                                            @endforeach
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                         <div class="lobby-game-actions">
                             <button type="button" class="btn btn-success" onclick="toggleJoinForm({{ $game->id }})">Join</button>

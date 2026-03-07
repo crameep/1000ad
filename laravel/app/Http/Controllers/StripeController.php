@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\EmpireSlot;
 use App\Models\Game;
+use App\Models\PrizePayout;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session as StripeSession;
 use Stripe\Stripe;
 use Stripe\Webhook;
@@ -112,6 +114,59 @@ class StripeController extends Controller
 
                 if ($userId && $gameId) {
                     $this->grantEmpireSlot($userId, $gameId, $session->id, $session->customer, (int) ($session->amount_total ?? 0));
+                }
+            }
+        }
+
+        // Stripe Connect: account onboarding updates
+        if ($event->type === 'account.updated') {
+            $account = $event->data->object;
+            $user = \App\Models\User::where('stripe_connect_account_id', $account->id)->first();
+            if ($user) {
+                Log::info('Stripe Connect account updated', [
+                    'account_id' => $account->id,
+                    'user_id' => $user->id,
+                    'charges_enabled' => $account->charges_enabled ?? false,
+                    'payouts_enabled' => $account->payouts_enabled ?? false,
+                ]);
+            }
+        }
+
+        // Stripe Connect: transfer completed (backup confirmation)
+        if ($event->type === 'transfer.paid') {
+            $transfer = $event->data->object;
+            $payoutId = $transfer->metadata->payout_id ?? null;
+            if ($payoutId) {
+                $payout = PrizePayout::find($payoutId);
+                if ($payout && $payout->status !== 'paid') {
+                    $payout->update([
+                        'status' => 'paid',
+                        'paid_at' => now(),
+                        'stripe_transfer_id' => $transfer->id,
+                    ]);
+                    Log::info("Stripe transfer confirmed for payout #{$payoutId}", [
+                        'transfer_id' => $transfer->id,
+                    ]);
+                }
+            }
+        }
+
+        // Stripe Connect: transfer failed
+        if ($event->type === 'transfer.failed') {
+            $transfer = $event->data->object;
+            $payoutId = $transfer->metadata->payout_id ?? null;
+            if ($payoutId) {
+                $payout = PrizePayout::find($payoutId);
+                if ($payout) {
+                    $payout->update([
+                        'status' => 'pending',
+                        'stripe_transfer_id' => null,
+                        'notes' => 'Stripe transfer failed: ' . ($transfer->failure_message ?? 'unknown error'),
+                    ]);
+                    Log::error("Stripe transfer failed for payout #{$payoutId}", [
+                        'transfer_id' => $transfer->id,
+                        'failure' => $transfer->failure_message ?? 'unknown',
+                    ]);
                 }
             }
         }

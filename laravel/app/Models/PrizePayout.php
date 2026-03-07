@@ -39,4 +39,14 @@ class PrizePayout extends Model
     {
         return $this->status === 'pending';
     }
+
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+
+    public function hasStripeTransfer(): bool
+    {
+        return !empty($this->stripe_transfer_id);
+    }
 }

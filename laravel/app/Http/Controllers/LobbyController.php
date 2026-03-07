@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\EmpireSlot;
 use App\Models\Game;
 use App\Models\Player;
+use App\Models\PrizePayout;
+use App\Models\Transaction;
 use App\Services\GameDataService;
 use App\Services\ScoreService;
 use Carbon\Carbon;
@@ -73,6 +75,25 @@ class LobbyController extends Controller
             }
         }
 
+        // Revenue split: 25% game prize pool, 50% tournament pool, 25% server costs
+        // Compute per-game revenue and prize pools
+        $allGameIds = Game::pluck('id')->toArray();
+        $revenueByGame = Transaction::selectRaw('game_id, SUM(amount_cents) as total')
+            ->whereNotNull('game_id')
+            ->groupBy('game_id')
+            ->pluck('total', 'game_id')
+            ->toArray();
+        $totalRevenue = Transaction::sum('amount_cents');
+        $tournamentPool = (int) round($totalRevenue * 0.50);
+
+        foreach ($myGames as &$entry) {
+            $gameRevenue = $revenueByGame[$entry['game']->id] ?? 0;
+            $entry['gameRevenue'] = $gameRevenue;
+            $entry['prizePool'] = (int) round($gameRevenue * 0.25);
+            $entry['prizeTiers'] = $entry['game']->setting('prize_tiers') ?? [];
+        }
+        unset($entry);
+
         // Available games to join: active games where user can still create empires
         $availableGames = Game::where('status', 'active')
             ->where(function ($q) {
@@ -87,13 +108,24 @@ class LobbyController extends Controller
                 }
                 return EmpireSlot::canCreateEmpire($user->id, $game->id);
             })
-            ->map(function ($game) {
+            ->map(function ($game) use ($revenueByGame) {
                 $game->player_count = Player::withoutGlobalScope('game')
                     ->where('game_id', $game->id)
                     ->where('killed_by', 0)
                     ->count();
+                $gameRevenue = $revenueByGame[$game->id] ?? 0;
+                $game->game_revenue = $gameRevenue;
+                $game->prize_pool = (int) round($gameRevenue * 0.25);
+                $game->prize_tiers_data = $game->setting('prize_tiers') ?? [];
                 return $game;
             });
+
+        // User earnings from prize payouts
+        $userPayouts = PrizePayout::where('user_id', $user->id)
+            ->with('game')
+            ->orderByDesc('created_at')
+            ->get();
+        $totalEarnings = $userPayouts->sum('amount_cents');
 
         return view('pages.lobby', [
             'user' => $user,
@@ -102,6 +134,10 @@ class LobbyController extends Controller
             'empires' => config('game.empires'),
             'uniqueUnits' => config('game.unique_units'),
             'civSummaries' => config('game.civ_summaries'),
+            'userPayouts' => $userPayouts,
+            'totalEarnings' => $totalEarnings,
+            'totalRevenue' => $totalRevenue,
+            'tournamentPool' => $tournamentPool,
         ]);
     }
 
@@ -289,4 +325,5 @@ class LobbyController extends Controller
 
         return redirect()->route('game.main');
     }
+
 }

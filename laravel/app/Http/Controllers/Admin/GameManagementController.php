@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\Player;
 use App\Models\PrizePayout;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -185,17 +186,51 @@ class GameManagementController extends Controller
 
     /**
      * Auto-assign prize payouts to top scorers when a game ends.
+     *
+     * Revenue split: 25% of game revenue goes to game prize pool.
+     * If admin-configured tiers exist, their amounts are used as
+     * distribution weights. Otherwise defaults to top 3: 50/30/20.
      */
     private function assignPrizes(Game $game): void
     {
-        $tiers = $game->setting('prize_tiers') ?? [];
-        if (empty($tiers)) {
-            return;
-        }
-
         // Don't double-assign
         if (PrizePayout::where('game_id', $game->id)->exists()) {
             return;
+        }
+
+        // Calculate the revenue-based game prize pool (25% of game revenue)
+        $gameRevenue = Transaction::where('game_id', $game->id)->sum('amount_cents');
+        $prizePool = (int) round($gameRevenue * 0.25);
+
+        // Use admin-configured tiers as distribution weights, or default split
+        $tiers = $game->setting('prize_tiers') ?? [];
+
+        if (!empty($tiers)) {
+            usort($tiers, fn($a, $b) => $a['place'] <=> $b['place']);
+            // Use tier amounts as proportional weights
+            $totalWeight = array_sum(array_column($tiers, 'amount_cents'));
+            if ($totalWeight > 0 && $prizePool > 0) {
+                // Distribute revenue pool proportionally
+                foreach ($tiers as &$tier) {
+                    $tier['payout_cents'] = (int) round($prizePool * ($tier['amount_cents'] / $totalWeight));
+                }
+                unset($tier);
+            } else {
+                // No revenue yet — use fixed tier amounts directly
+                foreach ($tiers as &$tier) {
+                    $tier['payout_cents'] = $tier['amount_cents'];
+                }
+                unset($tier);
+            }
+        } elseif ($prizePool > 0) {
+            // No tiers configured — default top 3 split: 50/30/20
+            $tiers = [
+                ['place' => 1, 'payout_cents' => (int) round($prizePool * 0.50)],
+                ['place' => 2, 'payout_cents' => (int) round($prizePool * 0.30)],
+                ['place' => 3, 'payout_cents' => (int) round($prizePool * 0.20)],
+            ];
+        } else {
+            return; // No revenue and no tiers — nothing to pay
         }
 
         // Get top N alive players by score descending
@@ -207,13 +242,10 @@ class GameManagementController extends Controller
             ->limit($topCount)
             ->get();
 
-        // Sort tiers by place
-        usort($tiers, fn($a, $b) => $a['place'] <=> $b['place']);
-
         foreach ($tiers as $i => $tier) {
             $player = $topPlayers[$i] ?? null;
-            if (!$player) {
-                break;
+            if (!$player || ($tier['payout_cents'] ?? 0) <= 0) {
+                continue;
             }
 
             PrizePayout::create([
@@ -221,7 +253,7 @@ class GameManagementController extends Controller
                 'game_id' => $game->id,
                 'player_id' => $player->id,
                 'place' => $tier['place'],
-                'amount_cents' => $tier['amount_cents'],
+                'amount_cents' => $tier['payout_cents'],
                 'status' => 'pending',
             ]);
         }

@@ -61,7 +61,7 @@
 {{-- Prize payouts --}}
 <div class="panel" style="margin-top:16px;">
     <div class="panel-header">Prize Payouts</div>
-    <div class="panel-body" style="padding:0;">
+    <div class="panel-body" style="padding:0; overflow-x:auto;">
         @if($payouts->isEmpty())
             <p class="text-center text-muted" style="padding:16px;">No prize payouts yet.</p>
         @else
@@ -74,6 +74,7 @@
                         <th>Place</th>
                         <th style="text-align:right;">Amount</th>
                         <th>Status</th>
+                        <th>Connect</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -87,7 +88,23 @@
                         <td style="text-align:right;">${{ number_format($payout->amount_cents / 100, 2) }}</td>
                         <td><span class="status-badge status-{{ $payout->status }}">{{ ucfirst($payout->status) }}</span></td>
                         <td>
+                            @if($payout->user && $payout->user->hasStripeConnect())
+                                <span class="text-success text-small">Connected</span>
+                            @else
+                                <span class="text-muted text-small">-</span>
+                            @endif
+                        </td>
+                        <td>
                             @if($payout->status === 'pending')
+                                @if(in_array($payout->user_id, $connectedUserIds))
+                                    <form action="{{ route('admin.finance.stripe-pay', $payout) }}" method="POST" class="inline-form" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success"
+                                                onclick="return confirm('Send ${{ number_format($payout->amount_cents / 100, 2) }} to {{ $payout->user->login_name ?? "user" }} via Stripe?')">
+                                            Pay via Stripe
+                                        </button>
+                                    </form>
+                                @endif
                                 <form action="{{ route('admin.finance.mark-paid', $payout) }}" method="POST" class="inline-form" style="display:inline;">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-primary">Mark Paid</button>
@@ -98,6 +115,9 @@
                                 </form>
                             @elseif($payout->status === 'paid')
                                 <span class="text-muted text-small">{{ $payout->paid_at?->format('M j, Y') }}</span>
+                                @if($payout->stripe_transfer_id)
+                                    <span class="text-muted text-small">({{ $payout->stripe_transfer_id }})</span>
+                                @endif
                             @endif
                         </td>
                     </tr>

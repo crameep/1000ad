@@ -2147,6 +2147,163 @@ button.explore-btn {
     border-top: 1px solid var(--border-subtle);
 }
 
+/* Lobby prize pool cards (revenue split) */
+.lobby-pool-cards {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.lobby-pool-card {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+}
+.lobby-pool-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #4caf50;
+}
+.lobby-pool-amount-secondary { color: #4c9ce8; }
+.lobby-pool-amount-muted { color: var(--text-muted); }
+.lobby-pool-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 2px;
+}
+.lobby-pool-note {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Lobby user earnings */
+.lobby-earnings-section {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 10px;
+}
+.lobby-earnings-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+.lobby-earnings-total {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.lobby-earnings-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #4caf50;
+}
+.lobby-earnings-label {
+    color: var(--text-muted);
+    font-size: var(--font-size-small);
+}
+.lobby-earnings-pending {
+    background: #3a3a1a;
+    color: #e8c84c;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.lobby-earnings-breakdown {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 6px;
+}
+.lobby-earnings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: var(--font-size-small);
+    color: var(--text-body);
+}
+
+/* Lobby prize pool on game cards */
+.lobby-prize-pool {
+    margin-top: 6px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.lobby-prize-pool-label {
+    color: var(--text-muted);
+    font-size: var(--font-size-small);
+}
+.lobby-prize-pool-amount {
+    font-weight: 700;
+    color: #4caf50;
+    font-size: 14px;
+}
+.lobby-prize-tiers {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Earnings page */
+.earnings-pool-cards {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.earnings-pool-card {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+}
+.earnings-pool-card.earnings-pool-highlight {
+    border-color: var(--border-color);
+    background: var(--bg-header);
+}
+.earnings-pool-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+.earnings-pool-green { color: #4caf50; }
+.earnings-pool-blue { color: #4c9ce8; }
+.earnings-pool-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 2px;
+}
+.earnings-pool-note {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.earnings-summary-row {
+    display: flex;
+    gap: 24px;
+}
+.earnings-stat {
+    text-align: center;
+    flex: 1;
+}
+.earnings-stat-value {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.earnings-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 /* Civilization selection grid */
 .civ-empire-input {
     width: 100%;

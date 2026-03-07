@@ -52,6 +52,7 @@
                 </li>
             @endif
             <li><a href="{{ route('game.search') }}">Search</a></li>
+            <li><a href="{{ route('game.earnings') }}">Earnings</a></li>
             <li><a href="{{ route('game.account') }}">Account Options</a></li>
             <li>
                 <form action="{{ route('logout') }}" method="POST" class="inline-form">

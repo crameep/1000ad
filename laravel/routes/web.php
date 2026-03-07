@@ -10,6 +10,7 @@ use App\Http\Controllers\BattleController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\EarningsController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LobbyController;
@@ -76,6 +77,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
     Route::post('finance/payout/{payout}/mark-paid', [\App\Http\Controllers\Admin\FinanceController::class, 'markPaid'])->name('finance.mark-paid');
     Route::post('finance/payout/{payout}/cancel', [\App\Http\Controllers\Admin\FinanceController::class, 'cancelPayout'])->name('finance.cancel-payout');
+    Route::post('finance/payout/{payout}/stripe-pay', [\App\Http\Controllers\Admin\FinanceController::class, 'stripePay'])->name('finance.stripe-pay');
 
     Route::get('players', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'index'])->name('players.index');
     Route::get('players/{user}', [\App\Http\Controllers\Admin\PlayerManagementController::class, 'show'])->name('players.show');
@@ -201,6 +203,13 @@ Route::middleware(['auth', 'game.session'])->prefix('game')->group(function () {
     // Search
     Route::get('/search', [SearchController::class, 'index'])->name('game.search');
     Route::post('/search', [SearchController::class, 'search'])->name('game.search.submit');
+
+    // Earnings & Stripe Connect
+    Route::get('/earnings', [EarningsController::class, 'index'])->name('game.earnings');
+    Route::post('/earnings/connect', [EarningsController::class, 'startConnect'])->name('game.earnings.connect');
+    Route::get('/earnings/connect/return', [EarningsController::class, 'connectReturn'])->name('game.earnings.connect.return');
+    Route::get('/earnings/connect/refresh', [EarningsController::class, 'connectRefresh'])->name('game.earnings.connect.refresh');
+    Route::get('/earnings/dashboard', [EarningsController::class, 'stripeDashboard'])->name('game.earnings.dashboard');
 
     // Account
     Route::get('/account', [AccountController::class, 'index'])->name('game.account');
