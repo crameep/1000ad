@@ -1435,13 +1435,14 @@ td.header, th {
         display: none;
     }
 
-    /* Progress indicators compact on mobile */
+    /* Progress indicators stack vertically on mobile */
     .progress-indicators {
-        gap: 6px;
+        flex-direction: column;
+        gap: 4px;
     }
     .progress-ind-label {
         font-size: 9px;
-        min-width: 36px;
+        min-width: 56px;
     }
     .progress-ind-track {
         height: 6px;
