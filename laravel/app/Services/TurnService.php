@@ -930,16 +930,31 @@ class TurnService
             if ($e->turn == 0) {
                 ExploreQueue::where('id', $e->id)->delete();
             } else {
-                // Discover land
-                $m = (int) ceil($e->people * 0.15);
-                $f = (int) ceil($e->people * 0.30);
-                $p = (int) ceil($e->people * 0.65);
+                // Discover land — base total ~1.1x people (original: 0.15 + 0.30 + 0.65)
+                if ($e->seek_land == 0) {
+                    // Custom priorities from player
+                    $mPct = $e->pct_mountain ?: 15;
+                    $fPct = $e->pct_forest ?: 30;
+                    $pPct = $e->pct_plains ?: 55;
+                    $pctTotal = $mPct + $fPct + $pPct;
+                    if ($pctTotal <= 0) { $pctTotal = 100; $mPct = 15; $fPct = 30; $pPct = 55; }
+
+                    $base = $e->people * 1.1;
+                    $m = (int) ceil($base * $mPct / $pctTotal);
+                    $f = (int) ceil($base * $fPct / $pctTotal);
+                    $p = (int) ceil($base * $pPct / $pctTotal);
+                } else {
+                    // Original fixed ratios for specific land types
+                    $m = (int) ceil($e->people * 0.15);
+                    $f = (int) ceil($e->people * 0.30);
+                    $p = (int) ceil($e->people * 0.65);
+                }
 
                 $mHalf = round($m / 3);
                 $fHalf = round($f / 3);
                 $pHalf = round($p / 3);
 
-                // Seek land modifier
+                // Seek land modifier (only applies to specific land types)
                 if ($e->seek_land == 1) {
                     $m *= 3; $mHalf *= 3;
                     $f = 0; $fHalf = 0;

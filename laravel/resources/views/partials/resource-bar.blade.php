@@ -83,23 +83,23 @@
     <div class="progress-ind" title="Great Wall: {{ number_format($wallCurrent) }} / {{ number_format($wallMax) }} ({{ $wallPercent }}% protection)">
         <span class="progress-ind-label">Wall</span>
         <div class="progress-ind-track progress-ind-track--wall">
-            <div class="progress-ind-fill progress-ind-fill--wall" style="width: {{ $wallPercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--wall" data-progress="wall" style="width: {{ $wallPercent }}%"></div>
         </div>
-        <span class="progress-ind-pct">{{ $wallPercent }}%</span>
+        <span class="progress-ind-pct" data-progress-pct="wall">{{ $wallPercent }}%</span>
     </div>
     <div class="progress-ind" title="Research: {{ $currentResearchName }} Lv.{{ $currentResearchLevel }} — {{ number_format($researchPoints) }} / {{ number_format($researchNextLevel) }} points ({{ $researchPercent }}%)">
-        <span class="progress-ind-label">{{ $currentResearchName }}&nbsp;{{ $currentResearchLevel }}</span>
+        <span class="progress-ind-label" data-progress-label="research">{{ $currentResearchName }}&nbsp;{{ $currentResearchLevel }}</span>
         <div class="progress-ind-track progress-ind-track--research">
-            <div class="progress-ind-fill progress-ind-fill--research-level" style="width: {{ $researchLevelPercent }}%"></div>
-            <div class="progress-ind-fill progress-ind-fill--research-progress" style="width: {{ $researchProgressPercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--research-level" data-progress="research_level" style="width: {{ $researchLevelPercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--research-progress" data-progress="research_progress" style="width: {{ $researchProgressPercent }}%"></div>
         </div>
-        <span class="progress-ind-pct">{{ $researchPercent }}%</span>
+        <span class="progress-ind-pct" data-progress-pct="research">{{ $researchPercent }}%</span>
     </div>
     <div class="progress-ind" title="Warehouse: {{ number_format($warehouseCurrent) }} / {{ number_format($warehouseMax) }} goods stored">
         <span class="progress-ind-label">Storage</span>
         <div class="progress-ind-track progress-ind-track--warehouse">
-            <div class="progress-ind-fill progress-ind-fill--warehouse" style="width: {{ $warehousePercent }}%"></div>
+            <div class="progress-ind-fill progress-ind-fill--warehouse" data-progress="warehouse" style="width: {{ $warehousePercent }}%"></div>
         </div>
-        <span class="progress-ind-pct">{{ $warehousePercent }}%</span>
+        <span class="progress-ind-pct" data-progress-pct="warehouse">{{ $warehousePercent }}%</span>
     </div>
 </div>

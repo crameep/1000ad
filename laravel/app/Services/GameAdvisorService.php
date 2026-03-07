@@ -740,13 +740,21 @@ class GameAdvisorService
             $tips[] = ['type' => 'info', 'message' => "You can send up to " . number_format($canSend) . " explorers. Explore to expand your territory!"];
         }
 
-        // Low on specific land type
-        if ($player->pland < $player->mland * 0.3 && $player->pland < 1000) {
-            $tips[] = ['type' => 'info', 'message' => "You're low on plains land (most buildings need plains). Send explorers seeking <b>Plains</b> specifically."];
-        } elseif ($player->mland < 200) {
-            $tips[] = ['type' => 'info', 'message' => "You're low on mountain land (needed for mines). Send explorers seeking <b>Mountains</b> specifically."];
-        } elseif ($player->fland < 200) {
-            $tips[] = ['type' => 'info', 'message' => "You're low on forest land (needed for hunters/woodcutters). Send explorers seeking <b>Forest</b> specifically."];
+        // Land priority suggestions based on current distribution
+        if ($totalLand > 0) {
+            $mPct = round($player->mland / $totalLand * 100);
+            $fPct = round($player->fland / $totalLand * 100);
+            $pPct = round($player->pland / $totalLand * 100);
+
+            if ($player->pland < $player->mland * 0.3 && $player->pland < 1000) {
+                $tips[] = ['type' => 'info', 'message' => "You're low on plains (most buildings need plains). Try priorities like <b>10% mountains, 20% forest, 70% plains</b>."];
+            } elseif ($player->mland < 200) {
+                $tips[] = ['type' => 'info', 'message' => "You're low on mountain land (needed for mines). Try priorities like <b>50% mountains, 25% forest, 25% plains</b>."];
+            } elseif ($player->fland < 200) {
+                $tips[] = ['type' => 'info', 'message' => "You're low on forest land (needed for hunters/woodcutters). Try priorities like <b>15% mountains, 50% forest, 35% plains</b>."];
+            } else {
+                $tips[] = ['type' => 'info', 'message' => "Your land: {$mPct}% mountains, {$fPct}% forest, {$pPct}% plains. Adjust exploration priorities to target what you need most."];
+            }
         }
 
         // Horses speed up exploration

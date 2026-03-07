@@ -167,6 +167,7 @@ Route::middleware(['auth', 'game.session'])->prefix('game')->group(function () {
     Route::post('/market/withdraw/{id}', [TradeController::class, 'withdrawFromMarket'])->name('game.market.withdraw');
 
     // Messages
+    Route::get('/messages/view/{id}', [MessageController::class, 'viewMessage'])->name('game.messages.view');
     Route::get('/messages/{folder?}', [MessageController::class, 'index'])->name('game.messages');
     Route::post('/messages/send', [MessageController::class, 'sendMessage'])->name('game.messages.send');
     Route::post('/messages/delete/{id}', [MessageController::class, 'deleteMessage'])->name('game.messages.delete');
@@ -175,7 +176,6 @@ Route::middleware(['auth', 'game.session'])->prefix('game')->group(function () {
     Route::post('/messages/delete-all-saved', [MessageController::class, 'deleteAllSaved'])->name('game.messages.delete-all-saved');
     Route::post('/messages/block/{id}', [MessageController::class, 'addBlock'])->name('game.messages.block');
     Route::post('/messages/unblock/{id}', [MessageController::class, 'unblock'])->name('game.messages.unblock');
-    Route::get('/messages/view/{id}', [MessageController::class, 'viewMessage'])->name('game.messages.view');
 
     // Management
     Route::get('/manage', [ManageController::class, 'index'])->name('game.manage');

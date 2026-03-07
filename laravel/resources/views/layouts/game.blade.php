@@ -173,7 +173,10 @@
          data-food-net-summer="{{ $foodNetSummer }}"
          data-food-net-winter="{{ $foodNetWinter }}"
          data-max-send="{{ $safePeopleCap }}"
-         data-horses="{{ $player->horses }}">
+         data-horses="{{ $player->horses }}"
+         data-pct-mountain="{{ session('explorePctMountain', 15) }}"
+         data-pct-forest="{{ session('explorePctForest', 30) }}"
+         data-pct-plains="{{ session('explorePctPlains', 55) }}">
         <span class="explore-label">&#129517;</span>
         <button type="button" class="turn-btn explore-btn" id="explore-max">Explore Max</button>
         <button type="button" class="turn-btn explore-btn" id="explore-safe">Safe Explore</button>

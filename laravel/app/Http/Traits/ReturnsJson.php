@@ -64,6 +64,42 @@ trait ReturnsJson
         $year = intdiv($player->turn, 12) + 1000;
         $gameDate = date('F', mktime(0, 0, 0, $month, 1)) . ' ' . $year;
 
+        // Progress indicators (wall, research, warehouse)
+        $totalLand = $player->mland + $player->fland + $player->pland;
+        $totalWallNeeded = round($totalLand * 0.05);
+        $wallPercent = ($totalWallNeeded > 0) ? min(100, round(($player->wall / $totalWallNeeded) * 100)) : 0;
+
+        $totalResearchLevels = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $totalResearchLevels += $player->{"research{$i}"};
+        }
+        $nextLevelPoints = 10 + round($totalResearchLevels * $totalResearchLevels * sqrt($totalResearchLevels));
+        $researchPercent = ($nextLevelPoints > 0) ? min(100, round(($player->research_points / $nextLevelPoints) * 100)) : 0;
+        $researchNames = [
+            1 => 'Attack', 2 => 'Defense', 3 => 'Thieves', 4 => 'Losses',
+            5 => 'Food', 6 => 'Mining', 7 => 'Weapons', 8 => 'Storage',
+            9 => 'Markets', 10 => 'Explorers', 11 => 'Catapults', 12 => 'Wood',
+        ];
+        $currentResearchName = $researchNames[$player->current_research] ?? 'None';
+        $currentResearchLevel = $player->current_research > 0
+            ? $player->{"research{$player->current_research}"} : 0;
+        $highestResearchLevel = 0;
+        for ($i = 1; $i <= 12; $i++) {
+            $highestResearchLevel = max($highestResearchLevel, $player->{"research{$i}"});
+        }
+        $researchRefMax = max(100, $highestResearchLevel);
+        $researchLevelPercent = min(100, round(($currentResearchLevel / $researchRefMax) * 100));
+        $remainingPercent = 100 - $researchLevelPercent;
+        $researchProgressPercent = ($currentResearchLevel < $researchRefMax && $remainingPercent > 0)
+            ? round($remainingPercent * ($researchPercent / 100), 1) : 0;
+
+        $totalGoods = $player->wood + $player->iron + $player->food + $player->tools
+            + $player->swords + $player->bows + $player->horses + $player->maces + $player->wine;
+        $warehouseSpace = ($player->town_center * $buildings[11]['supplies'])
+            + ($player->warehouse * $buildings[13]['supplies']);
+        $warehouseSpace = round($warehouseSpace + $warehouseSpace * ($player->research8 / 100));
+        $warehousePercent = ($warehouseSpace > 0) ? min(100, round(($totalGoods / $warehouseSpace) * 100)) : 0;
+
         return [
             'score' => $player->score,
             'gold' => $player->gold,
@@ -85,6 +121,14 @@ trait ReturnsJson
             'free_pland' => $player->pland - $usedP,
             'turns_free' => $player->turns_free,
             'game_date' => $gameDate,
+            // Progress indicators
+            'wall_pct' => $wallPercent,
+            'research_name' => $currentResearchName,
+            'research_level' => $currentResearchLevel,
+            'research_pct' => $researchPercent,
+            'research_level_pct' => $researchLevelPercent,
+            'research_progress_pct' => $researchProgressPercent,
+            'warehouse_pct' => $warehousePercent,
         ];
     }
 }

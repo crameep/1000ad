@@ -168,6 +168,9 @@
     // ─── Resource Bar ─────────────────────────────────────────────
     const ResourceBar = {
         _el: {},
+        _progressBars: {},
+        _progressPcts: {},
+        _researchLabel: null,
 
         init() {
             var els = document.querySelectorAll('[data-resource]');
@@ -175,11 +178,21 @@
                 var key = els[i].getAttribute('data-resource');
                 this._el[key] = els[i];
             }
+            // Cache progress bar elements
+            var bars = document.querySelectorAll('[data-progress]');
+            for (var i = 0; i < bars.length; i++) {
+                this._progressBars[bars[i].getAttribute('data-progress')] = bars[i];
+            }
+            var pcts = document.querySelectorAll('[data-progress-pct]');
+            for (var i = 0; i < pcts.length; i++) {
+                this._progressPcts[pcts[i].getAttribute('data-progress-pct')] = pcts[i];
+            }
+            this._researchLabel = document.querySelector('[data-progress-label="research"]');
         },
 
         /**
          * Update displayed resource values from a state object.
-         * @param {Object} state - {score, gold, wood, iron, food, tools, people, mland, fland, pland, turns_free}
+         * @param {Object} state - {score, gold, wood, iron, food, tools, people, mland, fland, pland, turns_free, wall_pct, ...}
          * @param {boolean} animate - whether to animate the number change
          */
         update(state, animate) {
@@ -205,22 +218,69 @@
 
                 el.textContent = formatted;
             });
+
+            // Update progress bars
+            if (state.wall_pct !== undefined) {
+                this._updateProgress('wall', state.wall_pct, animate);
+            }
+            if (state.research_pct !== undefined) {
+                this._updateProgress('research', state.research_pct, animate);
+            }
+            if (state.research_level_pct !== undefined) {
+                this._setBarWidth('research_level', state.research_level_pct, animate);
+            }
+            if (state.research_progress_pct !== undefined) {
+                this._setBarWidth('research_progress', state.research_progress_pct, animate);
+            }
+            if (state.warehouse_pct !== undefined) {
+                this._updateProgress('warehouse', state.warehouse_pct, animate);
+            }
+            // Update research label
+            if (state.research_name !== undefined && this._researchLabel) {
+                this._researchLabel.innerHTML = state.research_name + '&nbsp;' + (state.research_level || 0);
+            }
+        },
+
+        _updateProgress(name, pct, animate) {
+            this._setBarWidth(name, pct, animate);
+            var pctEl = this._progressPcts[name];
+            if (pctEl) {
+                var oldPct = parseInt(pctEl.textContent) || 0;
+                if (animate && oldPct !== pct) {
+                    this._animateValue(pctEl, oldPct, pct, 600, '%');
+                } else {
+                    pctEl.textContent = pct + '%';
+                }
+            }
+        },
+
+        _setBarWidth(name, pct, animate) {
+            var bar = this._progressBars[name];
+            if (!bar) return;
+            if (animate) {
+                bar.style.transition = 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+            }
+            bar.style.width = pct + '%';
+            if (animate) {
+                setTimeout(function () { bar.style.transition = ''; }, 700);
+            }
         },
 
         _format(n) {
             return Number(n).toLocaleString('en-US');
         },
 
-        _animateValue(el, from, to, duration) {
+        _animateValue(el, from, to, duration, suffix) {
             var start = performance.now();
             var diff = to - from;
+            suffix = suffix || '';
 
             function step(now) {
                 var progress = Math.min((now - start) / duration, 1);
                 // Ease out cubic
                 var eased = 1 - Math.pow(1 - progress, 3);
                 var current = Math.round(from + diff * eased);
-                el.textContent = Number(current).toLocaleString('en-US');
+                el.textContent = suffix ? current + suffix : Number(current).toLocaleString('en-US');
                 if (progress < 1) requestAnimationFrame(step);
             }
 
@@ -651,16 +711,25 @@
 
             var horseSelect = document.getElementById('explore-horses');
             var landSelect = document.getElementById('explore-land');
+            var exploreBar = document.getElementById('quick-explore');
             var withHorses = horseSelect ? parseInt(horseSelect.value, 10) : 0;
             var seekLand = landSelect ? parseInt(landSelect.value, 10) : 0;
 
+            // Include land priorities when exploring "All Land"
+            var params = {
+                eflag: 'send_explorers',
+                qty: qty,
+                withHorses: withHorses,
+                seekLand: seekLand
+            };
+            if (seekLand === 0 && exploreBar) {
+                params.pct_mountain = parseInt(exploreBar.dataset.pctMountain, 10) || 15;
+                params.pct_forest = parseInt(exploreBar.dataset.pctForest, 10) || 30;
+                params.pct_plains = parseInt(exploreBar.dataset.pctPlains, 10) || 55;
+            }
+
             try {
-                await Ajax.post('/game/explore/send', {
-                    eflag: 'send_explorers',
-                    qty: qty,
-                    withHorses: withHorses,
-                    seekLand: seekLand
-                }, { toastDuration: 6000 });
+                await Ajax.post('/game/explore/send', params, { toastDuration: 6000 });
                 // Refresh page content to update explore status
                 TurnPresets._refreshContent();
             } catch (e) {

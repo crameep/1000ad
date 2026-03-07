@@ -78,6 +78,11 @@ class ExploreController extends Controller
         // Last horse setting from session
         $lastHorseSetting = session('lastHorseSetting', 0);
 
+        // Land priority defaults (from session or defaults matching original ratios)
+        $pctMountain = session('explorePctMountain', 15);
+        $pctForest = session('explorePctForest', 30);
+        $pctPlains = session('explorePctPlains', 55);
+
         // Advisor tips
         $advisorTips = $this->advisorService->getExploreTips($player, $explorations, $canSend, $totalLand);
 
@@ -91,6 +96,9 @@ class ExploreController extends Controller
             'landTypes' => $landTypes,
             'cancelTime' => $cancelTime,
             'lastHorseSetting' => $lastHorseSetting,
+            'pctMountain' => $pctMountain,
+            'pctForest' => $pctForest,
+            'pctPlains' => $pctPlains,
             'advisorTips' => $advisorTips,
         ]);
     }
@@ -126,6 +134,32 @@ class ExploreController extends Controller
 
         // Remember horse setting in session
         session(['lastHorseSetting' => $withHorses]);
+
+        // Land priorities (only used when seekLand == 0)
+        $pctMountain = max(0, min(100, (int) $request->input('pct_mountain', 15)));
+        $pctForest = max(0, min(100, (int) $request->input('pct_forest', 30)));
+        $pctPlains = max(0, min(100, (int) $request->input('pct_plains', 55)));
+
+        // Normalize to 100% if they don't sum correctly
+        $pctTotal = $pctMountain + $pctForest + $pctPlains;
+        if ($pctTotal > 0 && $pctTotal !== 100) {
+            $pctMountain = (int) round($pctMountain * 100 / $pctTotal);
+            $pctForest = (int) round($pctForest * 100 / $pctTotal);
+            $pctPlains = 100 - $pctMountain - $pctForest;
+        } elseif ($pctTotal === 0) {
+            $pctMountain = 15;
+            $pctForest = 30;
+            $pctPlains = 55;
+        }
+
+        // Remember priorities in session
+        if ($seekLand === 0) {
+            session([
+                'explorePctMountain' => $pctMountain,
+                'explorePctForest' => $pctForest,
+                'explorePctPlains' => $pctPlains,
+            ]);
+        }
 
         // Calculate limits
         $maxExplorers = $player->town_center * $buildings[11]['max_explorers'];
@@ -226,6 +260,9 @@ class ExploreController extends Controller
             'people' => $qty,
             'food' => $exploreFood,
             'seek_land' => $seekLand,
+            'pct_mountain' => $seekLand === 0 ? $pctMountain : 0,
+            'pct_forest' => $seekLand === 0 ? $pctForest : 0,
+            'pct_plains' => $seekLand === 0 ? $pctPlains : 0,
             'horses' => $useHorses,
             'created_on' => now(),
             'turns_used' => 0,

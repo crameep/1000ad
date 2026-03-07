@@ -9,11 +9,7 @@
 {{-- Folder tabs --}}
 <div class="tab-bar">
     @foreach(['inbox' => 'Inbox', 'saved' => 'Saved', 'sent' => 'Sent', 'deleted' => 'Deleted', 'options' => 'Options'] as $folder => $label)
-        @if($messageFolder === $folder)
-            <a href="{{ route('game.messages', ['messageFolder' => $folder]) }}" class="tab active">{{ $label }}</a>
-        @else
-            <a href="{{ route('game.messages', ['messageFolder' => $folder]) }}" class="tab">{{ $label }}</a>
-        @endif
+        <a href="{{ route('game.messages', ['folder' => $folder]) }}" class="tab {{ $messageFolder === $folder ? 'active' : '' }}">{{ $label }}</a>
     @endforeach
 </div>
 
@@ -86,15 +82,14 @@ function replay(pid, mid) {
         <div class="msg-card-actions">
             <a href="#NEWMESSAGE" onclick="replay({{ $msg->from_player_id }}, {{ $idx }})">Reply</a>
             <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">@csrf <a href="#" onclick="this.closest('form').submit(); return false;">Delete</a></form>
-            <form action="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save']) }}" method="POST" class="inline-form">@csrf <input type="hidden" name="messageID" value="{{ $msg->id }}"><a href="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'save_message', 'messageID' => $msg->id]) }}">Save</a></form>
+            <form action="{{ route('game.messages.save', $msg->id) }}" method="POST" class="inline-form">@csrf <a href="#" onclick="this.closest('form').submit(); return false;">Save</a></form>
             <form action="{{ route('game.messages.block', $msg->from_player_id) }}" method="POST" class="inline-form">@csrf <a href="#" onclick="this.closest('form').submit(); return false;">Block {{ $msg->from_player_id }}</a></form>
         </div>
     </div>
     @endforeach
 
-    <form action="{{ route('game.messages', ['messageFolder' => 'inbox', 'eflag' => 'delete_all']) }}" method="POST" class="inline-form">
+    <form action="{{ route('game.messages.delete-all') }}" method="POST" class="inline-form">
         @csrf
-        <input type="hidden" name="deleteAll" value="1">
         <a href="#" onclick="this.closest('form').submit(); return false;">Delete All Messages</a>
     </form>
 @endif
@@ -115,16 +110,14 @@ function replay(pid, mid) {
         <div class="msg-card-actions">
             <form action="{{ route('game.messages.delete', $msg->id) }}" method="POST" class="inline-form">
                 @csrf
-                <input type="hidden" name="messageFolder" value="saved">
                 <a href="#" onclick="this.closest('form').submit(); return false;">Delete</a>
             </form>
         </div>
     </div>
     @endforeach
 
-    <form action="{{ route('game.messages', ['messageFolder' => 'saved', 'eflag' => 'delete_all_saved']) }}" method="POST" class="inline-form">
+    <form action="{{ route('game.messages.delete-all-saved') }}" method="POST" class="inline-form">
         @csrf
-        <input type="hidden" name="deleteAllSaved" value="1">
         <a href="#" onclick="this.closest('form').submit(); return false;">Delete All Saved Messages</a>
     </form>
 @endif
@@ -142,7 +135,7 @@ function replay(pid, mid) {
     </tr>
     @foreach($messages as $msg)
     <tr>
-        <td><a href="{{ route('game.messages', ['messageFolder' => 'viewMessage', 'messageID' => $msg->id]) }}">{{ $msg->to_player_name }} ({{ $msg->to_player_id }})</a></td>
+        <td><a href="{{ route('game.messages.view', $msg->id) }}">{{ $msg->to_player_name }} ({{ $msg->to_player_id }})</a></td>
         <td>{{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}</td>
         <td>{{ $msg->viewed ? 'Yes' : 'No' }}</td>
     </tr>
@@ -165,7 +158,7 @@ function replay(pid, mid) {
     </tr>
     @foreach($messages as $msg)
     <tr>
-        <td><a href="{{ route('game.messages', ['messageFolder' => 'viewMessage', 'messageID' => $msg->id]) }}">{{ $msg->from_player_name }} ({{ $msg->from_player_id }})</a></td>
+        <td><a href="{{ route('game.messages.view', $msg->id) }}">{{ $msg->from_player_name }} ({{ $msg->from_player_id }})</a></td>
         <td>{{ $msg->created_on->format('m/d/Y') }} at {{ $msg->created_on->format('h:i A') }}</td>
     </tr>
     @endforeach
@@ -183,12 +176,13 @@ function replay(pid, mid) {
 @else
     <div class="msg-card">
         <div class="msg-card-header">
-            Message to {{ $message->to_player_name }} ({{ $message->to_player_id }})
-            sent on {{ $message->created_on->format('m/d/Y') }} at {{ $message->created_on->format('h:i A') }}
+            Message from {{ $message->from_player_name }} ({{ $message->from_player_id }})
+            to {{ $message->to_player_name }} ({{ $message->to_player_id }})
+            <span class="text-sm">{{ $message->created_on->format('m/d/Y') }} at {{ $message->created_on->format('h:i A') }}</span>
         </div>
         <div class="msg-card-body">{!! nl2br(e($message->message)) !!}</div>
     </div>
-    <a href="{{ route('game.messages', ['messageFolder' => 'sent']) }}">Back...</a>
+    <a href="{{ route('game.messages', ['folder' => 'sent']) }}">Back to Sent</a>
 @endif
 
 {{-- OPTIONS --}}
@@ -196,9 +190,8 @@ function replay(pid, mid) {
     <b>You do not wish to receive messages from the following empires:</b>
     @forelse($blockedPlayers as $block)
         <li>{{ $block->name }} ({{ $block->player_id }}) -
-            <form action="{{ route('game.messages', ['messageFolder' => 'options', 'eflag' => 'unblock']) }}" method="POST" class="inline-form">
+            <form action="{{ route('game.messages.unblock', $block->id) }}" method="POST" class="inline-form">
                 @csrf
-                <input type="hidden" name="blockID" value="{{ $block->id }}">
                 <a href="#" onclick="this.closest('form').submit(); return false;">Unblock</a>
             </form>
         </li>
@@ -206,14 +199,14 @@ function replay(pid, mid) {
         None
     @endforelse
 
-    <form action="{{ route('game.messages.block', 0) }}" method="POST" id="blockForm">
+    <form action="{{ route('game.messages.block', 0) }}" method="POST" id="blockForm" onsubmit="this.action='/game/messages/block/' + document.getElementById('blockInput').value; return true;">
         @csrf
         <div class="form-panel">
             <div class="form-header">Block Messages From Player</div>
             <div class="form-body">
                 Player #:
-                <input type="text" name="blockID" value="0" size="3" id="blockInput">
-                <input type="submit" value="Block" onclick="this.form.action='{{ route('game.messages.block', '') }}/' + document.getElementById('blockInput').value; return true;">
+                <input type="text" name="blockID" value="" size="3" id="blockInput">
+                <input type="submit" value="Block">
             </div>
         </div>
     </form>
