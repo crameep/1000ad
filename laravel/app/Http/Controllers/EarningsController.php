@@ -76,22 +76,30 @@ class EarningsController extends Controller
     public function startConnect()
     {
         $user = Auth::user();
-        $connectService = new StripeConnectService();
 
-        // Create account if user doesn't have one yet
-        if (!$user->hasStripeConnect()) {
-            $connectService->createConnectedAccount($user);
-            $user->refresh();
+        try {
+            $connectService = new StripeConnectService();
+
+            // Create account if user doesn't have one yet
+            if (!$user->hasStripeConnect()) {
+                $connectService->createConnectedAccount($user);
+                $user->refresh();
+            }
+
+            // Generate onboarding link
+            $url = $connectService->createAccountLink(
+                $user->stripe_connect_account_id,
+                route('game.earnings.connect.refresh'),
+                route('game.earnings.connect.return')
+            );
+
+            return redirect($url);
+        } catch (\Exception $e) {
+            \Log::error('Stripe Connect onboarding error: ' . $e->getMessage());
+
+            return redirect()->route('game.earnings')
+                ->with('error', 'Unable to connect to Stripe. Please ensure Stripe Connect is enabled on the platform account, or try again later.');
         }
-
-        // Generate onboarding link
-        $url = $connectService->createAccountLink(
-            $user->stripe_connect_account_id,
-            route('game.earnings.connect.refresh'),
-            route('game.earnings.connect.return')
-        );
-
-        return redirect($url);
     }
 
     /**
@@ -116,14 +124,21 @@ class EarningsController extends Controller
                 ->with('error', 'Please try connecting your account again.');
         }
 
-        $connectService = new StripeConnectService();
-        $url = $connectService->createAccountLink(
-            $user->stripe_connect_account_id,
-            route('game.earnings.connect.refresh'),
-            route('game.earnings.connect.return')
-        );
+        try {
+            $connectService = new StripeConnectService();
+            $url = $connectService->createAccountLink(
+                $user->stripe_connect_account_id,
+                route('game.earnings.connect.refresh'),
+                route('game.earnings.connect.return')
+            );
 
-        return redirect($url);
+            return redirect($url);
+        } catch (\Exception $e) {
+            \Log::error('Stripe Connect refresh error: ' . $e->getMessage());
+
+            return redirect()->route('game.earnings')
+                ->with('error', 'Unable to connect to Stripe. Please try again later.');
+        }
     }
 
     /**

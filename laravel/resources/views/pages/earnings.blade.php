@@ -3,6 +3,13 @@
 @section('content')
 <div class="page-title">Earnings</div>
 
+@if(session('success'))
+    <div class="info-text text-success"><b>{{ session('success') }}</b></div>
+@endif
+@if(session('error'))
+    <div class="info-text text-error"><b>{{ session('error') }}</b></div>
+@endif
+
 {{-- Revenue Split Overview --}}
 <div class="panel">
     <div class="panel-header">Prize Pools</div>
