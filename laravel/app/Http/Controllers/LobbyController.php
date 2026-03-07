@@ -88,9 +88,14 @@ class LobbyController extends Controller
 
         foreach ($myGames as &$entry) {
             $gameRevenue = $revenueByGame[$entry['game']->id] ?? 0;
+            $pool = (int) round($gameRevenue * 0.25);
             $entry['gameRevenue'] = $gameRevenue;
-            $entry['prizePool'] = (int) round($gameRevenue * 0.25);
-            $entry['prizeTiers'] = $entry['game']->setting('prize_tiers') ?? [];
+            $entry['prizePool'] = $pool;
+            $entry['prizeSplit'] = $pool > 0 ? [
+                ['place' => 1, 'amount' => (int) round($pool * 0.50)],
+                ['place' => 2, 'amount' => (int) round($pool * 0.30)],
+                ['place' => 3, 'amount' => (int) round($pool * 0.20)],
+            ] : [];
         }
         unset($entry);
 
@@ -114,9 +119,14 @@ class LobbyController extends Controller
                     ->where('killed_by', 0)
                     ->count();
                 $gameRevenue = $revenueByGame[$game->id] ?? 0;
+                $pool = (int) round($gameRevenue * 0.25);
                 $game->game_revenue = $gameRevenue;
-                $game->prize_pool = (int) round($gameRevenue * 0.25);
-                $game->prize_tiers_data = $game->setting('prize_tiers') ?? [];
+                $game->prize_pool = $pool;
+                $game->prize_split = $pool > 0 ? [
+                    ['place' => 1, 'amount' => (int) round($pool * 0.50)],
+                    ['place' => 2, 'amount' => (int) round($pool * 0.30)],
+                    ['place' => 3, 'amount' => (int) round($pool * 0.20)],
+                ] : [];
                 return $game;
             });
 

@@ -88,7 +88,6 @@ class GameManagementController extends Controller
                 'extra_food_per_land' => config('game.extra_food_per_land'),
                 'people_burn_one_wood' => config('game.people_burn_one_wood'),
                 'max_empires_per_user' => (int) $request->max_empires_per_user,
-                'prize_tiers' => [],
             ],
             'created_by' => auth()->id(),
         ]);
@@ -138,20 +137,6 @@ class GameManagementController extends Controller
         // Update the max_empires_per_user in game settings JSON
         $game->setSetting('max_empires_per_user', (int) $request->max_empires_per_user);
 
-        // Parse prize tiers from form arrays
-        $prizeTiers = [];
-        $places = $request->input('prize_place', []);
-        $amounts = $request->input('prize_amount', []);
-        foreach ($places as $i => $place) {
-            if (!empty($place) && !empty($amounts[$i])) {
-                $prizeTiers[] = [
-                    'place' => (int) $place,
-                    'amount_cents' => (int) (floatval($amounts[$i]) * 100),
-                ];
-            }
-        }
-        $game->setSetting('prize_tiers', $prizeTiers);
-
         $game->update([
             'name' => $request->name,
             'description' => $request->description,
@@ -185,11 +170,10 @@ class GameManagementController extends Controller
     }
 
     /**
-     * Auto-assign prize payouts to top scorers when a game ends.
+     * Auto-assign prize payouts to top 3 scorers when a game ends.
      *
      * Revenue split: 25% of game revenue goes to game prize pool.
-     * If admin-configured tiers exist, their amounts are used as
-     * distribution weights. Otherwise defaults to top 3: 50/30/20.
+     * Pool is distributed: 1st 50%, 2nd 30%, 3rd 20%.
      */
     private function assignPrizes(Game $game): void
     {
@@ -202,49 +186,27 @@ class GameManagementController extends Controller
         $gameRevenue = Transaction::where('game_id', $game->id)->sum('amount_cents');
         $prizePool = (int) round($gameRevenue * 0.25);
 
-        // Use admin-configured tiers as distribution weights, or default split
-        $tiers = $game->setting('prize_tiers') ?? [];
-
-        if (!empty($tiers)) {
-            usort($tiers, fn($a, $b) => $a['place'] <=> $b['place']);
-            // Use tier amounts as proportional weights
-            $totalWeight = array_sum(array_column($tiers, 'amount_cents'));
-            if ($totalWeight > 0 && $prizePool > 0) {
-                // Distribute revenue pool proportionally
-                foreach ($tiers as &$tier) {
-                    $tier['payout_cents'] = (int) round($prizePool * ($tier['amount_cents'] / $totalWeight));
-                }
-                unset($tier);
-            } else {
-                // No revenue yet — use fixed tier amounts directly
-                foreach ($tiers as &$tier) {
-                    $tier['payout_cents'] = $tier['amount_cents'];
-                }
-                unset($tier);
-            }
-        } elseif ($prizePool > 0) {
-            // No tiers configured — default top 3 split: 50/30/20
-            $tiers = [
-                ['place' => 1, 'payout_cents' => (int) round($prizePool * 0.50)],
-                ['place' => 2, 'payout_cents' => (int) round($prizePool * 0.30)],
-                ['place' => 3, 'payout_cents' => (int) round($prizePool * 0.20)],
-            ];
-        } else {
-            return; // No revenue and no tiers — nothing to pay
+        if ($prizePool <= 0) {
+            return;
         }
 
-        // Get top N alive players by score descending
-        $topCount = count($tiers);
+        $splits = [
+            ['place' => 1, 'payout_cents' => (int) round($prizePool * 0.50)],
+            ['place' => 2, 'payout_cents' => (int) round($prizePool * 0.30)],
+            ['place' => 3, 'payout_cents' => (int) round($prizePool * 0.20)],
+        ];
+
+        // Get top 3 alive players by score descending
         $topPlayers = Player::withoutGlobalScope('game')
             ->where('game_id', $game->id)
             ->where('killed_by', 0)
             ->orderByDesc('score')
-            ->limit($topCount)
+            ->limit(3)
             ->get();
 
-        foreach ($tiers as $i => $tier) {
+        foreach ($splits as $i => $split) {
             $player = $topPlayers[$i] ?? null;
-            if (!$player || ($tier['payout_cents'] ?? 0) <= 0) {
+            if (!$player || $split['payout_cents'] <= 0) {
                 continue;
             }
 
@@ -252,8 +214,8 @@ class GameManagementController extends Controller
                 'user_id' => $player->user_id,
                 'game_id' => $game->id,
                 'player_id' => $player->id,
-                'place' => $tier['place'],
-                'amount_cents' => $tier['payout_cents'],
+                'place' => $split['place'],
+                'amount_cents' => $split['payout_cents'],
                 'status' => 'pending',
             ]);
         }

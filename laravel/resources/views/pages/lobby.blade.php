@@ -81,7 +81,7 @@
                         $slotsTotal = $entry['slotsTotal'] ?? 1;
                         $maxAllowed = $entry['maxAllowed'] ?? 1;
                         $prizePool = $entry['prizePool'] ?? 0;
-                        $prizeTiers = $entry['prizeTiers'] ?? [];
+                        $prizeSplit = $entry['prizeSplit'] ?? [];
                     @endphp
                     <div class="lobby-game-card">
                         <div class="lobby-game-header">
@@ -121,21 +121,19 @@
                                     &bull; <span class="text-warning">{{ ucfirst($game->status) }}</span>
                                 @endif
                             </div>
-                            @if($prizePool > 0 || !empty($prizeTiers))
-                                <div class="lobby-prize-pool">
-                                    @if($prizePool > 0)
-                                        <span class="lobby-prize-pool-label">Game Prize Pool:</span>
-                                        <span class="lobby-prize-pool-amount">${{ number_format($prizePool / 100, 2) }}</span>
-                                    @endif
-                                    @if(!empty($prizeTiers))
-                                        <span class="lobby-prize-tiers">
-                                            @foreach(collect($prizeTiers)->sortBy('place')->take(3) as $tier)
-                                                {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount_cents'] / 100, 2) }}@if(!$loop->last) &bull; @endif
-                                            @endforeach
-                                        </span>
-                                    @endif
-                                </div>
-                            @endif
+                            <div class="lobby-prize-pool">
+                                <span class="lobby-prize-pool-label">Prize Pool:</span>
+                                <span class="lobby-prize-pool-amount">${{ number_format($prizePool / 100, 2) }}</span>
+                                @if($prizePool > 0)
+                                    <span class="lobby-prize-tiers">
+                                        @foreach($prizeSplit as $tier)
+                                            {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount'] / 100, 2) }}@if(!$loop->last) &bull; @endif
+                                        @endforeach
+                                    </span>
+                                @else
+                                    <span class="lobby-prize-tiers text-muted">1st: 50% &bull; 2nd: 30% &bull; 3rd: 20%</span>
+                                @endif
+                            </div>
                         </div>
                         @if($maxAllowed > 1 && $slotsUsed < $slotsTotal && $canCreateMore)
                             <div class="lobby-game-actions">
@@ -235,21 +233,19 @@
                                     No end date
                                 @endif
                             </div>
-                            @if($game->prize_pool > 0 || !empty($game->prize_tiers_data))
-                                <div class="lobby-prize-pool">
-                                    @if($game->prize_pool > 0)
-                                        <span class="lobby-prize-pool-label">Game Prize Pool:</span>
-                                        <span class="lobby-prize-pool-amount">${{ number_format($game->prize_pool / 100, 2) }}</span>
-                                    @endif
-                                    @if(!empty($game->prize_tiers_data))
-                                        <span class="lobby-prize-tiers">
-                                            @foreach(collect($game->prize_tiers_data)->sortBy('place')->take(3) as $tier)
-                                                {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount_cents'] / 100, 2) }}@if(!$loop->last) &bull; @endif
-                                            @endforeach
-                                        </span>
-                                    @endif
-                                </div>
-                            @endif
+                            <div class="lobby-prize-pool">
+                                <span class="lobby-prize-pool-label">Prize Pool:</span>
+                                <span class="lobby-prize-pool-amount">${{ number_format($game->prize_pool / 100, 2) }}</span>
+                                @if($game->prize_pool > 0)
+                                    <span class="lobby-prize-tiers">
+                                        @foreach($game->prize_split as $tier)
+                                            {{ ordinal($tier['place']) }}: ${{ number_format($tier['amount'] / 100, 2) }}@if(!$loop->last) &bull; @endif
+                                        @endforeach
+                                    </span>
+                                @else
+                                    <span class="lobby-prize-tiers text-muted">1st: 50% &bull; 2nd: 30% &bull; 3rd: 20%</span>
+                                @endif
+                            </div>
                         </div>
                         <div class="lobby-game-actions">
                             <button type="button" class="btn btn-success" onclick="toggleJoinForm({{ $game->id }})">Join</button>
