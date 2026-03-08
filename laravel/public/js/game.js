@@ -254,16 +254,10 @@
             }
         },
 
-        _setBarWidth(name, pct, animate) {
+        _setBarWidth(name, pct) {
             var bar = this._progressBars[name];
             if (!bar) return;
-            if (animate) {
-                bar.style.transition = 'width 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-            }
             bar.style.width = pct + '%';
-            if (animate) {
-                setTimeout(function () { bar.style.transition = ''; }, 700);
-            }
         },
 
         _format(n) {
@@ -285,6 +279,10 @@
             }
 
             requestAnimationFrame(step);
+
+            // Safety: ensure final value is set even if rAF doesn't fire
+            var finalText = suffix ? to + suffix : Number(to).toLocaleString('en-US');
+            setTimeout(function () { el.textContent = finalText; }, duration + 50);
         }
     };
 
