@@ -315,7 +315,7 @@ class GameAdvisorService
 
         // No food production at all
         if ($player->hunter == 0 && $player->farmer == 0) {
-            $tips[] = ['type' => 'danger', 'message' => "You have no food production! Build <a href=\"javascript:openHelp('hunter')\">hunters</a> (year-round) or <a href=\"javascript:openHelp('farm')\">farms</a> (summer only)."];
+            $tips[] = ['type' => 'danger', 'message' => "You have no food production! Build <a href=\"javascript:openHelp('buildings#hunters')\">hunters</a> (year-round) or <a href=\"javascript:openHelp('buildings#farms')\">farms</a> (summer only)."];
         }
         // Has farmers but no hunters, winter approaching
         elseif ($player->farmer > 0 && $player->hunter == 0 && ($month >= 9 || $month <= 3)) {
@@ -623,7 +623,7 @@ class GameAdvisorService
 
         // Has army but no active attacks
         if ($totalArmy > 0 && $attacks->isEmpty()) {
-            $tips[] = ['type' => 'info', 'message' => "Your army is idle. Scout enemies with <a href=\"javascript:openHelp('thief')\">thieves</a> first, then attack to gain land and resources."];
+            $tips[] = ['type' => 'info', 'message' => "Your army is idle. Scout enemies with <a href=\"javascript:openHelp('army#UNIT7')\">thieves</a> first, then attack to gain land and resources."];
         }
 
         // Wine reminder — with ratio info

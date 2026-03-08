@@ -174,7 +174,7 @@ function toggleBuildQueue(e) {
                      onerror="this.style.display='none'" onload="this.style.display=''">
                 <div class="build-card-info">
                     <div class="build-card-top">
-                        <span class="build-card-name" style="color: {{ $color }}">{{ $b['name'] }}</span>
+                        <a href="javascript:openHelp('buildings#B{{ $i }}')" class="build-card-name" style="color: {{ $color }}">{{ $b['name'] }}</a>
                         <span class="build-card-count" style="color: {{ $color }}">{{ number_format($stats['have']) }}</span>
                     </div>
                     <div class="build-card-mid">
@@ -307,7 +307,7 @@ function toggleBuildQueue(e) {
     var cards = document.querySelectorAll('.build-card');
     for (var i = 0; i < cards.length; i++) {
         cards[i].addEventListener('click', function(e) {
-            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') return;
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION' || e.target.tagName === 'A') return;
 
             var card = this;
             var buildingNo = card.dataset.building;

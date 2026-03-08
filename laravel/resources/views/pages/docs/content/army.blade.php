@@ -3,16 +3,17 @@
 
 <h4>Unit Types</h4>
 <ul>
-    <li><b>Swordsman</b> - Standard melee infantry. Requires 1 sword to train.</li>
-    <li><b>Archer</b> - Ranged unit. Requires 1 bow to train.</li>
-    <li><b>Horseman</b> - Fast cavalry. Requires 1 sword and 1 horse to train.</li>
-    <li><b>Maceman</b> - Heavy melee infantry. Requires 1 mace to train.</li>
-    <li><b>Trained Peasant</b> - Cheap militia. Requires only gold to train.</li>
-    <li><b>Catapult</b> - Siege weapon for destroying buildings and walls. Requires gold and wood.</li>
-    <li><b>Thief</b> - Covert operative for espionage missions. Requires gold to train.</li>
+    <li id="UNIT2"><b>Swordsman</b> - Standard melee infantry. Requires 1 sword to train.</li>
+    <li id="UNIT1"><b>Archer</b> - Ranged unit. Requires 1 bow to train.</li>
+    <li id="UNIT3"><b>Horseman</b> - Fast cavalry. Requires 1 sword and 1 horse to train.</li>
+    <li id="UNIT4"><b>Maceman</b> - Heavy melee infantry. Requires 1 mace to train.</li>
+    <li id="UNIT5"><b>Trained Peasant</b> - Cheap militia. Requires only gold to train.</li>
+    <li id="UNIT6"><b>Catapult</b> - Siege weapon for destroying buildings and walls. Requires gold and wood.</li>
+    <li id="UNIT7"><b>Thief</b> - Covert operative for espionage missions. Requires gold to train.</li>
 </ul>
 
-<h4>Civilization Units</h4>
+<h4 id="UNIT9">Civilization Units</h4>
+<span id="UNIT10"></span><span id="UNIT11"></span><span id="UNIT12"></span><span id="UNIT13"></span><span id="UNIT14"></span>
 <p>Each civilization has a unique unit with special bonuses. See the <b>Civilizations</b> page for details.</p>
 
 <h4>Upkeep</h4>

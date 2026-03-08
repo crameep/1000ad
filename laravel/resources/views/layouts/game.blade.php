@@ -14,8 +14,8 @@
     <title>1000 A.D.</title>
     <script>
         function openHelp(h) {
-            if (window.innerWidth <= 600) {
-                window.location.href = '/game/docs/' + h;
+            if (window.Game && window.Game.DocsModal) {
+                Game.DocsModal.open(h);
             } else {
                 window.open('/game/docs/' + h, '_blank', 'width=800,height=500,scrollbars=yes');
             }

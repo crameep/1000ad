@@ -454,6 +454,155 @@
         }
     };
 
+    // ─── Docs Modal ─────────────────────────────────────────────────
+    const DocsModal = {
+        _overlay: null,
+        _cache: {},
+        _escHandler: null,
+
+        open(page) {
+            page = page || 'home';
+            var hash = '';
+            var hashIdx = page.indexOf('#');
+            if (hashIdx > -1) {
+                hash = page.substring(hashIdx + 1);
+                page = page.substring(0, hashIdx);
+            }
+
+            this._show(page);
+
+            if (this._cache[page]) {
+                this._render(page, hash);
+            } else {
+                this._fetch(page, hash);
+            }
+        },
+
+        _show(page) {
+            this.close();
+
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML =
+                '<div class="modal-box modal-docs">' +
+                    '<div class="modal-header">' +
+                        '<span class="modal-docs-title">Loading\u2026</span>' +
+                        '<button class="modal-docs-close" aria-label="Close">&times;</button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="docs-nav"></div>' +
+                        '<div class="docs-content"><div class="docs-loading">Loading\u2026</div></div>' +
+                    '</div>' +
+                '</div>';
+
+            overlay.querySelector('.modal-docs-close').addEventListener('click', function () {
+                DocsModal.close();
+            });
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) DocsModal.close();
+            });
+
+            this._escHandler = function (e) {
+                if (e.key === 'Escape') DocsModal.close();
+            };
+            document.addEventListener('keydown', this._escHandler);
+
+            document.body.appendChild(overlay);
+            this._overlay = overlay;
+        },
+
+        _fetch(page, hash) {
+            var self = this;
+            fetch('/game/docs/' + page, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function (resp) { return resp.json(); })
+            .then(function (json) {
+                self._cache[page] = json;
+                self._render(page, hash);
+            })
+            .catch(function () {
+                if (self._overlay) {
+                    var content = self._overlay.querySelector('.docs-content');
+                    if (content) content.innerHTML = '<p>Failed to load documentation.</p>';
+                }
+            });
+        },
+
+        _render(page, hash) {
+            if (!this._overlay) return;
+            var data = this._cache[page];
+            if (!data) return;
+
+            // Title
+            var titleEl = this._overlay.querySelector('.modal-docs-title');
+            if (titleEl) titleEl.textContent = data.title;
+
+            // Nav
+            var nav = this._overlay.querySelector('.docs-nav');
+            if (nav && data.pages) {
+                var html = '';
+                var keys = Object.keys(data.pages);
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    html += '<a href="#" class="docs-nav-link' + (k === page ? ' active' : '') +
+                            '" data-page="' + k + '">' + data.pages[k] + '</a>';
+                }
+                nav.innerHTML = html;
+
+                // Bind nav clicks
+                var links = nav.querySelectorAll('.docs-nav-link');
+                for (var j = 0; j < links.length; j++) {
+                    links[j].addEventListener('click', function (e) {
+                        e.preventDefault();
+                        DocsModal._navigate(this.getAttribute('data-page'));
+                    });
+                }
+            }
+
+            // Content
+            var content = this._overlay.querySelector('.docs-content');
+            if (content) {
+                content.innerHTML = data.content;
+
+                // Scroll to hash anchor
+                if (hash) {
+                    var anchor = content.querySelector('#' + hash);
+                    if (anchor) {
+                        setTimeout(function () { anchor.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+                    }
+                } else {
+                    content.scrollTop = 0;
+                }
+            }
+        },
+
+        _navigate(page) {
+            if (this._cache[page]) {
+                this._render(page, '');
+            } else {
+                // Show loading in content area
+                var content = this._overlay ? this._overlay.querySelector('.docs-content') : null;
+                if (content) content.innerHTML = '<div class="docs-loading">Loading\u2026</div>';
+                this._fetch(page, '');
+            }
+        },
+
+        close() {
+            if (this._overlay) {
+                this._overlay.remove();
+                this._overlay = null;
+            }
+            if (this._escHandler) {
+                document.removeEventListener('keydown', this._escHandler);
+                this._escHandler = null;
+            }
+        }
+    };
+
     // ─── Turn Presets (Custom Counter) ─────────────────────────────
     const TurnPresets = {
         _container: null,
@@ -941,7 +1090,8 @@
         StickyBar: StickyBar,
         FaviconBadge: FaviconBadge,
         QuickExplore: QuickExplore,
-        Advisor: Advisor
+        Advisor: Advisor,
+        DocsModal: DocsModal
     };
 
     // Global toggleAdvisor function (called from Blade component onclick)

@@ -37,6 +37,15 @@ class DocsController extends Controller
         $title = $this->pages[$page];
         $pages = $this->pages;
 
+        if (request()->ajax()) {
+            return response()->json([
+                'title' => $title,
+                'page' => $page,
+                'content' => view('pages.docs.content.' . $page)->render(),
+                'pages' => $pages,
+            ]);
+        }
+
         return view('pages.docs.index', compact('page', 'title', 'pages'));
     }
 }
